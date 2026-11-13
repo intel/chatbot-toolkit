@@ -23,8 +23,8 @@ from comps.cores.mega.constants import MegaServiceEndpoint, ServiceType
 from comps.cores.mega.logger import change_erag_logger_level, get_erag_logger
 from comps.cores.mega.micro_service import erag_microservices, register_microservice
 from comps.cores.proto.docarray import TextDoc, TextExtractorInput, TextSplitterInput
+from comps.cores.utils.process_pool import new_process_pool, replace_if_broken
 from comps.text_extractor.utils.file_loaders.load_pdf import LoadPdf, _process_single_page_from_file
-from comps.cores.utils.process_pool import new_process_pool
 
 
 # Define the unique service name for the microservice
@@ -122,25 +122,26 @@ def _replace_broken_pool(broken):
     """A worker that died (OOM kill, native crash) breaks the whole pool: every later task
     fails until the pod restarts, and the health check does not notice. Start a new pool."""
     global pool, _completed_since_recycle
-    if pool is not broken:
-        return
-    pool = new_process_pool(_max_workers)
-    _completed_since_recycle = 0
-    broken.shutdown(wait=False)
-    logger.warning("Process pool broken (a worker died); started a new one")
+    replacement = replace_if_broken(pool, broken, _max_workers)
+    if replacement is not pool:
+        pool = replacement
+        _completed_since_recycle = 0
+        logger.warning("Process pool broken (a worker died); started a new one")
 
 
 def _submit(func, *args):
     """Submit a task to the pool, tracking in-flight/completed counts to drive recycling."""
     global _inflight
     loop = asyncio.get_event_loop()
-    current = pool
-    try:
-        future = loop.run_in_executor(current, func, *args)
-    except BrokenProcessPool:
-        _replace_broken_pool(current)
+    for retry in (False, True):
         current = pool
-        future = loop.run_in_executor(current, func, *args)
+        try:
+            future = loop.run_in_executor(current, func, *args)
+            break
+        except BrokenProcessPool:
+            if retry:
+                raise
+            _replace_broken_pool(current)
     _inflight += 1
     task = asyncio.ensure_future(future)
 
@@ -258,21 +259,15 @@ async def process_multipart(
     if not decoded_files and not links and not texts:
         raise HTTPException(status_code=400, detail="No files, links or texts provided.")
 
-    loaded_docs: list[TextDoc] = []
-    try:
+    async def load() -> list[TextDoc]:
+        loaded_docs: list[TextDoc] = []
         if decoded_files:
             loaded_docs.extend((await _process_files(decoded_files)).loaded_docs)
         if links or texts:
             loaded_docs.extend((await _process_links_and_texts(link_list=links, texts=texts)).loaded_docs)
-    except HTTPException:
-        raise
-    except Exception as e:
-        # Unhandled, uvicorn answers 500 and resets the connection, which a keep-alive
-        # client (a sidecar) sends its next request into.
-        logger.exception(e)
-        raise HTTPException(status_code=500, detail=f"An error occurred while processing: {str(e)}")
+        return loaded_docs
 
-    result = TextSplitterInput(loaded_docs=loaded_docs)
+    result = TextSplitterInput(loaded_docs=await _http_errors_only(load()))
     statistics_dict[USVC_NAME].append_latency(time.time() - start, None)
     return result
 
@@ -298,15 +293,21 @@ async def process(input: TextExtractorInput) -> TextSplitterInput:
     if not link_list and not texts:
         raise HTTPException(status_code=400, detail="No links or texts provided.")
 
-    try:
-        result = await _process_links_and_texts(link_list=link_list, texts=texts)
-    except HTTPException:
-        raise
-    except Exception as e:  # see process_multipart
-        logger.exception(e)
-        raise HTTPException(status_code=500, detail=f"An error occurred while processing: {str(e)}")
+    result = await _http_errors_only(_process_links_and_texts(link_list=link_list, texts=texts))
     statistics_dict[USVC_NAME].append_latency(time.time() - start, None)
     return result
+
+
+async def _http_errors_only(coro):
+    """Await coro, turning an unexpected error into a 500: unhandled, uvicorn resets the
+    connection, and a keep-alive client (a sidecar) sends its next request into it."""
+    try:
+        return await coro
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(e)
+        raise HTTPException(status_code=500, detail=f"An error occurred while processing: {str(e)}")
 
 
 async def _process_files(decoded_files: list[tuple[str, bytes]]) -> TextSplitterInput:

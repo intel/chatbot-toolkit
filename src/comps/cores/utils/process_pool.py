@@ -8,16 +8,8 @@ from concurrent.futures import ProcessPoolExecutor
 
 
 def close_inherited_sockets():
-    """Pool initializer: drop the TCP sockets a forked worker inherited from the server.
-
-    Fork workers start with copies of uvicorn's listening socket and its client
-    connections. While a worker holds a copy, a connection the server closes stays open
-    (no FIN), so a client that keeps connections alive, like a sidecar proxy, sends its
-    next request into it and waits; it is reset when the worker exits. Each such fd is
-    pointed at /dev/null rather than closed, so the number stays taken and the server's
-    socket objects the worker still has can not close an fd the worker opens later.
-    Pipes (the pool's own queues) and Unix sockets are left alone.
-    """
+    """Pool initializer: fork workers inherit the server's TCP sockets and keep the connections
+    it closes open. Point each at /dev/null rather than close it, so its fd number stays taken."""
     try:
         fds = [int(fd) for fd in os.listdir("/proc/self/fd")]
     except OSError:  # no /proc
@@ -44,3 +36,12 @@ def close_inherited_sockets():
 def new_process_pool(max_workers):
     """A ProcessPoolExecutor whose workers do not hold the server's connections."""
     return ProcessPoolExecutor(max_workers=max_workers, initializer=close_inherited_sockets)
+
+
+def replace_if_broken(current, broken, max_workers):
+    """The pool to use after `broken` raised BrokenProcessPool: a new one if `broken` is still
+    `current`, otherwise `current` (another task already replaced it)."""
+    if current is not broken:
+        return current
+    broken.shutdown(wait=False)
+    return new_process_pool(max_workers)

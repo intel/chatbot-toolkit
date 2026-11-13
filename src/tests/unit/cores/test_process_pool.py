@@ -5,7 +5,7 @@ import os
 import socket
 import stat
 
-from comps.cores.utils.process_pool import new_process_pool
+from comps.cores.utils.process_pool import new_process_pool, replace_if_broken
 
 
 def _open_sockets():
@@ -50,3 +50,15 @@ def test_workers_can_open_their_own_connections():
 def _connect(address):
     with socket.create_connection(address):
         return True
+
+
+def test_a_broken_pool_is_replaced_once():
+    broken = new_process_pool(1)
+    replacement = replace_if_broken(broken, broken, 1)
+    try:
+        assert replacement is not broken
+        # A second task that saw the same broken pool keeps the replacement.
+        assert replace_if_broken(replacement, broken, 1) is replacement
+        assert replacement.submit(os.getpid).result(timeout=30) != os.getpid()
+    finally:
+        replacement.shutdown()

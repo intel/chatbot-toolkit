@@ -180,6 +180,7 @@ class TestBrokenPool:
 
         monkeypatch.setattr(te_mod, "pool", new_process_pool(1))
         monkeypatch.setattr(te_mod, "_inflight", 0)
+        monkeypatch.setattr(te_mod, "_completed_since_recycle", 0)
         broken = te_mod.pool
         with pytest.raises(BrokenProcessPool):
             await te_mod._submit(_die)
