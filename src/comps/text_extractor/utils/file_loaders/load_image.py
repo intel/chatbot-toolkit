@@ -54,10 +54,42 @@ class LoadImage(AbstractLoader):
         self.file_type = "png"
 
     def _clean_ocr_text(self, text: str) -> str:
-        """Normalize OCR noise: whitespace, punctuation, leading/trailing junk."""
+        """Normalize OCR noise: whitespace, punctuation, leading/trailing junk.
+
+        Discards unreadable OCR noise (e.g. artifacts from diagrams or photos)
+        by validating alphanumeric character density and requiring at least one
+        coherent word.
+        """
         if not text:
             return ""
         text = text.strip().replace("—", "-").replace("_", " ")
-        text = regex.sub(r"\s+", " ", text)
-        return text.strip()
+        text = regex.sub(r"\s+", " ", text).strip()
+        if not text:
+            return ""
+
+        # Filter standalone single-symbol tokens commonly produced by diagram OCR
+        tokens = [t for t in text.split(" ") if t and (t.isalnum() or len(t) > 1)]
+        if not tokens:
+            return ""
+
+        cleaned = " ".join(tokens).strip()
+        non_ws = [c for c in cleaned if not c.isspace()]
+        if not non_ws:
+            return ""
+
+        # Require that at least 50% of non-whitespace characters are alphanumeric
+        alnum_count = sum(c.isalnum() for c in non_ws)
+        if alnum_count / len(non_ws) < 0.5:
+            return ""
+
+        # Require at least one coherent word with letters and vowels (eng + pol)
+        vowels = set("aeiouyAEIOUYąęóĄĘÓ")
+        has_coherent_word = any(
+            len(t) >= 2 and any(c in vowels for c in t) and any(c.isalpha() for c in t)
+            for t in tokens
+        )
+        if not has_coherent_word:
+            return ""
+
+        return cleaned
 
