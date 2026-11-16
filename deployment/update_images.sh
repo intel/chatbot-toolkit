@@ -5,7 +5,7 @@
 REGISTRY_NAME=localhost:5000
 REGISTRY_PATH=erag
 TAG=latest
-IMAGE_PREFIX="enterprise-rag-"
+IMAGE_PREFIX="chatbot-toolkit-"
 _max_parallel_jobs=4
 
 components_to_build=()
@@ -654,8 +654,8 @@ if [ -f "${logs_dir}/failed_components.tmp" ]; then
     for comp in "${failed_components[@]}"; do
         log_error "$comp"
         # Show the most recent error from logs
-        if [ -f "${logs_dir}/build_enterprise-rag-${comp}.log" ]; then
-            log_error "    Last error: $(tail -n 3 "${logs_dir}/build_enterprise-rag-${comp}.log" | head -n 1)"
+        if [ -f "${logs_dir}/build_${IMAGE_PREFIX}${comp}.log" ]; then
+            log_error "    Last error: $(tail -n 3 "${logs_dir}/build_${IMAGE_PREFIX}${comp}.log" | head -n 1)"
         fi
     done
     rm -f "${logs_dir}/failed_components.tmp"
