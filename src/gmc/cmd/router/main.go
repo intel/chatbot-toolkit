@@ -1940,9 +1940,10 @@ func initializeRoutes() *http.ServeMux {
 	// "http.server.response.size" - Int64Counter  - "Measures the size of HTTP response messages" (Incoming response bytes total)
 	// "http.server.duration" - Float64histogram "Measures the duration of inbound HTTP requests." (Incoming end to end duration, milliseconds)
 	handleFunc := func(pattern string, handlerFunc func(http.ResponseWriter, *http.Request), operation string) {
-		// Wrap with otelhttp handler.
+		// Wrap with otelhttp handler. It takes the http.route attribute from the
+		// ServeMux pattern (r.Pattern), so no route tag is needed.
 		handler := otelhttp.NewHandler(
-			otelhttp.WithRouteTag(pattern, http.HandlerFunc(handlerFunc)),
+			http.HandlerFunc(handlerFunc),
 			operation,
 			otelhttp.WithFilter(func(r *http.Request) bool {
 				for _, excludedUrl := range OtelExcludedUrls {
