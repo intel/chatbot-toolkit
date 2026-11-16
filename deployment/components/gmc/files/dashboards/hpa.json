@@ -491,7 +491,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(metric_name)(kube_horizontalpodautoscaler_status_target_metric{horizontalpodautoscaler=~\"$hpa\", service=~\"(kube-prometheus-stack-)?kube-state-metrics\"})",
+          "expr": "label_replace(label_replace(sum by(metric_name)(kube_horizontalpodautoscaler_status_target_metric{horizontalpodautoscaler=~\"$hpa\", service=~\"(kube-prometheus-stack-)?kube-state-metrics\"}), \"metric_name\", \"edp_backend_files_to_upload\", \"metric_name\", \"s0-prometheus\"), \"metric_name\", \"edp_backend_files_active\", \"metric_name\", \"s1-prometheus\")",
           "instant": false,
           "legendFormat": "current_{{metric_name}}",
           "range": true,
@@ -503,7 +503,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(metric_name)(kube_horizontalpodautoscaler_spec_target_metric{horizontalpodautoscaler=~\"$hpa\", service=~\"(kube-prometheus-stack-)?kube-state-metrics\"})",
+          "expr": "label_replace(label_replace(sum by(metric_name)(kube_horizontalpodautoscaler_spec_target_metric{horizontalpodautoscaler=~\"$hpa\", service=~\"(kube-prometheus-stack-)?kube-state-metrics\"}), \"metric_name\", \"edp_backend_files_to_upload\", \"metric_name\", \"s0-prometheus\"), \"metric_name\", \"edp_backend_files_active\", \"metric_name\", \"s1-prometheus\")",
           "instant": false,
           "legendFormat": "threshold_{{metric_name}}",
           "range": true,
