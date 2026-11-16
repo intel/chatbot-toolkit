@@ -294,3 +294,6 @@ monitoring:
   enabled: true
   # Namespace Grafana's sidecar watches for dashboard ConfigMaps.
   dashboardNamespace: monitoring
+
+# The HPA dashboard without hpa_enabled, for HPAs made by KEDA.
+hpaDashboard: false

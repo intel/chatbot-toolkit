@@ -12,14 +12,12 @@ balloonsEnabled: {{ balloons_enabled | default(false) }}
 pipelineNamespace: {{ pipeline_namespace }}
 {# _deploy_overrides is only set when app_inference_models ran with an embedding role #}
 embeddingReplicas: {{ _deploy_overrides.embedding.replicas | default(1) | int }}
-{% if _edp_keda_supported | bool and keda_enabled | default(false) | bool %}
+{% if not _edp_hpa_supported | bool and keda_enabled | default(false) | bool %}
 keda:
   enabled: true
   prometheus:
     serverAddress: "{{ _edp_keda_prometheus_url }}"
-    injectServiceCA: {{ _edp_keda_inject_service_ca | bool | string | lower }}
-  operatorServiceAccount:
-    namespace: {{ _edp_keda_operator_namespace }}
+  operatorNamespace: {{ _edp_keda_operator_namespace }}
 {% endif %}
 {% if (minimal_configuration | default(false) | bool) or (edp_minimal_configuration | default(false) | bool) %}
 minimalConfiguration: true

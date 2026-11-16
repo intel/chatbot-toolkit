@@ -66,8 +66,7 @@ hpa_enabled: false
 {% elif hpa_enabled is defined %}
 hpa_enabled: {{ hpa_enabled }}
 {% endif %}
-{# The text extractor scales on KEDA there (app_edp); its HPA is KEDA's. #}
-{% if _pipeline_keda_supported | bool and keda_enabled | default(false) | bool %}
+{% if not _pipeline_hpa_supported | bool and keda_enabled | default(false) | bool %}
 hpaDashboard: true
 {% endif %}
 
