@@ -4,3 +4,9 @@
 _edp_post_renderer: "{{ role_path }}/../../scripts/openshift_post_renderer.py"
 _edp_fixed_uids: false
 _edp_hpa_supported: false
+# The text extractor scales on KEDA (Custom Metrics Autoscaler) when keda_enabled,
+# querying user-workload metrics through Thanos Querier's tenancy port.
+_edp_keda_supported: true
+_edp_keda_prometheus_url: "https://thanos-querier.openshift-monitoring.svc.cluster.local:9092"
+_edp_keda_inject_service_ca: true
+_edp_keda_operator_namespace: openshift-keda

@@ -17,6 +17,18 @@ pipelineNamespace: "chatqna"
 # by the app_edp role; drives MAX_NEW_WORKERS and CELERY_BATCH_SIZE.
 embeddingReplicas: 1
 
+# Text extractor autoscaling on KEDA (textExtractor.hpa settings), where
+# hpa_enabled is off because the cluster has no Prometheus Adapter.
+keda:
+  enabled: false
+  prometheus:
+    serverAddress: ""
+    # ConfigMap with the OpenShift service CA, to trust Thanos Querier.
+    injectServiceCA: false
+  operatorServiceAccount:
+    name: keda-operator
+    namespace: keda
+
 proxy:
   http_proxy: ""
   https_proxy: ""

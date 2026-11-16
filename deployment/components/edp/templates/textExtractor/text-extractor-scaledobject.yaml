@@ -1,0 +1,144 @@
+{{- if and ((.Values).keda).enabled (not .Values.hpa_enabled) }}
+{{- $name := .Values.textExtractor.nameOverride | default (include "helm-edp.fullname" .) }}
+{{- $hpa := ((.Values).textExtractor).hpa | default dict }}
+{{- $up := toString ($hpa.scaleUpTargetValue | default 2) }}
+{{- $down := toString ($hpa.scaleDownTargetValue | default "500m") }}
+{{- if hasSuffix "m" $down }}{{ $down = toString (divf (trimSuffix "m" $down | float64) 1000) }}{{ end }}
+# The HPA of text-extractor-hpa.yaml on KEDA, for clusters without the
+# Prometheus Adapter: same metrics, targets and behavior.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $name }}-keda
+  labels:
+    {{- include "helm-edp.selectorLabels" . | nindent 4 }}
+---
+# Thanos Querier's tenancy port serves a namespace's metrics to a token that can
+# get pods.metrics.k8s.io there.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $name }}-keda-metrics
+  labels:
+    {{- include "helm-edp.selectorLabels" . | nindent 4 }}
+rules:
+  - apiGroups: [metrics.k8s.io]
+    resources: [pods]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}-keda-metrics
+  labels:
+    {{- include "helm-edp.selectorLabels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $name }}-keda-metrics
+subjects:
+  - kind: ServiceAccount
+    name: {{ $name }}-keda
+    namespace: {{ .Release.Namespace }}
+---
+# The KEDA operator requests short-lived tokens for that ServiceAccount.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $name }}-keda-token
+  labels:
+    {{- include "helm-edp.selectorLabels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: [serviceaccounts/token]
+    resourceNames: [{{ $name }}-keda]
+    verbs: [create]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $name }}-keda-token
+  labels:
+    {{- include "helm-edp.selectorLabels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $name }}-keda-token
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.keda.operatorServiceAccount.name }}
+    namespace: {{ .Values.keda.operatorServiceAccount.namespace }}
+{{- if .Values.keda.prometheus.injectServiceCA }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}-keda-ca
+  labels:
+    {{- include "helm-edp.selectorLabels" . | nindent 4 }}
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
+{{- end }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: {{ $name }}-prometheus
+  labels:
+    {{- include "helm-edp.selectorLabels" . | nindent 4 }}
+spec:
+  boundServiceAccountToken:
+    - parameter: bearerToken
+      serviceAccountName: {{ $name }}-keda
+  {{- if .Values.keda.prometheus.injectServiceCA }}
+  configMapTargetRef:
+    - parameter: ca
+      name: {{ $name }}-keda-ca
+      key: service-ca.crt
+  {{- end }}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "helm-edp.selectorLabels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ $name }}
+  minReplicaCount: {{ $hpa.minReplicas | default 1 }}
+  maxReplicaCount: {{ $hpa.maxReplicas | default 4 }}
+  {{- with $hpa.behavior }}
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        {{- toYaml . | nindent 8 }}
+  {{- end }}
+  # metricType Value: the HPA scales on value / target times the current
+  # replicas, as for the Object metrics of the Prometheus Adapter.
+  triggers:
+    - type: prometheus
+      name: files-to-upload
+      metricType: Value
+      metadata:
+        serverAddress: {{ .Values.keda.prometheus.serverAddress | quote }}
+        namespace: {{ .Release.Namespace }}
+        authModes: bearer
+        query: sum(edp_files_uploaded_total{service="edp-backend"}) + sum(edp_links_uploaded_total{service="edp-backend"})
+        threshold: {{ $up | quote }}
+      authenticationRef:
+        name: {{ $name }}-prometheus
+    - type: prometheus
+      name: files-active
+      metricType: Value
+      metadata:
+        serverAddress: {{ .Values.keda.prometheus.serverAddress | quote }}
+        namespace: {{ .Release.Namespace }}
+        authModes: bearer
+        query: sum(edp_files_uploaded_total{service="edp-backend"}) + sum(edp_files_text_extracting_total{service="edp-backend"}) + sum(edp_links_uploaded_total{service="edp-backend"}) + sum(edp_links_text_extracting_total{service="edp-backend"})
+        threshold: {{ $down | quote }}
+      authenticationRef:
+        name: {{ $name }}-prometheus
+{{- end }}
