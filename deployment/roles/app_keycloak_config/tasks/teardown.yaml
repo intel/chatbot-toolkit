@@ -150,3 +150,8 @@
   loop_control:
     label: "{{ item.metadata.name }}"
   when: _kc_cfg_jobs.resources | default([]) | length > 0
+
+# --- Phase 3: Remove the Grafana SSO earlier releases injected ---
+
+- name: "app_keycloak_config | teardown | Remove the Grafana SSO earlier releases injected"
+  ansible.builtin.include_tasks: _remove_grafana_sso.yaml

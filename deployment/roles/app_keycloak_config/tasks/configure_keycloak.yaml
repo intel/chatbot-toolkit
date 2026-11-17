@@ -122,3 +122,6 @@
       {% endif %}
   no_log: "{{ secure_logs }}"
   when: erag_credentials_secret.resources | length > 0
+
+- name: "app_keycloak_config | install | Remove the Grafana SSO earlier releases injected"
+  ansible.builtin.include_tasks: _remove_grafana_sso.yaml

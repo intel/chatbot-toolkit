@@ -8,7 +8,7 @@ Visit `https://grafana.<base_domain_name>` (default: `https://grafana.solutions.
 
 ![login screenshot](../images/telemetry/login.png)
 
-Grafana opens on its login form, with two sign-in methods:
+Grafana opens on its login form, with two sign-in methods. If it goes straight to Keycloak instead (an older platform release), open `https://grafana.<base_domain_name>/login?disableAutoLogin=true` to reach the form.
 
 ### Grafana admin credentials
 
@@ -22,7 +22,7 @@ kubectl get secret -n monitoring grafana-admin-credentials \
 
 ### Platform Keycloak SSO
 
-Click **Sign in with Keycloak** on the login form and sign in with your platform account (realm `platform`), for example `platform-admin`. Members of `platform-admins` are Grafana admins; other users are Viewers. The Chatbot Toolkit realm (`EnterpriseRAG`) accounts do not sign in to Grafana.
+Click **Sign in with Keycloak** on the login form and sign in with your platform account (realm `platform`), for example `platform-admin`. The Chatbot Toolkit realm (`EnterpriseRAG`) accounts do not sign in to Grafana. Who gets which Grafana role is set by the platform: see [Grafana sign-in](https://github.com/intel/enterprise-ai-solutions/blob/main/docs/deploy/headlamp.md#grafana-sign-in) in the Toolkit Manager documentation.
 
 ## Dashboards
 

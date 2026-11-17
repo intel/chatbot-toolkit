@@ -1301,6 +1301,16 @@ map_client_role_to_group "$KEYCLOAK_REALM" "erag-maintainer-group" "EnterpriseRA
 map_client_role_to_group "$KEYCLOAK_REALM" "erag-maintainer-group" "EnterpriseRAG-oidc-minio" "erag-user-group"
 map_client_role_to_group "$KEYCLOAK_REALM" "erag-maintainer-group" "EnterpriseRAG-oidc-minio" "erag-maintainer-group"
 
+# Earlier releases signed people in to Grafana through this realm; the platform realm does now.
+grafana_client_uuid=$(get_client_id "$KEYCLOAK_REALM" "grafana-oauth")
+if [ -n "$grafana_client_uuid" ]; then
+  if curl_keycloak "${KEYCLOAK_URL}/admin/realms/${KEYCLOAK_REALM}/clients/${grafana_client_uuid}" "" DELETE; then
+    log_success "Deleted the obsolete grafana-oauth client"
+  else
+    log_error "Failed to delete the obsolete grafana-oauth client (HTTP $HTTP_CODE)"
+  fi
+fi
+
 # OIDC Identity Provider (if configured)
 if [[ "$OIDC_ENDPOINT" =~ ^https?:// ]]; then
   log_info "Configuring OIDC identity provider..."
