@@ -35,7 +35,7 @@ Expand the name of the chart.
 {{- end }}
 
 {{- define "helm-edp.textExtractor.keda" -}}
-{{- if and ((.Values).keda).enabled (not .Values.hpa_enabled) }}true{{ end }}
+{{- if and .Values.hpa_enabled (eq (.Values.hpaProvider | default "prometheus-adapter") "keda") }}true{{ end }}
 {{- end }}
 
 {{- define "helm-edp.textExtractor.hpaBehavior" -}}

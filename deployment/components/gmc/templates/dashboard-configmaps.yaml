@@ -2,7 +2,7 @@
 {{- $files := .Files.Glob "files/dashboards/*.json" }}
 {{- range $path, $_ := $files }}
 {{- $name := regexReplaceAll "(^.*/)(.*)\\.json$" $path "${2}" }}
-{{- if or (ne $name "hpa") ($.Values.hpa_enabled | default false) ($.Values.hpaDashboard | default false) }}
+{{- if or (ne $name "hpa") ($.Values.hpa_enabled | default false) }}
 ---
 # Copyright (C) 2024-2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0

@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Render the edp chart's text extractor autoscaling with `helm template`: the HPA
-(hpa_enabled, Prometheus Adapter) or KEDA's ScaledObject (keda.enabled), never both,
-with the same targets and behavior. Skipped where helm is not installed.
+Render the edp chart's text extractor autoscaling with `helm template`: with hpa_enabled,
+the HPA (hpaProvider prometheus-adapter) or KEDA's ScaledObject (hpaProvider keda), never
+both, with the same targets and behavior. Skipped where helm is not installed.
 """
 
 import shutil
@@ -51,13 +51,18 @@ def test_default_renders_neither():
     assert not _hpa(docs) and not _keda(docs)
 
 
-def test_hpa_enabled_wins_over_keda():
-    docs = _render("hpa_enabled=true", "keda.enabled=true")
+def test_keda_provider_without_hpa_enabled_renders_neither():
+    docs = _render("hpaProvider=keda")
+    assert not _hpa(docs) and not _keda(docs)
+
+
+def test_prometheus_adapter_provider_renders_the_hpa_only():
+    docs = _render("hpa_enabled=true")
     assert len(_hpa(docs)) == 1 and not _keda(docs)
 
 
 def test_keda_objects():
-    objects = _keda(_render("keda.enabled=true", "keda.prometheus.serverAddress=https://thanos:9092",
+    objects = _keda(_render("hpa_enabled=true", "hpaProvider=keda", "keda.prometheus.serverAddress=https://thanos:9092",
                             "keda.operatorNamespace=openshift-keda"))
     assert sorted(objects) == sorted([
         ("ServiceAccount", "edp-text-extractor-keda"),
@@ -76,7 +81,7 @@ def test_keda_objects():
     assert [float(t["metadata"]["threshold"]) for t in triggers] == [_quantity(m["object"]["target"]["value"])
                                                                       for m in _hpa(_render("hpa_enabled=true"))[0]["spec"]["metrics"]]
     assert [float(t["metadata"]["threshold"]) for t in _keda(_render(
-        "keda.enabled=true", "textExtractor.hpa.scaleUpTargetValue=3", "textExtractor.hpa.scaleDownTargetValue=500m",
+        "hpa_enabled=true", "hpaProvider=keda", "textExtractor.hpa.scaleUpTargetValue=3", "textExtractor.hpa.scaleDownTargetValue=500m",
     ))[("ScaledObject", "edp-text-extractor")]["spec"]["triggers"]] == [3, 0.5]
     assert {t["metadata"]["serverAddress"] for t in triggers} == {"https://thanos:9092"}
     assert {t["metadata"]["namespace"] for t in triggers} == {"edp"}
@@ -89,7 +94,7 @@ def test_keda_objects():
 ], ids=["values", "override", "unset"])
 def test_keda_behaves_like_the_hpa(values):
     hpa = _hpa(_render("hpa_enabled=true", *values))[0]["spec"]
-    scaled = _keda(_render("keda.enabled=true", *values))[("ScaledObject", "edp-text-extractor")]["spec"]
+    scaled = _keda(_render("hpa_enabled=true", "hpaProvider=keda", *values))[("ScaledObject", "edp-text-extractor")]["spec"]
     assert scaled["advanced"]["horizontalPodAutoscalerConfig"]["behavior"] == hpa["behavior"]
     assert hpa["behavior"]["scaleDown"]["stabilizationWindowSeconds"] == (120 if values and "120" in values[0] else 60)
     assert (scaled["minReplicaCount"], scaled["maxReplicaCount"]) == (hpa["minReplicas"], hpa["maxReplicas"])

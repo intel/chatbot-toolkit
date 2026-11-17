@@ -1,6 +1,6 @@
-{{- /* The text extractor's autoscaler: an HPA on the Prometheus Adapter's metrics
-       (hpa_enabled), or KEDA's ScaledObject (keda.enabled), from which KEDA makes the HPA. */}}
-{{- if .Values.hpa_enabled }}
+{{- /* The text extractor's autoscaler with hpa_enabled: an HPA on the Prometheus Adapter's
+       metrics, or with hpaProvider keda a ScaledObject, from which KEDA makes the HPA. */}}
+{{- if and .Values.hpa_enabled (not (include "helm-edp.textExtractor.keda" .)) }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
