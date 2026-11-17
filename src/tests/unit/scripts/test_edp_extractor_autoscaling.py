@@ -72,7 +72,6 @@ def test_keda_objects():
     auth = objects[("TriggerAuthentication", "edp-text-extractor-prometheus")]["spec"]
     assert auth["configMapTargetRef"] == [{"parameter": "ca", "name": "edp-text-extractor-keda-ca", "key": "service-ca.crt"}]
     triggers = objects[("ScaledObject", "edp-text-extractor")]["spec"]["triggers"]
-    # The HPA dashboard names KEDA's s0 and s1 metrics after this order.
     assert [t["name"] for t in triggers] == ["files-to-upload", "files-active"]
     assert [float(t["metadata"]["threshold"]) for t in triggers] == [_quantity(m["object"]["target"]["value"])
                                                                       for m in _hpa(_render("hpa_enabled=true"))[0]["spec"]["metrics"]]
