@@ -33,6 +33,12 @@ pytestmark = pytest.mark.skipif(shutil.which("helm") is None and not os.environ.
                                 reason="helm is not installed")
 
 
+@pytest.fixture(scope="module", autouse=True)
+def _dependencies():
+    # charts/*.tgz is not in git; both dependencies are local (file://)
+    subprocess.run(["helm", "dependency", "build", "--skip-refresh", str(_CHART)], check=True, capture_output=True)
+
+
 def _render(*values):
     args = ["helm", "template", "t", str(_CHART), "-n", "edp"]
     for value in values:
