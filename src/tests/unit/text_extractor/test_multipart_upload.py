@@ -214,3 +214,27 @@ class TestBrokenPool:
             assert await te_mod._submit(os.getpid) != os.getpid()
         finally:
             te_mod.pool.shutdown()
+
+    @pytest.mark.asyncio
+    async def test_a_pool_broken_while_idle_is_replaced_on_submit(self, monkeypatch):
+        import signal
+        import time
+        from comps.cores.utils.process_pool import new_process_pool
+
+        monkeypatch.setattr(te_mod, "pool", new_process_pool(1))
+        monkeypatch.setattr(te_mod, "_inflight", 0)
+        monkeypatch.setattr(te_mod, "_completed_since_recycle", 0)
+        broken = te_mod.pool
+        try:
+            # A worker killed with nothing in flight: no task's callback replaces the pool,
+            # so the next submit finds it broken.
+            os.kill(broken.submit(os.getpid).result(timeout=30), signal.SIGKILL)
+            deadline = time.monotonic() + 30
+            while not broken._broken and time.monotonic() < deadline:
+                time.sleep(0.05)
+            assert broken._broken
+            assert await te_mod._submit(os.getpid) != os.getpid()
+            assert te_mod.pool is not broken
+        finally:
+            te_mod.pool.shutdown()
+            broken.shutdown()

@@ -54,7 +54,9 @@ async def test_a_dead_worker_is_a_500_and_the_next_request_gets_a_new_pool(monke
 def test_a_request_that_saw_the_old_pool_keeps_the_new_one(monkeypatch):
     broken, current = new_process_pool(1), new_process_pool(1)
     monkeypatch.setattr(ts_mod, "pool", current)
-    ts_mod._replace_broken_pool(broken)
-    assert ts_mod.pool is current
-    broken.shutdown()
-    current.shutdown()
+    try:
+        ts_mod._replace_broken_pool(broken)
+        assert ts_mod.pool is current
+    finally:
+        broken.shutdown()
+        current.shutdown()
