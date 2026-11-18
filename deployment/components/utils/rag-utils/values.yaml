@@ -82,4 +82,4 @@ images:
     repository: "docker.io/intel"
     image: "chatbot-toolkit-init-container"
     tag: "latest"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always

@@ -382,10 +382,9 @@ tag_and_push() {
     local registry_url=$1
     local repo_name=$2
     local image=$3
+    local log_file=$4
 
     local full_image_name="${repo_name}/${image}:${TAG}"
-    # Not local: the component loop reports this log if the push fails.
-    component_log="${logs_dir}/push_$(basename ${full_image_name}).log"
 
     log_info "Starting push for $full_image_name"
 
@@ -404,13 +403,13 @@ tag_and_push() {
     $CONTAINER_CLI tag "${full_image_name}" "${registry_url}/${full_image_name}"
 
     log_info "Pushing image: ${registry_url}/${full_image_name}"
-    $CONTAINER_CLI push "${registry_url}/${full_image_name}" &> "${component_log}"
+    $CONTAINER_CLI push "${registry_url}/${full_image_name}" &> "${log_file}"
 
     if [ $? -eq 0 ]; then
         log_success "$full_image_name pushed successfully"
         return 0
     else
-        log_error "Push failed for $full_image_name. Check logs at ${component_log}"
+        log_error "Push failed for $full_image_name. Check logs at ${log_file}"
         return 1
     fi
 }
@@ -456,24 +455,23 @@ build_component() {
     local dockerfile_path=${2#$component_path/}
     local repo_name=$3
     local image=$4
-    local build_args=${5:-""}
+    local log_file=$5
+    local build_args=${6:-""}
 
     local full_image_name="${repo_name}/${image}:${TAG}"
-    # Not local: the component loop reports this log if the build fails.
-    component_log="${logs_dir}/build_$(basename ${full_image_name}).log"
 
     log_info "Starting build for $full_image_name"
     log_info "Build context: ${repo_path}/${component_path}"
     log_info "Dockerfile: ${dockerfile_path}"
 
     cd "${repo_path}/${component_path}"
-    $CONTAINER_CLI build -t ${full_image_name} ${use_proxy} -f ${dockerfile_path} . ${build_args} ${no_cache} --progress=plain &> "${component_log}"
+    $CONTAINER_CLI build -t ${full_image_name} ${use_proxy} -f ${dockerfile_path} . ${build_args} ${no_cache} --progress=plain &> "${log_file}"
 
     if [ $? -eq 0 ]; then
         log_success "$full_image_name built successfully"
         return 0
     else
-        log_error "Build failed for $full_image_name. Check logs at ${component_log}"
+        log_error "Build failed for $full_image_name. Check logs at ${log_file}"
         return 1
     fi
 }
@@ -592,7 +590,7 @@ for component in "${components_to_build[@]}"; do
 
     (
         component_success=true
-        component_log=""
+        failed_log=""
 
         docker_context=$(get_content "$component" "docker_context")
         dockerfile_path=$(get_content "$component" "dockerfile_path")
@@ -608,16 +606,20 @@ for component in "${components_to_build[@]}"; do
         fi
 
         image_name="${IMAGE_PREFIX}${image_name}"
+        build_log="${logs_dir}/build_${image_name}:${TAG}.log"
+        push_log="${logs_dir}/push_${image_name}:${TAG}.log"
 
         if $do_build_flag; then
-            if ! build_component "${docker_context}" "$dockerfile_path" "$REGISTRY_PATH" "$image_name"; then
+            if ! build_component "${docker_context}" "$dockerfile_path" "$REGISTRY_PATH" "$image_name" "$build_log"; then
                 component_success=false
+                failed_log=$build_log
             fi
         fi
 
         if $do_push_flag && $component_success; then
-            if ! tag_and_push "$REGISTRY_NAME" "$REGISTRY_PATH" "$image_name"; then
+            if ! tag_and_push "$REGISTRY_NAME" "$REGISTRY_PATH" "$image_name" "$push_log"; then
                 component_success=false
+                failed_log=$push_log
             fi
         fi
 
@@ -625,8 +627,7 @@ for component in "${components_to_build[@]}"; do
             echo "$component" >> "${logs_dir}/successful_components.tmp"
             log_success "Component '$component' completed successfully"
         else
-            # "<component> <log of the failed build or push>"
-            echo "$component $component_log" >> "${logs_dir}/failed_components.tmp"
+            echo "$component $failed_log" >> "${logs_dir}/failed_components.tmp"
             log_error "Component '$component' failed"
         fi
     ) &
@@ -658,10 +659,8 @@ if [ -f "${logs_dir}/failed_components.tmp" ]; then
     log_error "Failed to process $(sort -u "${logs_dir}/failed_components.tmp" | wc -l) components:"
     while read -r comp comp_log; do
         log_error "$comp"
-        # Last error line of the failed build or push (last line if none says "error")
         if [ -n "$comp_log" ] && [ -f "$comp_log" ]; then
-            last_error=$(grep -i 'error' "$comp_log" | tail -n 1)
-            log_error "    Last error: ${last_error:-$(tail -n 1 "$comp_log")}"
+            log_error "    Last error: $(tail -n 1 "$comp_log")"
             log_error "    Log: $comp_log"
         fi
     done < <(sort -u "${logs_dir}/failed_components.tmp")
