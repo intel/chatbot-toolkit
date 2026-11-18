@@ -81,5 +81,5 @@ images:
   init-container:
     repository: "docker.io/intel"
     image: "chatbot-toolkit-init-container"
-    tag: "1.5.0"
+    tag: "latest"
     pullPolicy: IfNotPresent
