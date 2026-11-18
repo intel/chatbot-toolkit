@@ -30,10 +30,10 @@
       "includeVars": false,
       "keepTime": true,
       "tags": [
-        "entrag"
+        "chatbot"
       ],
       "targetBlank": false,
-      "title": "Enterprise RAG dashboards",
+      "title": "Chatbot Toolkit dashboards",
       "tooltip": "",
       "type": "dashboards",
       "url": ""
@@ -597,7 +597,7 @@
   "refresh": "30s",
   "schemaVersion": 39,
   "tags": [
-    "entrag",
+    "chatbot",
     "microservices"
   ],
   "templating": {
@@ -708,7 +708,7 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "EnterpriseRAG / Services / Top",
+  "title": "Chatbot Toolkit / Services / Top",
   "uid": "W2gX2zHVk48",
   "version": 2,
   "weekStart": ""

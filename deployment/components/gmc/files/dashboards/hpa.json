@@ -25,10 +25,10 @@
       "includeVars": false,
       "keepTime": true,
       "tags": [
-        "entrag"
+        "chatbot"
       ],
       "targetBlank": false,
-      "title": "Enterprise RAG dashboards",
+      "title": "Chatbot Toolkit dashboards",
       "tooltip": "",
       "type": "dashboards",
       "url": ""
@@ -518,7 +518,7 @@
   "refresh": "30s",
   "schemaVersion": 42,
   "tags": [
-    "entrag",
+    "chatbot",
     "hpa"
   ],
   "templating": {
@@ -560,7 +560,7 @@
     "to": "now"
   },
   "timezone": "browser",
-  "title": "EnterpriseRAG / HPA",
+  "title": "Chatbot Toolkit / HPA",
   "version": 2,
   "uid": "dek9qyfkazev4e",
   "id": 42

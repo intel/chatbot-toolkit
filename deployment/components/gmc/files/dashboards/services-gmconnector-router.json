@@ -33,10 +33,10 @@
       "includeVars": false,
       "keepTime": true,
       "tags": [
-        "entrag"
+        "chatbot"
       ],
       "targetBlank": false,
-      "title": "Enterprise RAG dashboards",
+      "title": "Chatbot Toolkit dashboards",
       "tooltip": "",
       "type": "dashboards",
       "url": ""
@@ -1262,7 +1262,7 @@
   "refresh": "30s",
   "schemaVersion": 40,
   "tags": [
-    "entrag",
+    "chatbot",
     "microservices"
   ],
   "templating": {
@@ -1449,7 +1449,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "EnterpriseRAG / Services / GMConnector (router)",
+  "title": "Chatbot Toolkit / Services / GMConnector (router)",
   "uid": "ddusxu5kgjr40e",
   "version": 2,
   "weekStart": ""
