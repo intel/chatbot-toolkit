@@ -656,14 +656,16 @@ else
 fi
 
 if [ -f "${logs_dir}/failed_components.tmp" ]; then
-    log_error "Failed to process $(sort -u "${logs_dir}/failed_components.tmp" | wc -l) components:"
-    while read -r comp comp_log; do
+    mapfile -t failed_components < <(sort -u "${logs_dir}/failed_components.tmp")
+    log_error "Failed to process ${#failed_components[@]} components:"
+    for line in "${failed_components[@]}"; do
+        read -r comp comp_log <<< "$line"
         log_error "$comp"
         if [ -n "$comp_log" ] && [ -f "$comp_log" ]; then
             log_error "    Last error: $(tail -n 1 "$comp_log")"
             log_error "    Log: $comp_log"
         fi
-    done < <(sort -u "${logs_dir}/failed_components.tmp")
+    done
     rm -f "${logs_dir}/failed_components.tmp"
 
     log_error "Build completed with errors. Check individual log files in $logs_dir"
