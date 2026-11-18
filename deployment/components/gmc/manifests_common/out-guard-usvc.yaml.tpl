@@ -127,7 +127,7 @@ spec:
         - name: nltk-data
           emptyDir: {}
 ---
-{{- if and .Values.hpa_enabled (eq (.Values.hpaProvider | default "prometheus-adapter") "prometheus-adapter") }}
+{{- if and .Values.hpa_enabled (eq .Values.hpaProvider "prometheus-adapter") }}
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

@@ -42,7 +42,7 @@ spec:
 {{- end }}
 {{- if include "helm-edp.textExtractor.keda" . }}
 {{- $name := include "helm-edp.textExtractor.scaledName" . }}
-{{- $hpa := ((.Values).textExtractor).hpa | default dict }}
+{{- $hpa := .Values.textExtractor.hpa }}
 {{- $down := toString ($hpa.scaleDownTargetValue | default "500m") }}
 {{- if hasSuffix "m" $down }}{{ $down = toString (divf (trimSuffix "m" $down | float64) 1000) }}{{ end }}
 {{- /* The queues of the Prometheus Adapter rules (components/hpa/prometheus_adapter.yaml);
@@ -78,7 +78,7 @@ spec:
       name: {{ .name }}
       metricType: Value
       metadata:
-        serverAddress: {{ $.Values.keda.prometheus.serverAddress | quote }}
+        serverAddress: {{ required "keda.prometheus.serverAddress is required with hpaProvider keda" $.Values.keda.prometheus.serverAddress | quote }}
         namespace: {{ $.Release.Namespace }}
         authModes: bearer
         query: {{ .query }}

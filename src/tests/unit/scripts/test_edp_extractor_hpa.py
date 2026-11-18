@@ -6,9 +6,11 @@
 """
 Render the edp chart's text extractor autoscaling with `helm template`: with hpa_enabled,
 the HPA (hpaProvider prometheus-adapter) or KEDA's ScaledObject (hpaProvider keda), never
-both, with the same targets and behavior. Skipped where helm is not installed.
+both, with the same targets and behavior. Skipped where helm is not installed, except in
+CI, where the tox env installs it.
 """
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -17,9 +19,18 @@ import pytest
 import yaml
 
 _CHART = Path(__file__).resolve().parents[4] / "deployment" / "components" / "edp"
-_KEDA = ["ServiceAccount", "Role", "RoleBinding", "ConfigMap", "TriggerAuthentication", "ScaledObject"]
+_SERVER = "keda.prometheus.serverAddress=https://thanos:9092"
+_KEDA = {
+    ("ServiceAccount", "edp-text-extractor-keda"),
+    ("Role", "edp-text-extractor-keda-metrics"), ("RoleBinding", "edp-text-extractor-keda-metrics"),
+    ("Role", "edp-text-extractor-keda-token"), ("RoleBinding", "edp-text-extractor-keda-token"),
+    ("ConfigMap", "edp-text-extractor-keda-ca"),
+    ("TriggerAuthentication", "edp-text-extractor-prometheus"),
+    ("ScaledObject", "edp-text-extractor"),
+}
 
-pytestmark = pytest.mark.skipif(shutil.which("helm") is None, reason="helm is not installed")
+pytestmark = pytest.mark.skipif(shutil.which("helm") is None and not os.environ.get("CI"),
+                                reason="helm is not installed")
 
 
 def _render(*values):
@@ -31,9 +42,12 @@ def _render(*values):
 
 
 def _keda(docs):
-    return {(d["kind"], d["metadata"]["name"]): d for d in docs
-            if d["kind"] in _KEDA and d["metadata"]["name"].startswith("edp-text-extractor")
-            and (d["kind"] in ("ScaledObject", "TriggerAuthentication") or "-keda" in d["metadata"]["name"])}
+    return {(d["kind"], d["metadata"]["name"]): d for d in docs if (d["kind"], d["metadata"]["name"]) in _KEDA}
+
+
+def _thresholds(*values):
+    scaled = _keda(_render("hpa_enabled=true", "hpaProvider=keda", _SERVER, *values))[("ScaledObject", "edp-text-extractor")]
+    return [float(t["metadata"]["threshold"]) for t in scaled["spec"]["triggers"]]
 
 
 def _quantity(value):
@@ -62,39 +76,41 @@ def test_prometheus_adapter_provider_renders_the_hpa_only():
 
 
 def test_keda_objects():
-    objects = _keda(_render("hpa_enabled=true", "hpaProvider=keda", "keda.prometheus.serverAddress=https://thanos:9092",
-                            "keda.operatorNamespace=openshift-keda"))
-    assert sorted(objects) == sorted([
-        ("ServiceAccount", "edp-text-extractor-keda"),
-        ("Role", "edp-text-extractor-keda-metrics"), ("RoleBinding", "edp-text-extractor-keda-metrics"),
-        ("Role", "edp-text-extractor-keda-token"), ("RoleBinding", "edp-text-extractor-keda-token"),
-        ("ConfigMap", "edp-text-extractor-keda-ca"),
-        ("TriggerAuthentication", "edp-text-extractor-prometheus"),
-        ("ScaledObject", "edp-text-extractor"),
-    ])
+    objects = _keda(_render("hpa_enabled=true", "hpaProvider=keda", _SERVER, "keda.operatorNamespace=openshift-keda"))
+    assert set(objects) == _KEDA
     token = objects[("RoleBinding", "edp-text-extractor-keda-token")]
     assert token["subjects"] == [{"kind": "ServiceAccount", "name": "keda-operator", "namespace": "openshift-keda"}]
     auth = objects[("TriggerAuthentication", "edp-text-extractor-prometheus")]["spec"]
     assert auth["configMapTargetRef"] == [{"parameter": "ca", "name": "edp-text-extractor-keda-ca", "key": "service-ca.crt"}]
     triggers = objects[("ScaledObject", "edp-text-extractor")]["spec"]["triggers"]
     assert [t["name"] for t in triggers] == ["files-to-upload", "files-active"]
-    assert [float(t["metadata"]["threshold"]) for t in triggers] == [_quantity(m["object"]["target"]["value"])
-                                                                      for m in _hpa(_render("hpa_enabled=true"))[0]["spec"]["metrics"]]
-    assert [float(t["metadata"]["threshold"]) for t in _keda(_render(
-        "hpa_enabled=true", "hpaProvider=keda", "textExtractor.hpa.scaleUpTargetValue=3", "textExtractor.hpa.scaleDownTargetValue=500m",
-    ))[("ScaledObject", "edp-text-extractor")]["spec"]["triggers"]] == [3, 0.5]
     assert {t["metadata"]["serverAddress"] for t in triggers} == {"https://thanos:9092"}
     assert {t["metadata"]["namespace"] for t in triggers} == {"edp"}
 
 
-@pytest.mark.parametrize("values", [
-    [],
-    ["textExtractor.hpa.behavior.scaleDown.stabilizationWindowSeconds=120"],
-    ["textExtractor.hpa.behavior=null"],  # the chart's built-in behavior
+def test_keda_thresholds_are_the_hpa_targets():
+    targets = [m["object"]["target"]["value"] for m in _hpa(_render("hpa_enabled=true"))[0]["spec"]["metrics"]]
+    assert _thresholds() == [_quantity(t) for t in targets]
+
+
+def test_keda_thresholds_follow_the_values():
+    assert _thresholds("textExtractor.hpa.scaleUpTargetValue=3", "textExtractor.hpa.scaleDownTargetValue=500m") == [3, 0.5]
+
+
+def test_keda_without_a_server_address_fails():
+    with pytest.raises(subprocess.CalledProcessError) as e:
+        _render("hpa_enabled=true", "hpaProvider=keda")
+    assert "keda.prometheus.serverAddress is required" in e.value.stderr
+
+
+@pytest.mark.parametrize("values, window", [
+    ([], 60),
+    (["textExtractor.hpa.behavior.scaleDown.stabilizationWindowSeconds=120"], 120),
+    (["textExtractor.hpa.behavior=null"], 60),  # the chart's built-in behavior
 ], ids=["values", "override", "unset"])
-def test_keda_behaves_like_the_hpa(values):
+def test_keda_behaves_like_the_hpa(values, window):
     hpa = _hpa(_render("hpa_enabled=true", *values))[0]["spec"]
-    scaled = _keda(_render("hpa_enabled=true", "hpaProvider=keda", *values))[("ScaledObject", "edp-text-extractor")]["spec"]
+    scaled = _keda(_render("hpa_enabled=true", "hpaProvider=keda", _SERVER, *values))[("ScaledObject", "edp-text-extractor")]["spec"]
     assert scaled["advanced"]["horizontalPodAutoscalerConfig"]["behavior"] == hpa["behavior"]
-    assert hpa["behavior"]["scaleDown"]["stabilizationWindowSeconds"] == (120 if values and "120" in values[0] else 60)
+    assert hpa["behavior"]["scaleDown"]["stabilizationWindowSeconds"] == window
     assert (scaled["minReplicaCount"], scaled["maxReplicaCount"]) == (hpa["minReplicas"], hpa["maxReplicas"])

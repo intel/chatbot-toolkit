@@ -491,7 +491,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(metric_name)(kube_horizontalpodautoscaler_status_target_metric{horizontalpodautoscaler=~\"$hpa\", horizontalpodautoscaler!~\"keda-hpa-.+\", service=~\"(kube-prometheus-stack-)?kube-state-metrics\"})",
+          "expr": "sum by(metric_name)(kube_horizontalpodautoscaler_status_target_metric{horizontalpodautoscaler=~\"$hpa\", horizontalpodautoscaler!=\"keda-hpa-edp-text-extractor\", service=~\"(kube-prometheus-stack-)?kube-state-metrics\"})",
           "instant": false,
           "legendFormat": "current_{{metric_name}}",
           "range": true,
@@ -503,7 +503,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(metric_name)(kube_horizontalpodautoscaler_spec_target_metric{horizontalpodautoscaler=~\"$hpa\", horizontalpodautoscaler!~\"keda-hpa-.+\", service=~\"(kube-prometheus-stack-)?kube-state-metrics\"})",
+          "expr": "sum by(metric_name)(kube_horizontalpodautoscaler_spec_target_metric{horizontalpodautoscaler=~\"$hpa\", horizontalpodautoscaler!=\"keda-hpa-edp-text-extractor\", service=~\"(kube-prometheus-stack-)?kube-state-metrics\"})",
           "instant": false,
           "legendFormat": "threshold_{{metric_name}}",
           "range": true,
