@@ -123,5 +123,31 @@
   no_log: "{{ secure_logs }}"
   when: erag_credentials_secret.resources | length > 0
 
+# Grafana's Keycloak sign-in uses the platform realm's first admin; absent when the platform creates none.
+- name: "app_keycloak_config | install | Read the platform admin's password"
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: platform-bootstrap-admin
+    namespace: "{{ keycloak_namespace }}"
+  register: _app_keycloak_config_platform_admin
+  no_log: "{{ secure_logs | default(true) | bool }}"
+
+- name: "app_keycloak_config | install | Add the platform admin to default_credentials.yaml"
+  ansible.builtin.lineinfile:
+    path: "{{ rag_log_dir }}/default_credentials.yaml"
+    regexp: "^{{ item.key }}:"
+    line: "{{ item.key }}: {{ item.value }}"
+    create: true
+    mode: "0600"
+  loop:
+    # Foreign: owned by keycloak (Toolkit Manager)
+    - {key: PLATFORM_ADMIN_USERNAME, value: "{{ keycloak_platform_bootstrap_admin_user | default('platform-admin') }}"}
+    - {key: PLATFORM_ADMIN_PASSWORD, value: "{{ ((_app_keycloak_config_platform_admin.resources | first | default({})).data | default({})).value | default('') | b64decode }}"}
+  loop_control:
+    label: "{{ item.key }}"
+  no_log: "{{ secure_logs | default(true) | bool }}"
+  when: _app_keycloak_config_platform_admin.resources | default([]) | length > 0
+
 - name: "app_keycloak_config | install | Remove the Grafana SSO earlier releases injected"
   ansible.builtin.include_tasks: _remove_grafana_sso.yaml

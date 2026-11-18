@@ -9,7 +9,7 @@
 
 - name: "app_keycloak_config | grafana-sso | Remove the injected Grafana sign-in"
   vars:
-    # Foreign: owned by observability (ai-solutions)
+    # Foreign: owned by observability (Toolkit Manager)
     _ns: "{{ observability_namespace | default('monitoring') }}"
     _restart:
       metadata:
@@ -50,7 +50,7 @@
         merge_type: merge
         api_version: grafana.integreatly.org/v1beta1
         kind: Grafana
-        # Foreign: owned by observability (ai-solutions)
+        # Foreign: owned by observability (Toolkit Manager)
         name: "{{ observability_openshift_grafana_name | default('grafana-platform') }}"
         namespace: "{{ _ns }}"
         definition:
