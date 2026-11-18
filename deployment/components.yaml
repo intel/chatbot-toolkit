@@ -47,8 +47,7 @@ components:
     layer: erag
     enabled: "{{ keycloak_enabled | default(true) | bool }}"
     depends_on: [app_pre_install]
-    # Created by the configurator Job (kubectl apply), which no task result names:
-    # labelled for teardown when it appeared while the component ran.
+    # Created by the configurator Job (kubectl apply).
     ownership_declared:
       - {kind: Secret, name: erag-credentials}
 
