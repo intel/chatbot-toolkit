@@ -102,12 +102,10 @@ async def process(input: TextSplitterInput) -> TextDocList:
     except MaxRetryError as e:
         logger.exception(e)
         raise HTTPException(status_code=503, detail=f"Could not connect to remote server: {str(e)}")
-    except BrokenProcessPool as e:
-        logger.exception(e)
-        _replace_broken_pool(current)
-        raise HTTPException(status_code=500, detail=f"An error occurred while processing: {str(e)}")
     except Exception as e:
         logger.exception(e)
+        if isinstance(e, BrokenProcessPool):
+            _replace_broken_pool(current)
         raise HTTPException(status_code=500, detail=f"An error occurred while processing: {str(e)}")
 
     statistics_dict[USVC_NAME].append_latency(time.time() - start, None)

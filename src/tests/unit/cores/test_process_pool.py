@@ -34,7 +34,7 @@ def test_workers_drop_the_servers_tcp_sockets():
         client.settimeout(5)
         assert client.recv(1) == b""
     finally:
-        for s in (client, listener):
+        for s in (client, accepted, listener):
             s.close()
 
 

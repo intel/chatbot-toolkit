@@ -39,14 +39,16 @@ def _request():
 async def test_a_dead_worker_is_a_500_and_the_next_request_gets_a_new_pool(monkeypatch):
     monkeypatch.setattr(ts_mod, "pool", new_process_pool(1))
     broken = ts_mod.pool
-    monkeypatch.setattr(ts_mod, "run_splitter", _die)
-    with pytest.raises(HTTPException) as exc_info:
-        await ts_mod.process(_request())
-    assert exc_info.value.status_code == 500
-    assert ts_mod.pool is not broken
-    monkeypatch.setattr(ts_mod, "run_splitter", _echo)
-    assert [d.text for d in (await ts_mod.process(_request())).docs] == ["t"]
-    ts_mod.pool.shutdown()
+    try:
+        monkeypatch.setattr(ts_mod, "run_splitter", _die)
+        with pytest.raises(HTTPException) as exc_info:
+            await ts_mod.process(_request())
+        assert exc_info.value.status_code == 500
+        assert ts_mod.pool is not broken
+        monkeypatch.setattr(ts_mod, "run_splitter", _echo)
+        assert [d.text for d in (await ts_mod.process(_request())).docs] == ["t"]
+    finally:
+        ts_mod.pool.shutdown()
 
 
 def test_a_request_that_saw_the_old_pool_keeps_the_new_one(monkeypatch):

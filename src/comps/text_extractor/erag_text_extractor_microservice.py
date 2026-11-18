@@ -326,42 +326,46 @@ async def _process_files(decoded_files: list[tuple[str, bytes]]) -> TextSplitter
     # The windowed approach submits only _max_workers pages at a time and yields
     # to the event loop after each completion. This ensures concurrent requests
     # interleave their pages in the pool instead of one request monopolising all workers.
-    for filename, file_bytes in decoded_files:
-        if not filename.lower().endswith('.pdf'):
-            continue
-        Path(upload_folder).mkdir(parents=True, exist_ok=True)
-        pdf_path = os.path.join(upload_folder, f"{uuid.uuid4()}_{filename}")
-        with open(pdf_path, 'wb') as fout:
-            fout.write(file_bytes)
-        os.chmod(pdf_path, 0o600)
-        pdf_paths.append(pdf_path)
+    try:
+        for filename, file_bytes in decoded_files:
+            if not filename.lower().endswith('.pdf'):
+                continue
+            Path(upload_folder).mkdir(parents=True, exist_ok=True)
+            pdf_path = os.path.join(upload_folder, f"{uuid.uuid4()}_{filename}")
+            # Recorded before the write, so a failed write or chmod is cleaned up too.
+            pdf_paths.append(pdf_path)
+            with open(pdf_path, 'wb') as fout:
+                fout.write(file_bytes)
+            os.chmod(pdf_path, 0o600)
 
-        try:
-            with pymupdf.open(pdf_path) as doc:
-                page_count = doc.page_count
-        except pymupdf.FileDataError as e:
-            # Drop this request's queued work; a PDF task cancelled before it starts does
-            # not reach its finally, so remove the files here.
-            for task in all_tasks:
-                task.cancel()
-            for path in pdf_paths:
-                if os.path.exists(path):
-                    os.remove(path)
-            logger.error(f"{filename} is not a readable PDF: {e}")
-            raise HTTPException(status_code=400, detail=f"File {filename} is not a readable PDF.")
-        logger.info(f"{filename}: {page_count} pages — starting windowed processing ({_max_workers} workers)")
+            try:
+                with pymupdf.open(pdf_path) as doc:
+                    page_count = doc.page_count
+            except pymupdf.FileDataError as e:
+                logger.error(f"{filename} is not a readable PDF: {e}")
+                raise HTTPException(status_code=400, detail=f"File {filename} is not a readable PDF.") from e
+            logger.info(f"{filename}: {page_count} pages — starting windowed processing ({_max_workers} workers)")
 
-        # Extract document metadata (title, author, dates) using LoadPdf
-        try:
-            metadata = LoadPdf(pdf_path).extract_metadata()
-            # extract_metadata() derives filename from the temp path which
-            # carries a uuid prefix for uniqueness. here we override it with the original filename for clarity in the metadata
-            metadata['filename'] = filename
-        except Exception as e:
-            logger.warning(f"PDF metadata extraction failed for {filename}: {e}. Using basic metadata.")
-            metadata = {'filename': filename}
-        metadata['_pdf_path'] = pdf_path
-        all_tasks.append(asyncio.ensure_future(_process_pdf_windowed(pdf_path, filename, page_count, metadata)))
+            # Extract document metadata (title, author, dates) using LoadPdf
+            try:
+                metadata = LoadPdf(pdf_path).extract_metadata()
+                # extract_metadata() derives filename from the temp path which
+                # carries a uuid prefix for uniqueness. here we override it with the original filename for clarity in the metadata
+                metadata['filename'] = filename
+            except Exception as e:
+                logger.warning(f"PDF metadata extraction failed for {filename}: {e}. Using basic metadata.")
+                metadata = {'filename': filename}
+            metadata['_pdf_path'] = pdf_path
+            all_tasks.append(asyncio.ensure_future(_process_pdf_windowed(pdf_path, filename, page_count, metadata)))
+    except BaseException:
+        # Drop this request's queued work; a PDF task cancelled before it starts does
+        # not reach its finally, so remove the files here.
+        for task in all_tasks:
+            task.cancel()
+        for path in pdf_paths:
+            if os.path.exists(path):
+                os.remove(path)
+        raise
 
     loaded_docs: list[TextDoc] = []
     if all_tasks:
@@ -379,9 +383,6 @@ async def _process_files(decoded_files: list[tuple[str, bytes]]) -> TextSplitter
         except MaxRetryError as e:
             logger.exception(e)
             raise HTTPException(status_code=503, detail=f"Could not connect to remote server: {str(e)}")
-        except Exception as e:
-            logger.exception(e)
-            raise HTTPException(status_code=500, detail=f"An error occurred while processing: {str(e)}")
 
         for result in results:
             if isinstance(result, TextDoc):
@@ -428,9 +429,6 @@ async def _process_links_and_texts(
         except MaxRetryError as e:
             logger.exception(e)
             raise HTTPException(status_code=503, detail=f"Could not connect to remote server: {str(e)}")
-        except Exception as e:
-            logger.exception(e)
-            raise HTTPException(status_code=500, detail=f"An error occurred while processing: {str(e)}")
 
         for result in results:
             if isinstance(result, list):

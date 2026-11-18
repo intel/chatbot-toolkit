@@ -12,7 +12,7 @@ import io
 import os
 import sys
 import pytest
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, MagicMock
 
 from comps.cores.proto.docarray import TextDoc, TextExtractorInput, TextSplitterInput
 
@@ -159,12 +159,37 @@ class TestErrors:
         from fastapi import HTTPException
 
         monkeypatch.setenv("UPLOAD_PATH", str(tmp_path))
-        good = pymupdf.open()
-        good.new_page().insert_text((72, 300), "good")
-        with patch.object(te_mod, "_process_pdf_windowed", new_callable=AsyncMock) as windowed:
+        with pymupdf.open() as good:
+            good.new_page().insert_text((72, 300), "good")
+            good_bytes = good.tobytes()
+        with patch.object(te_mod, "_process_pdf_windowed", new_callable=AsyncMock):
             with pytest.raises(HTTPException) as exc_info:
-                await te_mod._process_files([("good.pdf", good.tobytes()), ("bad.pdf", b"%PDF-1.4 not really")])
+                await te_mod._process_files([("good.pdf", good_bytes), ("bad.pdf", b"%PDF-1.4 not really")])
         assert exc_info.value.status_code == 400 and "bad.pdf" in exc_info.value.detail
+        assert list(tmp_path.iterdir()) == []
+
+    @pytest.mark.asyncio
+    async def test_any_error_in_the_pdf_loop_cancels_the_queued_work_and_leaves_no_files(self, tmp_path, monkeypatch):
+        import pymupdf
+
+        monkeypatch.setenv("UPLOAD_PATH", str(tmp_path))
+        with pymupdf.open() as good:
+            good.new_page().insert_text((72, 300), "good")
+            good_bytes = good.tobytes()
+        queued = []
+
+        def _queue(coro):
+            coro.close()
+            task = MagicMock()
+            queued.append(task)
+            return task
+
+        with patch.object(te_mod, "_process_pdf_windowed", new_callable=AsyncMock), \
+                patch.object(te_mod.asyncio, "ensure_future", side_effect=_queue), \
+                patch.object(te_mod.os, "chmod", side_effect=[None, OSError("No space left on device")]):
+            with pytest.raises(OSError):
+                await te_mod._process_files([("a.pdf", good_bytes), ("b.pdf", good_bytes)])
+        assert len(queued) == 1 and queued[0].cancel.called
         assert list(tmp_path.iterdir()) == []
 
 
@@ -182,8 +207,10 @@ class TestBrokenPool:
         monkeypatch.setattr(te_mod, "_inflight", 0)
         monkeypatch.setattr(te_mod, "_completed_since_recycle", 0)
         broken = te_mod.pool
-        with pytest.raises(BrokenProcessPool):
-            await te_mod._submit(_die)
-        assert te_mod.pool is not broken
-        assert await te_mod._submit(os.getpid) != os.getpid()
-        te_mod.pool.shutdown()
+        try:
+            with pytest.raises(BrokenProcessPool):
+                await te_mod._submit(_die)
+            assert te_mod.pool is not broken
+            assert await te_mod._submit(os.getpid) != os.getpid()
+        finally:
+            te_mod.pool.shutdown()
