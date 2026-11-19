@@ -101,7 +101,7 @@ spec:
           command: ["/bin/bash", "/scripts/configurator.sh"]
           env:
             - name: KEYCLOAK_URL
-              value: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ erag_keycloak_path_prefix | default('') }}"
+              value: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ erag_keycloak_path_prefix }}"
             - name: KEYCLOAK_REALM
               value: "{{ erag_keycloak_realm }}"
             - name: KEYCLOAK_ADMIN_USER
@@ -118,18 +118,6 @@ spec:
 {% if minio_path_prefix is defined %}
             - name: MINIO_PATH_PREFIX
               value: "{{ minio_path_prefix }}"
-{% endif %}
-{% if grafana_oauth_domain is defined and grafana_oauth_domain %}
-            - name: GRAFANA_DOMAIN
-              value: "{{ grafana_oauth_domain }}"
-{% if grafana_oauth_path_prefix is defined and grafana_oauth_path_prefix %}
-            - name: GRAFANA_PATH_PREFIX
-              value: "{{ grafana_oauth_path_prefix }}"
-{% endif %}
-{% if grafana_oauth_client_secret is defined and grafana_oauth_client_secret %}
-            - name: GRAFANA_OAUTH_CLIENT_SECRET
-              value: "{{ grafana_oauth_client_secret }}"
-{% endif %}
 {% endif %}
             - name: MCP_ENABLED
               value: "{{ mcp_enabled | default(false) | bool | lower }}"

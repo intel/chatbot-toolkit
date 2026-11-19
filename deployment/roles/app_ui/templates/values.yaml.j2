@@ -13,7 +13,7 @@ domainName: &dname {{ ui_domain_name }}
 
 extraUiConfigVars:
   keycloakDomainName: "{{ erag_keycloak_domain_name }}"
-{% if erag_keycloak_path_prefix | default("") | length > 0 %}
+{% if erag_keycloak_path_prefix | length > 0 %}
   keycloakPathPrefix: "{{ erag_keycloak_path_prefix }}"
 {% endif %}
   keycloakRealm: "{{ ui_keycloak_realm }}"
@@ -48,9 +48,9 @@ service:
 image:
   ui:
 {% if pipeline_type == "docsum" %}
-    name: enterprise-rag-docsum-ui
+    name: chatbot-toolkit-docsum-ui
 {% elif pipeline_type == "chatqna" and audio_enabled is defined and audio_enabled %}
-    name: enterprise-rag-audioqna-ui
+    name: chatbot-toolkit-audioqna-ui
 {% endif %}
     tag: "{{ tag }}"
     repository: "{{ registry }}"
