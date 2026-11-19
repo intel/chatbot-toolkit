@@ -16,7 +16,7 @@ pre_snapshot:
     status: "{{ data.status }}"
     method: "{{ data.method }}"
 {% if data.reason is defined %}
-    reason: "{{ data.reason }}"
+    reason: {{ data.reason | to_json }}
 {% endif %}
 {% endfor %}
 
@@ -27,7 +27,7 @@ post_snapshot:
     status: "{{ data.status }}"
     method: "{{ data.method }}"
 {% if data.reason is defined %}
-    reason: "{{ data.reason }}"
+    reason: {{ data.reason | to_json }}
 {% endif %}
 {% endfor %}
 

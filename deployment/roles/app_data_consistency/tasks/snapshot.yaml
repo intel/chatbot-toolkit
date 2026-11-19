@@ -7,8 +7,10 @@
 # Every store is optional. A namespace that is absent, a component that is
 # disabled, a toggle the operator switched off, or a vector store this role
 # cannot count is recorded as skipped together with the reason, never treated as
-# empty. A store that is counted is counted by an in-cluster Job whose failure
-# fails the run — a count is either measured or absent, never assumed.
+# empty. A store that is counted is counted by an in-cluster Job. A count that
+# fails is recorded as failed, with its reason, for that store alone, so the other
+# stores are still counted; it is never recorded as a count. The snapshot taken
+# before an upgrade fails the run once every store is counted, if one failed.
 
 - name: "app_data_consistency | Snapshot — initialize"
   ansible.builtin.set_fact:
@@ -88,6 +90,11 @@
           {{ _data_snapshot | combine({'vdb': {
                'count': _dcj_count | int, 'status': 'ok',
                'method': 'redis DBSIZE summed over cluster masters'}}) }}
+  rescue:
+    - name: "app_data_consistency | Snapshot — vector store: record failure"
+      ansible.builtin.include_tasks: record_failure.yaml
+      vars:
+        dcr_store: vdb
 
 - name: "app_data_consistency | Snapshot — vector store: record skip"
   ansible.builtin.set_fact:
@@ -159,6 +166,11 @@
           {{ _data_snapshot | combine({'chat_history': {
                'count': _dcj_count | int, 'status': 'ok',
                'method': 'documentdb collection count'}}) }}
+  rescue:
+    - name: "app_data_consistency | Snapshot — chat history: record failure"
+      ansible.builtin.include_tasks: record_failure.yaml
+      vars:
+        dcr_store: chat_history
 
 - name: "app_data_consistency | Snapshot — chat history: record skip"
   ansible.builtin.set_fact:
@@ -232,6 +244,11 @@
           {{ _data_snapshot | combine({'edp': {
                'count': _dcj_count | int, 'status': 'ok',
                'method': 'postgresql files table count'}}) }}
+  rescue:
+    - name: "app_data_consistency | Snapshot — data platform: record failure"
+      ansible.builtin.include_tasks: record_failure.yaml
+      vars:
+        dcr_store: edp
 
 - name: "app_data_consistency | Snapshot — data platform: record skip"
   ansible.builtin.set_fact:
@@ -293,6 +310,11 @@
           {{ _data_snapshot | combine({'keycloak': {
                'count': _dcj_count | int, 'status': 'ok',
                'method': 'admin API realm user count'}}) }}
+  rescue:
+    - name: "app_data_consistency | Snapshot — identity: record failure"
+      ansible.builtin.include_tasks: record_failure.yaml
+      vars:
+        dcr_store: keycloak
 
 - name: "app_data_consistency | Snapshot — identity: record skip"
   ansible.builtin.set_fact:
@@ -328,3 +350,12 @@
         dest: >-
           {{ data_consistency_report_dir }}/snapshot-{{ _snapshot_file_timestamp }}-{{ data_consistency_snapshot_label }}.yaml
         mode: "0644"
+
+- name: "app_data_consistency | Snapshot — stop on a store that could not be counted before the upgrade"
+  ansible.builtin.fail:
+    msg: >-
+      Could not count every data store before the upgrade:
+      {% for store, data in _data_snapshot.items() if data.status == 'failed' %}{{ store }}: {{ data.reason }}{{ '; ' if not loop.last else '' }}{% endfor %}
+  when:
+    - data_consistency_snapshot_label == 'pre'
+    - _data_snapshot.values() | selectattr('status', 'equalto', 'failed') | list | length > 0

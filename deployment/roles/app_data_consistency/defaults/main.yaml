@@ -62,7 +62,7 @@ data_consistency_postgresql_container: "postgresql"
 data_consistency_postgresql_port: 5432
 data_consistency_chat_history_statefulset: "{{ chat_history_helm_release_name }}-mongodb-postgresql"
 data_consistency_chat_history_count_sql: >-
-  SELECT count(*) FROM documentdb_api.collection('chat_history', 'messages');
+  SELECT count(*) FROM documentdb_api.collection('CHAT_HISTORY', 'chat_history_collection');
 data_consistency_edp_statefulset: "{{ edp_helm_release_name }}-postgresql"
 data_consistency_edp_secret_name: "edp-postgresql-secret"
 data_consistency_edp_count_sql: "SELECT count(*) FROM files;"
