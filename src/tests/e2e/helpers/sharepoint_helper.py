@@ -22,9 +22,9 @@ class SharepointHelper():
 
     def __init__(self):
         self._graph_token_cache = {}
-        self.tenant_id = cfg.get("erag_keycloak_oidc_tenant_id")
-        self.client_id = cfg.get("erag_keycloak_oidc_client_id")
-        self.client_secret = cfg.get("erag_keycloak_oidc_client_secret")
+        self.tenant_id = cfg.get("chattool_keycloak_oidc_tenant_id")
+        self.client_id = cfg.get("chattool_keycloak_oidc_client_id")
+        self.client_secret = cfg.get("chattool_keycloak_oidc_client_secret")
 
     def get_graph_client_token(self) -> str:
         """Acquire an application-level client-credentials token"""

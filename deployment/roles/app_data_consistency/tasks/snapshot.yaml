@@ -280,7 +280,7 @@
           - name: KEYCLOAK_URL
             value: "{{ data_consistency_keycloak_url }}"
           - name: KEYCLOAK_REALM
-            value: "{{ erag_keycloak_realm }}"
+            value: "{{ chattool_keycloak_realm }}"
           - name: KEYCLOAK_ADMIN_USER
             value: "{{ keycloak_admin_user }}"
           - name: KEYCLOAK_ADMIN_PASSWORD

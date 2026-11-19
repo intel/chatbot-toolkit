@@ -19,7 +19,7 @@ MFA using Google Authenticator can be enabled on an already-running deployment t
 
 1. Log in to the Keycloak admin console at `https://keycloak.<base_domain_name>` (in `subdomain` routing mode) or `https://<base_domain_name>/keycloak` (in `path` routing mode) as `admin`.
 
-2. Switch to the `EnterpriseRAG` realm.
+2. Switch to the `ChatbotToolkit` realm.
 
 3. Navigate to **Authentication → Flows**.
 

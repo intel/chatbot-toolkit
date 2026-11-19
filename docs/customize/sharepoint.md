@@ -44,26 +44,26 @@ Each SharePoint site must grant read/write access to the app registration, becau
 Set the following in `env/<name>/config.erag.yaml`:
 
 ```yaml
-erag_keycloak_oidc_endpoint: "https://login.microsoftonline.com/<tenant-id>/v2.0/.well-known/openid-configuration"
-erag_keycloak_oidc_alias: "enterprise-sso"
-erag_keycloak_oidc_client_id: "<application-client-id>"
-erag_keycloak_oidc_client_secret: "<client-secret-value>"
-erag_keycloak_oidc_tenant_id: "<directory-tenant-id>"
+chattool_keycloak_oidc_endpoint: "https://login.microsoftonline.com/<tenant-id>/v2.0/.well-known/openid-configuration"
+chattool_keycloak_oidc_alias: "enterprise-sso"
+chattool_keycloak_oidc_client_id: "<application-client-id>"
+chattool_keycloak_oidc_client_secret: "<client-secret-value>"
+chattool_keycloak_oidc_tenant_id: "<directory-tenant-id>"
 ```
 
 | Option | Purpose |
 |--------|---------|
-| `erag_keycloak_oidc_endpoint` | Entra OpenID Connect metadata document URL. Non-empty enables SSO brokering (required). |
-| `erag_keycloak_oidc_alias` | Keycloak identity-provider alias (default `enterprise-sso`). |
-| `erag_keycloak_oidc_client_id` | Entra app registration application (client) ID. |
-| `erag_keycloak_oidc_client_secret` | Entra app registration client secret value. |
-| `erag_keycloak_oidc_tenant_id` | Entra directory (tenant) ID. Non-empty additionally enables SharePoint ingestion. |
+| `chattool_keycloak_oidc_endpoint` | Entra OpenID Connect metadata document URL. Non-empty enables SSO brokering (required). |
+| `chattool_keycloak_oidc_alias` | Keycloak identity-provider alias (default `enterprise-sso`). |
+| `chattool_keycloak_oidc_client_id` | Entra app registration application (client) ID. |
+| `chattool_keycloak_oidc_client_secret` | Entra app registration client secret value. |
+| `chattool_keycloak_oidc_tenant_id` | Entra directory (tenant) ID. Non-empty additionally enables SharePoint ingestion. |
 
 There is no `sharepoint_enabled` flag. Both SSO and SharePoint are enabled implicitly by credential presence:
 
 - All variables empty (the default) leaves both features disabled.
-- Setting `erag_keycloak_oidc_endpoint` enables SSO and requires `erag_keycloak_oidc_alias`, `erag_keycloak_oidc_client_id`, and `erag_keycloak_oidc_client_secret`.
-- Setting `erag_keycloak_oidc_tenant_id` additionally enables SharePoint and requires `erag_keycloak_oidc_endpoint`, `erag_keycloak_oidc_client_id`, and `erag_keycloak_oidc_client_secret`.
+- Setting `chattool_keycloak_oidc_endpoint` enables SSO and requires `chattool_keycloak_oidc_alias`, `chattool_keycloak_oidc_client_id`, and `chattool_keycloak_oidc_client_secret`.
+- Setting `chattool_keycloak_oidc_tenant_id` additionally enables SharePoint and requires `chattool_keycloak_oidc_endpoint`, `chattool_keycloak_oidc_client_id`, and `chattool_keycloak_oidc_client_secret`.
 
 A partial configuration is rejected at install time.
 
@@ -231,11 +231,11 @@ edp_rbac_validation_type: "ALWAYS"  # NONE | ALWAYS | CACHED | STATIC
 
 With RBAC enabled, `GET /api/list_bucket_with_permissions` returns both a `buckets` list and a `sites` list, and the SharePoint side is filtered per user:
 
-- The user's Keycloak access token is exchanged for their stored Microsoft token at `/realms/EnterpriseRAG/broker/<alias>/token`.
+- The user's Keycloak access token is exchanged for their stored Microsoft token at `/realms/ChatbotToolkit/broker/<alias>/token`.
 - Each tracked site is checked against that delegated token.
 - Only accessible sites (and permitted buckets) appear in file listings and search results.
 
-If the broker exchange fails (for example because `Store tokens` is off on the identity provider, or `erag_keycloak_oidc_endpoint` was never set), EDP logs a warning and returns **no** sites for that user. Users then see an empty SharePoint result set rather than unfiltered data.
+If the broker exchange fails (for example because `Store tokens` is off on the identity provider, or `chattool_keycloak_oidc_endpoint` was never set), EDP logs a warning and returns **no** sites for that user. Users then see an empty SharePoint result set rather than unfiltered data.
 
 With RBAC disabled, every tracked site is returned to every caller.
 

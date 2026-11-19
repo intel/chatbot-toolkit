@@ -84,7 +84,7 @@ def pytest_addoption(parser):
     parser.addoption("--credentials-file", action="store",
                      default=os.path.join(_LOG_DIR, "default_credentials.txt"),
                      help="Path to credentials file. Required fields: "
-                          "KEYCLOAK_ERAG_ADMIN_USERNAME and KEYCLOAK_ERAG_ADMIN_PASSWORD")
+                          "KEYCLOAK_CHATTOOL_ADMIN_USERNAME and KEYCLOAK_CHATTOOL_ADMIN_PASSWORD")
     parser.addoption("--build-config-dir", action="store",
                      default="../../../../env/local",
                      help="Path to directory containing global_config.yaml, config.erag.yaml, config.inference.yaml")
@@ -299,8 +299,8 @@ def validation_user_persistent(keycloak_helper, suppress_logging):
     No-op by default. Overridden in lifecycle/conftest.py for backup-restore tests.
 
     Backup-restore tests require a permanent validation user that survives the restore
-    cycle (erag-admin password is reset during restore, breaking token-based auth).
-    Regular e2e/e2e-ui tests use erag-admin credentials via the standard flow.
+    cycle (chattool-admin password is reset during restore, breaking token-based auth).
+    Regular e2e/e2e-ui tests use chattool-admin credentials via the standard flow.
     """
     yield
 
@@ -308,22 +308,22 @@ def validation_user_persistent(keycloak_helper, suppress_logging):
 @pytest.fixture(scope="session", autouse=True)
 def temporarily_remove_user_required_actions(keycloak_helper, suppress_logging):
     """
-    Disable the required actions for the erag-admin user temporarily to allow obtaining the access token without
+    Disable the required actions for the chattool-admin user temporarily to allow obtaining the access token without
     forcing to change the password. Get it back after the tests are done.
 
-    Note: Still autouse because UI tests log in as erag-admin via the browser,
+    Note: Still autouse because UI tests log in as chattool-admin via the browser,
     bypassing keycloak_helper token management.
     """
     required_actions = keycloak_helper.read_current_required_actions(keycloak_helper.admin_access_token,
-                                                                     keycloak_helper.erag_admin_username)
+                                                                     keycloak_helper.chattool_admin_username)
     if required_actions:
         keycloak_helper.remove_required_actions(keycloak_helper.admin_access_token,
-                                                keycloak_helper.erag_admin_username)
+                                                keycloak_helper.chattool_admin_username)
     yield
     # Restore original settings after tests
     if required_actions:
         keycloak_helper.revert_required_actions(required_actions, keycloak_helper.admin_access_token,
-                                                keycloak_helper.erag_admin_username)
+                                                keycloak_helper.chattool_admin_username)
 
 
 @pytest.fixture(scope="session")
@@ -338,8 +338,8 @@ def bootstrap_sso_user(keycloak_helper, suppress_logging, temporarily_remove_use
     it is part of Keycloak's identity provider first-login flow and only appears once
     per federated user. No required-action manipulation is needed.
     """
-    _oidc_keys = ("erag_keycloak_oidc_endpoint", "erag_keycloak_oidc_alias", "erag_keycloak_oidc_client_id",
-                  "erag_keycloak_oidc_tenant_id", "erag_keycloak_oidc_client_secret")
+    _oidc_keys = ("chattool_keycloak_oidc_endpoint", "chattool_keycloak_oidc_alias", "chattool_keycloak_oidc_client_id",
+                  "chattool_keycloak_oidc_tenant_id", "chattool_keycloak_oidc_client_secret")
     _missing_oidc_keys = [k for k in _oidc_keys if not cfg.get(k)]
     if _missing_oidc_keys:
         logger.info(f"OIDC not configured ({', '.join(_missing_oidc_keys)} not set) - skipping SSO user bootstrap")
@@ -347,7 +347,7 @@ def bootstrap_sso_user(keycloak_helper, suppress_logging, temporarily_remove_use
         return
 
     # Bootstrap SSO admin user
-    if keycloak_helper.erag_sso_admin_password:
+    if keycloak_helper.chattool_sso_admin_password:
         logger.info("Bootstrapping SSO admin user (initial federated login)")
         try:
             keycloak_helper.bootstrap_sso_user("sso_admin")
@@ -358,7 +358,7 @@ def bootstrap_sso_user(keycloak_helper, suppress_logging, temporarily_remove_use
         logger.info("SSO admin password not set — skipping SSO admin bootstrap")
 
     # Bootstrap SSO regular user
-    if keycloak_helper.erag_sso_user_password:
+    if keycloak_helper.chattool_sso_user_password:
         logger.info("Bootstrapping SSO regular user (initial federated login)")
         try:
             keycloak_helper.bootstrap_sso_user("sso_user")
@@ -378,15 +378,15 @@ def temporarily_remove_regular_user_required_actions(keycloak_helper):
     Temporarily remove required actions for the regular user to allow obtaining an access token.
     """
     required_actions = keycloak_helper.read_current_required_actions(keycloak_helper.admin_access_token,
-                                                                     keycloak_helper.erag_user_username)
+                                                                     keycloak_helper.chattool_user_username)
     if required_actions:
         keycloak_helper.remove_required_actions(keycloak_helper.admin_access_token,
-                                                keycloak_helper.erag_user_username)
+                                                keycloak_helper.chattool_user_username)
     yield
     # Restore original settings after tests
     if required_actions:
         keycloak_helper.revert_required_actions(required_actions, keycloak_helper.admin_access_token,
-                                                keycloak_helper.erag_user_username)
+                                                keycloak_helper.chattool_user_username)
 
 
 
@@ -396,15 +396,15 @@ def temporarily_remove_maintainer_required_actions(keycloak_helper):
     Temporarily remove required actions for the maintainer user to allow obtaining an access token.
     """
     required_actions = keycloak_helper.read_current_required_actions(keycloak_helper.admin_access_token,
-                                                                     keycloak_helper.erag_maintainer_username)
+                                                                     keycloak_helper.chattool_maintainer_username)
     if required_actions:
         keycloak_helper.remove_required_actions(keycloak_helper.admin_access_token,
-                                                keycloak_helper.erag_maintainer_username)
+                                                keycloak_helper.chattool_maintainer_username)
     yield
     # Restore original settings after tests
     if required_actions:
         keycloak_helper.revert_required_actions(required_actions, keycloak_helper.admin_access_token,
-                                                keycloak_helper.erag_maintainer_username)
+                                                keycloak_helper.chattool_maintainer_username)
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -12,9 +12,9 @@ type: audioqna
 domainName: &dname {{ ui_domain_name }}
 
 extraUiConfigVars:
-  keycloakDomainName: "{{ erag_keycloak_domain_name }}"
-{% if erag_keycloak_path_prefix | length > 0 %}
-  keycloakPathPrefix: "{{ erag_keycloak_path_prefix }}"
+  keycloakDomainName: "{{ chattool_keycloak_domain_name }}"
+{% if chattool_keycloak_path_prefix | length > 0 %}
+  keycloakPathPrefix: "{{ chattool_keycloak_path_prefix }}"
 {% endif %}
   keycloakRealm: "{{ ui_keycloak_realm }}"
   keycloakClientId: "{{ ui_keycloak_client_id }}"
@@ -24,7 +24,7 @@ extraUiConfigVars:
 {% if telemetry_path_prefix is defined %}
   grafanaPathPrefix: "{{ telemetry_path_prefix }}"
 {% endif %}
-  keycloakAdminPanelDomainName: "{{ erag_keycloak_domain_name }}"
+  keycloakAdminPanelDomainName: "{{ chattool_keycloak_domain_name }}"
   s3DomainName: "{{ edp_minio_api_domain_name }}"
 {% if edp_s3_path_prefix is defined %}
   s3PathPrefix: "{{ edp_s3_path_prefix }}"

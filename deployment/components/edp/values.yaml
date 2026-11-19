@@ -30,7 +30,7 @@ edpBaseRegion: 'us-east-1'
 edpSqsEventQueueUrl: ""
 edpAccessKey: ""
 edpSecretKey: ""
-edpOidcConfigUrl: "http://keycloak-service.keycloak.svc:8080/realms/EnterpriseRAG/.well-known/openid-configuration"
+edpOidcConfigUrl: "http://keycloak-service.keycloak.svc:8080/realms/ChatbotToolkit/.well-known/openid-configuration"
 edpOidcClientSecret: ""
 bucketNameRegexFilter: '.*'
 presignedUrlCredentialsSystemFallback: "false"
@@ -113,8 +113,8 @@ seaweedfs:
       maxSessionLength: 12h
       issuer: seaweedfs-sts
     audiences:
-      - "EnterpriseRAG-oidc-minio"
-      - "EnterpriseRAG-oidc-backend"
+      - "ChatbotToolkit-oidc-minio"
+      - "ChatbotToolkit-oidc-backend"
       - "account"
     scopes:
       - "openid"
@@ -124,11 +124,11 @@ seaweedfs:
     roleMapping:
       - value: "consoleAdmin"
         role: "arn:aws:iam::role/S3AdminRole"
-      - value: "erag-admin-group"
+      - value: "chattool-admin-group"
         role: "arn:aws:iam::role/S3UserRole"
-      - value: "erag-maintainer-group"
+      - value: "chattool-maintainer-group"
         role: "arn:aws:iam::role/S3UserRole"
-      - value: "erag-user-group"
+      - value: "chattool-user-group"
         role: "arn:aws:iam::role/S3ReadOnlyRole"
     defaultRole: "arn:aws:iam::role/S3ReadOnlyRole"
     policies:

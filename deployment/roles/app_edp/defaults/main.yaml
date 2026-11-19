@@ -86,7 +86,7 @@ edp_helm_chart_directory: "{{ deployment_dir }}/components/edp"
 edp_helm_default_values_file: "{{ deployment_dir }}/components/edp/values.yaml"
 
 # --- Keycloak OIDC registration ---
-edp_client_id: "EnterpriseRAG-oidc-minio"
+edp_client_id: "ChatbotToolkit-oidc-minio"
 
 # --- SeaweedFS target (its role runs inside app_edp for now) ---
 # Note: seaweedfs.* (version, repo, namespace, iamKeycloak.*) is a LOCAL var
@@ -216,23 +216,23 @@ keycloak_namespace: "keycloak"
 keycloak_admin_user: "admin"
 
 # --- Cross-role shared defaults - Owned by other roles; declared here so this role is standalone-runnable. ---
-apisix_oidc_client_id: "EnterpriseRAG-oidc-backend"     # app_apisix
+apisix_oidc_client_id: "ChatbotToolkit-oidc-backend"     # app_apisix
 audio_namespace: "audio"           # app_audio
 embedding_model_name: "nomic-embed"                # app_inference_models (catalog/served name)
 embedding_model_id: "nomic-ai/nomic-embed-text-v1"        # app_inference_models (HuggingFace repo id)
 pipeline_namespace: "{{ pipeline_type | default('chatqna') }}"        # app_pipeline
-erag_keycloak_realm: "EnterpriseRAG"        # app_keycloak_config
-erag_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"  # app_keycloak_config
-erag_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
-erag_keycloak_path_prefix: "{{ erag_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
+chattool_keycloak_realm: "ChatbotToolkit"        # app_keycloak_config
+chattool_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"  # app_keycloak_config
+chattool_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
+chattool_keycloak_path_prefix: "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
 # SharePoint credentials from the Entra app registration
-erag_keycloak_oidc_tenant_id: ""  # app_keycloak_config
-erag_keycloak_oidc_client_id: ""  # app_keycloak_config
-erag_keycloak_oidc_client_secret: ""  # app_keycloak_config
-erag_keycloak_oidc_alias: "enterprise-sso"  # app_keycloak_config
+chattool_keycloak_oidc_tenant_id: ""  # app_keycloak_config
+chattool_keycloak_oidc_client_id: ""  # app_keycloak_config
+chattool_keycloak_oidc_client_secret: ""  # app_keycloak_config
+chattool_keycloak_oidc_alias: "enterprise-sso"  # app_keycloak_config
 # Required for SharePoint: the delegated Graph token is fetched from the Keycloak
 # identity provider, which only exists when SSO brokering is configured.
-erag_keycloak_oidc_endpoint: ""  # app_keycloak_config
+chattool_keycloak_oidc_endpoint: ""  # app_keycloak_config
 storage_backend: "local-path"                      # global (core installer)
 gateway_name: "eg-gateway"                         # envoy_gateway
 gateway_namespace: "envoy-gateway-system"          # envoy_gateway
@@ -246,7 +246,7 @@ ontap_s3_port: 443
 ontap_s3_tls: true
 ontap_s3_ca_cert_file: ""
 ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"  # app_ui
-ui_keycloak_realm: "EnterpriseRAG"    # app_ui
+ui_keycloak_realm: "ChatbotToolkit"    # app_ui
 vector_databases_vector_datatype: "FLOAT32"        # app_vector_databases
 vector_databases_vector_dims: 768                  # app_vector_databases
 rag_tmp_dir: "{{ tmp_dir }}/rag"                   # app_pre_install (derived from tmp_dir)

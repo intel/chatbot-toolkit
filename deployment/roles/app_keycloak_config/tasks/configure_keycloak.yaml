@@ -13,7 +13,7 @@
     minio_domain: "{{ edp_minio_domain_name }}"
     minio_path_prefix: "{{ edp_seaweedfs_path_prefix | default('') }}"
     ui_domain: "{{ ui_domain_name }}"
-    credentials_secret_name: "erag-credentials"
+    credentials_secret_name: "chattool-credentials"
     configurator_job_name: "keycloak-configurator-{{ ansible_date_time.epoch }}"
 
 - name: "app_keycloak_config | Find previous configurator Jobs"
@@ -93,35 +93,35 @@
     kind: Secret
     name: keycloak-configurator-sensitive
     namespace: "{{ keycloak_namespace }}"
-  when: (erag_keycloak_oidc_endpoint | default('') | length > 0) or (erag_keycloak_federation_endpoint | default('') | length > 0)
+  when: (chattool_keycloak_oidc_endpoint | default('') | length > 0) or (chattool_keycloak_federation_endpoint | default('') | length > 0)
   failed_when: false
 
-- name: "app_keycloak_config | Read erag-credentials secret"
+- name: "app_keycloak_config | Read chattool-credentials secret"
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Secret
     name: "{{ credentials_secret_name }}"
     namespace: "{{ keycloak_namespace }}"
-  register: erag_credentials_secret
+  register: chattool_credentials_secret
   no_log: "{{ secure_logs }}"
 
-- name: "app_keycloak_config | Write default_credentials.txt from erag-credentials secret"
+- name: "app_keycloak_config | Write default_credentials.txt from chattool-credentials secret"
   ansible.builtin.copy:
     dest: "{{ rag_log_dir }}/default_credentials.txt"
     mode: '0600'
     content: |
-      KEYCLOAK_ERAG_ADMIN_USERNAME={{ erag_credentials_secret.resources[0].data['KEYCLOAK_ERAG_ADMIN_USERNAME'] | b64decode }}
-      KEYCLOAK_ERAG_ADMIN_PASSWORD="{{ erag_credentials_secret.resources[0].data['KEYCLOAK_ERAG_ADMIN_PASSWORD'] | b64decode }}"
-      KEYCLOAK_ERAG_USER_USERNAME={{ erag_credentials_secret.resources[0].data['KEYCLOAK_ERAG_USER_USERNAME'] | b64decode }}
-      KEYCLOAK_ERAG_USER_PASSWORD="{{ erag_credentials_secret.resources[0].data['KEYCLOAK_ERAG_USER_PASSWORD'] | b64decode }}"
-      KEYCLOAK_ERAG_MAINTAINER_USERNAME={{ erag_credentials_secret.resources[0].data['KEYCLOAK_ERAG_MAINTAINER_USERNAME'] | b64decode }}
-      KEYCLOAK_ERAG_MAINTAINER_PASSWORD="{{ erag_credentials_secret.resources[0].data['KEYCLOAK_ERAG_MAINTAINER_PASSWORD'] | b64decode }}"
-      {% if mcp_enabled | default(false) | bool and erag_credentials_secret.resources[0].data['MCP_CLIENT_SECRET'] is defined %}
-      MCP_CLIENT_ID={{ erag_credentials_secret.resources[0].data['MCP_CLIENT_ID'] | b64decode }}
-      MCP_CLIENT_SECRET="{{ erag_credentials_secret.resources[0].data['MCP_CLIENT_SECRET'] | b64decode }}"
+      KEYCLOAK_CHATTOOL_ADMIN_USERNAME={{ chattool_credentials_secret.resources[0].data['KEYCLOAK_CHATTOOL_ADMIN_USERNAME'] | b64decode }}
+      KEYCLOAK_CHATTOOL_ADMIN_PASSWORD="{{ chattool_credentials_secret.resources[0].data['KEYCLOAK_CHATTOOL_ADMIN_PASSWORD'] | b64decode }}"
+      KEYCLOAK_CHATTOOL_USER_USERNAME={{ chattool_credentials_secret.resources[0].data['KEYCLOAK_CHATTOOL_USER_USERNAME'] | b64decode }}
+      KEYCLOAK_CHATTOOL_USER_PASSWORD="{{ chattool_credentials_secret.resources[0].data['KEYCLOAK_CHATTOOL_USER_PASSWORD'] | b64decode }}"
+      KEYCLOAK_CHATTOOL_MAINTAINER_USERNAME={{ chattool_credentials_secret.resources[0].data['KEYCLOAK_CHATTOOL_MAINTAINER_USERNAME'] | b64decode }}
+      KEYCLOAK_CHATTOOL_MAINTAINER_PASSWORD="{{ chattool_credentials_secret.resources[0].data['KEYCLOAK_CHATTOOL_MAINTAINER_PASSWORD'] | b64decode }}"
+      {% if mcp_enabled | default(false) | bool and chattool_credentials_secret.resources[0].data['MCP_CLIENT_SECRET'] is defined %}
+      MCP_CLIENT_ID={{ chattool_credentials_secret.resources[0].data['MCP_CLIENT_ID'] | b64decode }}
+      MCP_CLIENT_SECRET="{{ chattool_credentials_secret.resources[0].data['MCP_CLIENT_SECRET'] | b64decode }}"
       {% endif %}
   no_log: "{{ secure_logs }}"
-  when: erag_credentials_secret.resources | length > 0
+  when: chattool_credentials_secret.resources | length > 0
 
 # Grafana's Keycloak sign-in uses the platform realm's first admin; absent when the platform creates none.
 - name: "app_keycloak_config | install | Read the platform admin's password"
