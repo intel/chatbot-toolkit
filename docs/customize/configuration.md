@@ -56,8 +56,7 @@ Variants: **base** (full), **retrieve-rerank** (no LLM, retrieval-only), **uploa
 | Setting | Default | Purpose |
 |---------|---------|---------|
 | `backup_enabled` | `false` | Arms this toolkit's backup profile. Also needs the platform's `velero_enabled: true` and `storage_backend: nfs` or `ceph` — both switches are independent, and either off makes a run a no-op |
-| `upgrade_backup_max_age_hours` | `6` | How fresh a backup the pre-upgrade gate demands, once `backup_enabled` is `true` |
-| `allow_upgrade_without_backup` | `false` | Bypass the gate for one upgrade |
+| `upgrade_backup_max_age_hours` | `6` | How fresh a backup of the installed release an upgrade demands; `install … --force` runs without one, recorded as forced |
 
 See [Backup and Restore](../operate/backup.md) for what is captured, how to run it, and the identity
 realm.
@@ -168,8 +167,8 @@ Exposes RAG as tools (`retrieve_context`, `list_buckets`, `ingest_url`, `ingest_
 | Setting | Default | Notes |
 |---------|---------|-------|
 | `registry` | `docker.io/intel` | |
-| `tag` | from `deployment/version.yaml` | Omit for default; mismatched version needs `tag_override: true` |
-| `tag_override` | `false` | |
+| `tag` | `default_image_tag` from `deployment/version.yaml` | Omit for default; mismatched version needs `tag_override: true` |
+| `tag_override` | `default_tag_override` from `deployment/version.yaml` | Between releases (no images published yet for the new `solution_version`) the default tag is `main` and the override defaults on; a release commit pins both to the release version and turns the override off |
 | `local_registry` | `false` | Multi-node |
 
 See [images.md](images.md).
@@ -220,7 +219,6 @@ mcp_enabled: false
 
 backup_enabled: false
 # upgrade_backup_max_age_hours: 6
-# allow_upgrade_without_backup: false
 
 inference_namespace: "llm-inference"
 inference_models:

@@ -28,14 +28,6 @@
     edp_seaweedfs_path_prefix: "{{ edp_default_seaweedfs_path_prefix | default('/seaweedfs') }}"
   when: routing_mode == 'path'
 
-- name: "app_pre_install | Add base_domain_name required field issue"
-  ansible.builtin.set_fact:
-    configuration_issues: >-
-      {{ configuration_issues + [
-        'base_domain_name is required but not set. Please provide a value in the configuration file.'
-      ] }}
-  when: base_domain_name | default('') | length == 0
-
 - name: "app_pre_install | Display HF_TOKEN warning if not set"
   ansible.builtin.debug:
     msg: |

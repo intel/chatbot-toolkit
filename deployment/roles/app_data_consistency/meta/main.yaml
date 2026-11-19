@@ -5,10 +5,9 @@ galaxy_info:
   author: Intel Corporation
   role_name: app_data_consistency
   description: >-
-    Counts the rows, keys and users each data store holds, compares two such
-    snapshots across an upgrade, and writes the result to a report file. Helper
-    role: include it with tasks_from (snapshot | compare | report), not as a
-    component.
+    Counts the rows, keys and users each data store holds, for the layer's
+    data-consistency probes (deployment/probes/count_<store>.yaml). Helper role:
+    include it with tasks_from snapshot, not as a component.
   license: Apache-2.0
   min_ansible_version: "2.14"
 dependencies: []

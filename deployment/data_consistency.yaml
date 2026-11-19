@@ -3,5 +3,9 @@
 ---
 # Run by Toolkit Manager before the erag components change anything and
 # after the last one, on upgrade; a store whose count decreased is reported.
+# One probe per store, so a store that cannot be counted does not hide the others.
 probes:
-  - probes/count_stores.yaml
+  - probes/count_vdb.yaml
+  - probes/count_chat_history.yaml
+  - probes/count_edp.yaml
+  - probes/count_keycloak.yaml

@@ -12,11 +12,12 @@
 #
 # Expects: dcj_store, dcj_label, dcj_namespace, dcj_image, dcj_script, dcj_env,
 #          optionally dcj_shell, and _snapshot_file_timestamp from snapshot.yaml,
-#          which is what keeps the pre-upgrade and post-upgrade Jobs of one run
-#          from sharing a name
+#          which keeps the Jobs of the before and after counts of one run from
+#          sharing a name
 # Sets: _dcj_count
 
-# Reached with tasks_from from app_post_install and app_pre_install, past the dispatcher in main.yaml.
+# Reached with tasks_from from the layer's data-consistency probes, past the
+# dispatcher in main.yaml.
 - name: "app_data_consistency | Load {{ cluster_distribution }} values"
   ansible.builtin.include_vars: "{{ role_path }}/vars/{{ cluster_distribution }}.yaml"
 
@@ -49,8 +50,9 @@
   loop_control:
     label: "{{ item.metadata.name }}"
 
-# The pre-upgrade snapshot can run before app_pre_install creates the work
-# directory. Create it only when missing; an existing one keeps its owner's mode.
+# A probe can run while the work directory is absent (before app_pre_install
+# creates it, after app_post_install removes it). Create it only when missing;
+# an existing one keeps its owner's mode.
 - name: "app_data_consistency | Query — check the work directory"
   ansible.builtin.stat:
     path: "{{ rag_tmp_dir }}"

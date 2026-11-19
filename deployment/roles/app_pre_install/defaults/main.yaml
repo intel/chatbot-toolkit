@@ -37,24 +37,3 @@ pipeline_variant: "base"                           # app_pipeline
 # full install; the empty default only keeps a standalone run from failing, and the
 # precondition check does not read the URL.
 llm_endpoint: ""                                   # app_inference_models
-# --- Cross-role shared defaults - consumed by the app_data_consistency snapshot that
-#     this role includes on the upgrade path. Another role's defaults are not in scope
-#     while this one runs, so the values it queries are declared here against their
-#     owning role. ---
-vector_databases_namespace: "vdb"                    # app_vector_databases
-vector_databases_helm_release_name: "vdb"            # app_vector_databases
-vector_databases_vector_store: "redis-cluster"       # app_vector_databases (redis-cluster | mssql | pgvector)
-chat_history_namespace: "chat-history"               # app_chat_history
-chat_history_helm_release_name: "chat-history"       # app_chat_history
-edp_namespace: "edp"                                 # app_edp
-edp_helm_release_name: "edp"                         # app_edp
-keycloak_namespace: "keycloak"                       # app_keycloak_config
-keycloak_admin_secret_name: "keycloak-admin-secret"  # app_keycloak_config
-keycloak_statefulset_pod: "keycloak-0"               # keycloak, platform layer
-erag_keycloak_realm: "EnterpriseRAG"                 # app_keycloak_config
-
-# Owned by nothing else: the Redis secret the vector store's chart creates, the
-# container to exec into, and the stores the snapshot knows how to count.
-data_snapshot_vdb_secret_name: "redis-cluster-secret"
-data_snapshot_vdb_container: "redis"
-data_snapshot_redis_stores: ["redis", "redis-cluster"]

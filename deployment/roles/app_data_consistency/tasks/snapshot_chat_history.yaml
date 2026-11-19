@@ -1,0 +1,73 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# --- Chat history (FerretDB on PostgreSQL documentdb) ---
+- name: "app_data_consistency | Snapshot — chat history: check namespace"
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Namespace
+    name: "{{ chat_history_namespace }}"
+  register: _dc_ch_ns
+  failed_when: false
+
+- name: "app_data_consistency | Snapshot — chat history: resolve guards"
+  ansible.builtin.set_fact:
+    _dc_ch_skip_reason: >-
+      {{ ('namespace ' ~ chat_history_namespace ~ ' is not present')
+           if (_dc_ch_ns.resources | length == 0)
+         else ('chat_history_enabled is false')
+           if not (chat_history_enabled | bool)
+         else ('data_consistency_check_chat_history is false')
+           if not (data_consistency_check_chat_history | bool)
+         else '' }}
+
+- name: "app_data_consistency | Snapshot — chat history: count documents"
+  when: _dc_ch_skip_reason | trim | length == 0
+  block:
+    - name: "app_data_consistency | Snapshot — chat history: resolve workload"
+      ansible.builtin.include_tasks: resolve_workload.yaml
+      vars:
+        dcw_store: chat_history
+        dcw_namespace: "{{ chat_history_namespace }}"
+        dcw_workload: "{{ data_consistency_chat_history_statefulset }}"
+        dcw_container: "{{ data_consistency_postgresql_container }}"
+
+    - name: "app_data_consistency | Snapshot — chat history: run query Job"
+      ansible.builtin.include_tasks: query_job.yaml
+      vars:
+        dcj_store: chat_history
+        dcj_label: chat-history
+        dcj_namespace: "{{ chat_history_namespace }}"
+        dcj_image: "{{ _dcw_image }}"
+        dcj_script: query_postgresql.sh
+        dcj_env:
+          - name: PGHOST
+            value: "{{ _dcw_service }}"
+          - name: PGPORT
+            value: "{{ data_consistency_postgresql_port }}"
+          - name: PGUSER
+            secret: "{{ chat_history_db_password_secret_name }}"
+            key: POSTGRES_USER
+          - name: PGPASSWORD
+            secret: "{{ chat_history_db_password_secret_name }}"
+            key: POSTGRES_PASSWORD
+          - name: PGDATABASE
+            secret: "{{ chat_history_db_password_secret_name }}"
+            key: POSTGRES_DB
+          - name: COUNT_SQL
+            value: "{{ data_consistency_chat_history_count_sql }}"
+
+    - name: "app_data_consistency | Snapshot — chat history: record"
+      ansible.builtin.set_fact:
+        _data_snapshot: >-
+          {{ _data_snapshot | combine({'chat_history': {
+               'count': _dcj_count | int, 'status': 'ok',
+               'method': 'documentdb collection count'}}) }}
+
+- name: "app_data_consistency | Snapshot — chat history: record skip"
+  ansible.builtin.set_fact:
+    _data_snapshot: >-
+      {{ _data_snapshot | combine({'chat_history': {
+           'count': 0, 'status': 'skipped', 'method': 'none',
+           'reason': _dc_ch_skip_reason | trim}}) }}
+  when: _dc_ch_skip_reason | trim | length > 0

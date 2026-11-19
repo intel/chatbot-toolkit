@@ -132,7 +132,8 @@ class K8sHelper:
             if cm.name == "erag-deployment-manifest":
                 manifest_raw = cm.data.get("manifest.yaml", "")
                 manifest = yaml.safe_load(manifest_raw)
-                return manifest["deployment"]["version"]
+                # Records written by 3.0.0 nest the version under deployment:.
+                return (manifest.get("deployment") or manifest)["version"]
         raise ResourceNotFound("ConfigMap 'erag-deployment-manifest' not found")
 
     def delete_pods_by_label(self, namespace, label_selector):
