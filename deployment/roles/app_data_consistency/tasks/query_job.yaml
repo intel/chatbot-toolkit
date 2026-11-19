@@ -49,13 +49,19 @@
   loop_control:
     label: "{{ item.metadata.name }}"
 
-# The pre-upgrade snapshot runs before app_pre_install creates the work
-# directories, so this cannot assume the directory is already there.
-- name: "app_data_consistency | Query — ensure the work directory exists"
+# The pre-upgrade snapshot can run before app_pre_install creates the work
+# directory. Create it only when missing; an existing one keeps its owner's mode.
+- name: "app_data_consistency | Query — check the work directory"
+  ansible.builtin.stat:
+    path: "{{ rag_tmp_dir }}"
+  register: _dcj_tmp_dir
+
+- name: "app_data_consistency | Query — create the work directory"
   ansible.builtin.file:
     path: "{{ rag_tmp_dir }}"
     state: directory
-    mode: "0755"
+    mode: "0700"
+  when: not _dcj_tmp_dir.stat.exists
 
 - name: "app_data_consistency | Query — render the {{ dcj_store }} Job manifest"
   ansible.builtin.template:
@@ -119,3 +125,24 @@
       The {{ dcj_store }} count query succeeded but printed no count. Inspect it
       with: kubectl logs -n {{ dcj_namespace }} job/{{ _dcj_job_name }}
   when: _dcj_count | length == 0
+
+# Only reached once the count is read; a failed Job is left for `kubectl logs`.
+- name: "app_data_consistency | Query — delete the {{ dcj_store }} Job"
+  kubernetes.core.k8s:
+    api_version: batch/v1
+    kind: Job
+    name: "{{ _dcj_job_name }}"
+    namespace: "{{ dcj_namespace }}"
+    state: absent
+    delete_options:
+      propagationPolicy: Background
+  failed_when: false
+
+- name: "app_data_consistency | Query — delete the {{ dcj_store }} ConfigMap"
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: ConfigMap
+    name: "{{ _dcj_configmap_name }}"
+    namespace: "{{ dcj_namespace }}"
+    state: absent
+  failed_when: false
