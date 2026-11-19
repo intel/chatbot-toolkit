@@ -23,6 +23,10 @@ layers:
   - name: erag
     enabled: true
     depends_on: [platform, inference]
+    # The installer's upgrade checks refuse an install of this layer that one of
+    # them blocks; --force runs it anyway and records it as forced.
+    supports:
+      upgrade: true
 
 components:
   # --- Inference models (deploy via model-manager.sh, wait for readiness) ---

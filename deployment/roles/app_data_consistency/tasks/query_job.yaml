@@ -12,11 +12,12 @@
 #
 # Expects: dcj_store, dcj_label, dcj_namespace, dcj_image, dcj_script, dcj_env,
 #          optionally dcj_shell, and _snapshot_file_timestamp from snapshot.yaml,
-#          which is what keeps the pre-upgrade and post-upgrade Jobs of one run
-#          from sharing a name
+#          which keeps the Jobs of the before and after counts of one run from
+#          sharing a name
 # Sets: _dcj_count
 
-# Reached with tasks_from from app_post_install and app_pre_install, past the dispatcher in main.yaml.
+# Reached with tasks_from from the layer's data-consistency probes, past the
+# dispatcher in main.yaml.
 - name: "app_data_consistency | Load {{ cluster_distribution }} values"
   ansible.builtin.include_vars: "{{ role_path }}/vars/{{ cluster_distribution }}.yaml"
 
@@ -49,13 +50,20 @@
   loop_control:
     label: "{{ item.metadata.name }}"
 
-# The pre-upgrade snapshot runs before app_pre_install creates the work
-# directories, so this cannot assume the directory is already there.
-- name: "app_data_consistency | Query — ensure the work directory exists"
+# A probe can run while the work directory is absent (before app_pre_install
+# creates it, after app_post_install removes it). Create it only when missing;
+# an existing one keeps its owner's mode.
+- name: "app_data_consistency | Query — check the work directory"
+  ansible.builtin.stat:
+    path: "{{ rag_tmp_dir }}"
+  register: _dcj_tmp_dir
+
+- name: "app_data_consistency | Query — create the work directory"
   ansible.builtin.file:
     path: "{{ rag_tmp_dir }}"
     state: directory
-    mode: "0755"
+    mode: "0700"
+  when: not _dcj_tmp_dir.stat.exists
 
 - name: "app_data_consistency | Query — render the {{ dcj_store }} Job manifest"
   ansible.builtin.template:
@@ -119,3 +127,24 @@
       The {{ dcj_store }} count query succeeded but printed no count. Inspect it
       with: kubectl logs -n {{ dcj_namespace }} job/{{ _dcj_job_name }}
   when: _dcj_count | length == 0
+
+# Only reached once the count is read; a failed Job is left for `kubectl logs`.
+- name: "app_data_consistency | Query — delete the {{ dcj_store }} Job"
+  kubernetes.core.k8s:
+    api_version: batch/v1
+    kind: Job
+    name: "{{ _dcj_job_name }}"
+    namespace: "{{ dcj_namespace }}"
+    state: absent
+    delete_options:
+      propagationPolicy: Background
+  failed_when: false
+
+- name: "app_data_consistency | Query — delete the {{ dcj_store }} ConfigMap"
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: ConfigMap
+    name: "{{ _dcj_configmap_name }}"
+    namespace: "{{ dcj_namespace }}"
+    state: absent
+  failed_when: false

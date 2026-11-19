@@ -50,7 +50,6 @@ inference_models:
 # What is captured is declared in deployment/backup_profile.yaml.
 backup_enabled: false
 # upgrade_backup_max_age_hours: 6      # how fresh a backup the upgrade gate demands
-# allow_upgrade_without_backup: false  # true = upgrade without a restore point
 
 # --- Path overrides (paths inside the ext repo) ---
 deployment_dir: "{{ playbook_dir }}/../ext/enterprise.ai-erag/deployment"

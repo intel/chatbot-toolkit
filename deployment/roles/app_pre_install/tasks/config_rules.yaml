@@ -1,0 +1,28 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# Config-only rules: no cluster, no network call.
+
+- name: "app_pre_install | Add image tag / solution version mismatch issue"
+  vars:
+    _rules_tag: "{{ tag | default('', true) or _rules_version.default_image_tag }}"
+    _tag_issue: >-
+      Image tag "{{ _rules_tag }}" does not contain the solution version
+      "{{ _rules_version.solution_version }}". To fix, choose one of: (1) comment out or remove
+      the tag field to use the default "{{ _rules_version.default_image_tag }}" (recommended);
+      (2) set tag to a value containing "{{ _rules_version.solution_version }}", for example
+      "{{ _rules_version.solution_version }}" or "{{ _rules_version.solution_version }}.dev1"; (3) set
+      tag_override: true to bypass this check for a custom tagging policy.
+  ansible.builtin.set_fact:
+    configuration_issues: "{{ configuration_issues + [_tag_issue] }}"
+  when:
+    - not (tag_override | default(_rules_version.default_tag_override) | bool)
+    - _rules_version.solution_version not in (_rules_tag | string)
+
+- name: "app_pre_install | Add base_domain_name required field issue"
+  ansible.builtin.set_fact:
+    configuration_issues: >-
+      {{ configuration_issues + [
+        'base_domain_name is required but not set. Please provide a value in the configuration file.'
+      ] }}
+  when: base_domain_name | default('') | length == 0

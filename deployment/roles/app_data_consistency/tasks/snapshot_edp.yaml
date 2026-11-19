@@ -1,0 +1,75 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# --- Enterprise data platform (file rows in PostgreSQL) ---
+- name: "app_data_consistency | Snapshot — data platform: check namespace"
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Namespace
+    name: "{{ edp_namespace }}"
+  register: _dc_edp_ns
+  failed_when: false
+
+- name: "app_data_consistency | Snapshot — data platform: resolve guards"
+  ansible.builtin.set_fact:
+    _dc_edp_skip_reason: >-
+      {{ ('namespace ' ~ edp_namespace ~ ' is not present')
+           if (_dc_edp_ns.resources | length == 0)
+         else ('edp_enabled is false')
+           if not (edp_enabled | bool)
+         else ('data_consistency_check_edp is false')
+           if not (data_consistency_check_edp | bool)
+         else '' }}
+
+- name: "app_data_consistency | Snapshot — data platform: count files"
+  when: _dc_edp_skip_reason | trim | length == 0
+  block:
+    - name: "app_data_consistency | Snapshot — data platform: resolve workload"
+      ansible.builtin.include_tasks: resolve_workload.yaml
+      vars:
+        dcw_store: edp
+        dcw_namespace: "{{ edp_namespace }}"
+        dcw_workload: "{{ data_consistency_edp_statefulset }}"
+        dcw_container: "{{ data_consistency_postgresql_container }}"
+
+    - name: "app_data_consistency | Snapshot — data platform: run query Job"
+      ansible.builtin.include_tasks: query_job.yaml
+      vars:
+        dcj_store: edp
+        dcj_label: data-platform
+        dcj_namespace: "{{ edp_namespace }}"
+        dcj_image: "{{ _dcw_image }}"
+        dcj_script: query_postgresql.sh
+        dcj_env:
+          - name: PGHOST
+            secret: "{{ data_consistency_edp_secret_name }}"
+            key: DATABASE_HOST
+          - name: PGPORT
+            secret: "{{ data_consistency_edp_secret_name }}"
+            key: DATABASE_PORT
+          - name: PGUSER
+            secret: "{{ data_consistency_edp_secret_name }}"
+            key: DATABASE_USER
+          - name: PGPASSWORD
+            secret: "{{ data_consistency_edp_secret_name }}"
+            key: DATABASE_PASSWORD
+          - name: PGDATABASE
+            secret: "{{ data_consistency_edp_secret_name }}"
+            key: DATABASE_NAME
+          - name: COUNT_SQL
+            value: "{{ data_consistency_edp_count_sql }}"
+
+    - name: "app_data_consistency | Snapshot — data platform: record"
+      ansible.builtin.set_fact:
+        _data_snapshot: >-
+          {{ _data_snapshot | combine({'edp': {
+               'count': _dcj_count | int, 'status': 'ok',
+               'method': 'postgresql files table count'}}) }}
+
+- name: "app_data_consistency | Snapshot — data platform: record skip"
+  ansible.builtin.set_fact:
+    _data_snapshot: >-
+      {{ _data_snapshot | combine({'edp': {
+           'count': 0, 'status': 'skipped', 'method': 'none',
+           'reason': _dc_edp_skip_reason | trim}}) }}
+  when: _dc_edp_skip_reason | trim | length > 0

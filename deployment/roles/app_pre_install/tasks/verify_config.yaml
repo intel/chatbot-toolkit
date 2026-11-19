@@ -1,10 +1,8 @@
 ---
-# solution_version and default_image_tag live in version.yaml. Guarded, so the
-# copy the manifest role already loaded on the install path is not re-read.
+# solution_version and default_image_tag live in version.yaml; loaded once per run.
 - name: "app_pre_install | Load version metadata"
-  ansible.builtin.include_vars:
-    file: "{{ deployment_dir }}/version.yaml"
-  when: solution_version is not defined
+  ansible.builtin.include_tasks: load_version.yaml
+  when: default_tag_override is not defined
 
 - name: "app_pre_install | Apply the default image tag when none is configured"
   ansible.builtin.set_fact:
@@ -19,27 +17,21 @@
       '{{ default_image_tag }}' from version.yaml.
   when: tag_source | default('configured') == 'default'
 
-- name: "app_pre_install | Add image tag / solution version mismatch issue"
+- name: "app_pre_install | Check configuration rules"
+  ansible.builtin.include_tasks:
+    file: config_rules.yaml
   vars:
-    _tag_issue: >-
-      Image tag "{{ tag }}" does not contain the solution version
-      "{{ solution_version }}". To fix, choose one of: (1) comment out or remove
-      the tag field to use the default "{{ default_image_tag }}" (recommended);
-      (2) set tag to a value containing "{{ solution_version }}", for example
-      "{{ solution_version }}" or "{{ solution_version }}.dev1"; (3) set
-      tag_override: true to bypass this check for a custom tagging policy.
-  ansible.builtin.set_fact:
-    configuration_issues: "{{ configuration_issues + [_tag_issue] }}"
-  when:
-    - not (tag_override | default(false) | bool)
-    - solution_version not in (tag | string)
+    _rules_version:
+      solution_version: "{{ solution_version }}"
+      default_image_tag: "{{ default_image_tag }}"
+      default_tag_override: "{{ default_tag_override }}"
 
 - name: "app_pre_install | Warn that tag_override bypasses the version check"
   ansible.builtin.debug:
     msg: >-
       WARNING: tag_override is set — the image tag '{{ tag }}' is not checked against
       solution version {{ solution_version }}. Confirm the images are compatible.
-  when: tag_override | default(false) | bool
+  when: tag_override | default(default_tag_override) | bool
 
 - name: "app_pre_install | Fail with all configuration issues"
   ansible.builtin.fail:

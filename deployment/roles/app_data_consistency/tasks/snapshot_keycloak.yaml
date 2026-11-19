@@ -1,0 +1,63 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# --- Identity provider (realm user count) ---
+- name: "app_data_consistency | Snapshot — identity: check namespace"
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Namespace
+    name: "{{ keycloak_namespace }}"
+  register: _dc_kc_ns
+  failed_when: false
+
+- name: "app_data_consistency | Snapshot — identity: resolve guards"
+  ansible.builtin.set_fact:
+    _dc_kc_skip_reason: >-
+      {{ ('namespace ' ~ keycloak_namespace ~ ' is not present')
+           if (_dc_kc_ns.resources | length == 0)
+         else ('keycloak_enabled is false')
+           if not (keycloak_enabled | bool)
+         else ('data_consistency_check_keycloak is false')
+           if not (data_consistency_check_keycloak | bool)
+         else '' }}
+
+# No workload lookup here: the identity server's own image carries no HTTP
+# client, so the query runs the initialization image the identity configurator
+# Job already uses, which does.
+- name: "app_data_consistency | Snapshot — identity: count realm users"
+  when: _dc_kc_skip_reason | trim | length == 0
+  block:
+    - name: "app_data_consistency | Snapshot — identity: run query Job"
+      ansible.builtin.include_tasks: query_job.yaml
+      vars:
+        dcj_store: keycloak
+        dcj_label: identity
+        dcj_namespace: "{{ keycloak_namespace }}"
+        dcj_image: "{{ data_consistency_init_container_image }}"
+        dcj_script: query_identity.sh
+        dcj_shell: /bin/bash
+        dcj_env:
+          - name: KEYCLOAK_URL
+            value: "{{ data_consistency_keycloak_url }}"
+          - name: KEYCLOAK_REALM
+            value: "{{ erag_keycloak_realm }}"
+          - name: KEYCLOAK_ADMIN_USER
+            value: "{{ keycloak_admin_user }}"
+          - name: KEYCLOAK_ADMIN_PASSWORD
+            secret: "{{ keycloak_admin_secret_name }}"
+            key: password
+
+    - name: "app_data_consistency | Snapshot — identity: record"
+      ansible.builtin.set_fact:
+        _data_snapshot: >-
+          {{ _data_snapshot | combine({'keycloak': {
+               'count': _dcj_count | int, 'status': 'ok',
+               'method': 'admin API realm user count'}}) }}
+
+- name: "app_data_consistency | Snapshot — identity: record skip"
+  ansible.builtin.set_fact:
+    _data_snapshot: >-
+      {{ _data_snapshot | combine({'keycloak': {
+           'count': 0, 'status': 'skipped', 'method': 'none',
+           'reason': _dc_kc_skip_reason | trim}}) }}
+  when: _dc_kc_skip_reason | trim | length > 0
