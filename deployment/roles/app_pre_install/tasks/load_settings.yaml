@@ -120,7 +120,7 @@
 
       Image Configuration:
         • Registry: {{ registry | default('undefined') }}
-        • Tag: {{ tag | default('undefined') }} ({{ tag_source | default('configured') }}{{ ', tag_override active' if tag_override | default(false) | bool else '' }})
+        • Tag: {{ tag | default('undefined') }} ({{ tag_source | default('configured') }}{{ ', tag_override active' if tag_override | default(default_tag_override) | bool else '' }})
 
       Model Configuration:
         • LLM Model: {{ llm_model_name | default('undefined') }}

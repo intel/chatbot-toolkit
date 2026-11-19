@@ -1,0 +1,5 @@
+---
+# deployment/upgrade_checks/ holds task files the installer includes; they match
+# no default pattern, so ansible-lint would otherwise skip them as plain YAML.
+kinds:
+  - tasks: "**/deployment/upgrade_checks/*.yaml"

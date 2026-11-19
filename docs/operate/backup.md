@@ -30,18 +30,26 @@ concluding a run "did nothing" is a defect.
 
 ## Running a backup or restore
 
-```bash
-export KUBECONFIG=env/<name>/kubeconfig.yaml
-.venv/bin/ansible-playbook -i env/<name>/inventory/hosts.yaml \
-  -e env_dir=$(pwd)/env/<name> \
-  -e @env/<name>/global_config.yaml -e @env/<name>/config.erag.yaml \
-  -e kubernetes_kubeconfig=$(pwd)/env/<name>/kubeconfig.yaml \
-  ext/enterprise.ai-erag/deployment/backup.yaml -e backup_action=backup
+Backup, restore and listing run through Toolkit Manager's backup helper, `run_backup.sh`, at the
+root of the installer checkout:
 
-# restore: same invocation with -e backup_action=restore -e backup_confirm=yes
-# (without backup_confirm=yes a restore stops at a confirmation prompt, before
-#  anything is deleted)
+```bash
+./run_backup.sh backup erag --env <name>
+./run_backup.sh list erag --env <name>      # marks the backup a restore would pick
+./run_backup.sh restore erag --env <name>
 ```
+
+A restore asks for confirmation before anything is deleted; `--force` answers it (a run without a
+terminal and without `--force` refuses). By default it replays the newest `Completed` backup whose
+version label matches this layer's recorded installed version; `--from <name>` picks a different one.
+A restore replaces any object in the profile's namespaces without the `toolkit-manager.intel.com/layer` label
+too, not only the ones this layer created. Arguments after `--` go to `ansible-playbook`, e.g.
+`-- -e backup_force=true` bypasses the checkout-version check (see below) the same way `--force`
+bypasses it for install. The helper runs the installer's `playbooks/backup.yaml` with the
+environment's configuration, inventory and kubeconfig, as `es_auto_installer.sh` would.
+
+This layer's own `deployment/backup.yaml` playbook still exists, for the 3.0.0 workflow; new
+environments should use the commands above.
 
 Run this from a workstation, not from a pod. `kubernetes.core` prefers an in-cluster
 service-account token over `KUBECONFIG` whenever one exists, so invoking the engine from inside the
@@ -64,7 +72,8 @@ running both, the bare name resolves to that one and returns an empty list inste
 ### Restoring from a specific backup, not the latest one
 
 A restore with no further options replays the newest `Completed` backup that carries this profile's
-label. To go back further — an N-2 backup, or any specific one — list the candidates and name one
+label and whose version label matches this layer's recorded installed version; it refuses if none
+matches. To go back further — an N-2 backup, or any specific one — list the candidates and name one
 explicitly:
 
 ```bash
@@ -72,9 +81,8 @@ kubectl -n velero get backups.velero.io -l ai-solutions.io/backup-profile=erag \
   -o custom-columns=NAME:.metadata.name,PHASE:.status.phase,COMPLETED:.status.completionTimestamp \
   --sort-by=.status.completionTimestamp
 
-# add -e velero_restore_from=<name> to the restore invocation above, e.g.:
-#   ... ext/enterprise.ai-erag/deployment/backup.yaml \
-#       -e backup_action=restore -e backup_confirm=yes -e velero_restore_from=backup-erag-20260910t120000
+# then name it, e.g.:
+#   ./run_backup.sh restore erag --env <name> --from backup-erag-20260910t120000
 ```
 
 Naming one this way is the only thing that changes: the cleanup, the restore order, and every
@@ -142,6 +150,13 @@ minutes the replay takes. After the replay, an account that existed at backup ti
 created after the backup is not. A `post_restore` hook rolls the identity service so it stops answering
 from its own cache of the pre-restore realm.
 
+The platform layer keeps its own realm, `platform`, in the same Keycloak database, so a restore
+puts that realm back as it was when the backup was taken too: restoring a backup taken before the
+platform realm was imported removes that realm. After such a restore, run
+`./es_auto_installer.sh install platform --env <name>`. If it fails with a 404 on
+`realms/platform`, delete `KeycloakRealmImport platform-realm`, Secret `keycloak-platform-realm`
+and ConfigMap `platform-realm-imported` (namespace `keycloak`), then run it again.
+
 ## The vector store after a restore
 
 A restore recreates the vector database's StatefulSet pods, and Kubernetes gives them new IPs —
@@ -159,22 +174,24 @@ kubectl exec -n vdb <redis-pod> -c redis -- redis-cli -a "$REDIS_PASSWORD" clust
 kubectl exec -n vdb <redis-pod> -c redis -- redis-cli -a "$REDIS_PASSWORD" cluster nodes
 ```
 
-## The pre-upgrade gate
+## The pre-upgrade backup check
 
-With `backup_enabled: true`, an upgrade refuses to start unless there is a `Completed` backup for the
-running version, no older than `upgrade_backup_max_age_hours` (default 6):
+Installing a newer release over an installed one upgrades it, and the installer's backup check refuses
+that upgrade, before anything changes, unless there is a `Completed` backup of the installed version no
+older than `upgrade_backup_max_age_hours` (default 6). With `backup_enabled: false` there is no backup to
+find, so the check refuses too and names the fix:
 
 ```bash
-./es_auto_installer.sh upgrade erag --env <name>
-#   refuses without a fresh backup, and says so
+./run_backup.sh backup erag --env <name>
 
-./es_auto_installer.sh upgrade erag --env <name> -- -e allow_upgrade_without_backup=true
-#   explicit override
+./es_auto_installer.sh install erag --env <name>
+#   refuses without a fresh backup of the installed release, and says so
+
+./es_auto_installer.sh install erag --env <name> --force
+#   runs anyway; the deployment record and the upgrade report say forced
 ```
 
-The gate is skipped, not failed, when `backup_enabled` is false — demanding a restore point from a
-deployment that was never configured to produce one would only teach operators to reach for the
-override.
+`--force` bypasses every refusing check of the run, not only this one, and the run is recorded as forced.
 
 ## Troubleshooting
 
@@ -185,7 +202,7 @@ override.
 | Every test in the backup-restore suite fails, unrelated to backup itself | An unrelated aggregated API (commonly `custom.metrics.k8s.io`, if it has joined Istio ambient) can fail cluster-wide discovery. The suite binds the Velero/CSI kinds it needs explicitly so this cannot take it down — but a bare `kubectl api-resources` hanging or erroring is the same underlying symptom |
 | A question answerable only from restored data fails or hangs after a restore, while every pod is `Running` | Check the vector store's cluster state (see above) before assuming the restore failed — a healthy-looking `Running` pod can still be part of a cluster with a chunk of its keyspace unreachable |
 | Login fails with a bare `401` shortly into a test run, on a cluster that was never restored | The generated-credentials Secret was regenerated by a later plain re-install while the identity database (on its own persistent volume) kept the earlier password. Rotate to a new password — Keycloak's password-history policy refuses to reset a user back to one it has already held |
-| An upgrade refuses even though a backup was just taken | Check the backup's version label matches the running version, and that it is newer than `upgrade_backup_max_age_hours` — a backup taken for a different release does not satisfy the gate |
+| An upgrade refuses even though a backup was just taken | Check the backup's version label matches the installed version, and that it is newer than `upgrade_backup_max_age_hours` — a backup taken for a different release does not satisfy the check. Take it with the installed release's checkout: the backup playbook refuses when the checkout's version differs from the installed one, unless run with `-- -e backup_force=true` |
 
 ## Known limitations
 

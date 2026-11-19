@@ -5,7 +5,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 NAMESPACE="${1:-default}"
-LABEL_SELECTOR="app.kubernetes.io/name=erag-deployment,app.kubernetes.io/component=deployment-manifest"
+LABEL_SELECTOR="toolkit-manager.intel.com/layer=erag,toolkit-manager.intel.com/record=deployment-manifest"
 
 echo "=== ERAG Deployment Manifest ==="
 echo

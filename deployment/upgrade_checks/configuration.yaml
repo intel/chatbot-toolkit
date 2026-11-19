@@ -1,0 +1,27 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# app_pre_install's configuration rules, run before anything changes. The version
+# goes in as include vars, not facts, so a solution_version another layer set in
+# the same play cannot replace erag's and erag's does not leak into later layers.
+# The vector_dims auto-detect rule stays in-layer: it may call the network.
+- name: "upgrade_checks | erag configuration | Collect configuration issues"
+  ansible.builtin.set_fact:
+    configuration_issues: []
+
+- name: "upgrade_checks | erag configuration | Check configuration rules"
+  ansible.builtin.include_tasks: "{{ _layer_dirs[upgrade_check_layer] }}/roles/app_pre_install/tasks/config_rules.yaml"
+  vars:
+    _rules_version: "{{ lookup('ansible.builtin.file', _layer_dirs[upgrade_check_layer] + '/version.yaml') | from_yaml }}"
+
+- name: "upgrade_checks | erag configuration | Record the verdict"
+  ansible.builtin.set_fact:
+    _upgrade_verdicts: "{{ _upgrade_verdicts + [_verdict] }}"
+  vars:
+    _verdict: >-
+      {{ {'layer': upgrade_check_layer, 'check': 'configuration', 'verdict': 'blocking',
+          'reason': configuration_issues | join('; '),
+          'resolve': 'Please resolve all issues above and run the deployment again.'}
+         if configuration_issues | length > 0
+         else {'layer': upgrade_check_layer, 'check': 'configuration', 'verdict': 'pass',
+               'reason': 'configuration checks passed', 'resolve': None} }}

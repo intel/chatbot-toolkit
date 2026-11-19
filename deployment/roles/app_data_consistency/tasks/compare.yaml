@@ -58,5 +58,5 @@
       [UPGRADE WARNING] Data consistency violations detected:
       {{ _dc_violations | join('; ') }}.
       The upgrade fails once the report is written, unless
-      data_consistency_no_fail or force_install_mode is set.
+      data_consistency_no_fail is set or the install runs with --force.
   when: _dc_violations | length > 0
