@@ -120,3 +120,14 @@ def test_keda_behaves_like_the_hpa(values, window):
     assert scaled["advanced"]["horizontalPodAutoscalerConfig"]["behavior"] == hpa["behavior"]
     assert hpa["behavior"]["scaleDown"]["stabilizationWindowSeconds"] == window
     assert (scaled["minReplicaCount"], scaled["maxReplicaCount"]) == (hpa["minReplicas"], hpa["maxReplicas"])
+
+
+@pytest.mark.parametrize("values, grace", [
+    ([], 450),
+    (["textExtractor.terminationGracePeriodSeconds=900"], 900),
+    (["textExtractor.terminationGracePeriodSeconds=null"], None),  # the Kubernetes default
+], ids=["values", "override", "unset"])
+def test_scale_down_lets_parts_in_flight_finish(values, grace):
+    deployment = next(d for d in _render(*values)
+                      if d["kind"] == "Deployment" and d["metadata"]["name"] == "edp-text-extractor")
+    assert deployment["spec"]["template"]["spec"].get("terminationGracePeriodSeconds") == grace
