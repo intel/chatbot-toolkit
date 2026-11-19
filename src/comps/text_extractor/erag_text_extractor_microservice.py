@@ -157,6 +157,36 @@ def _submit(func, *args):
     return task
 
 
+# Temporary PDFs and the page tasks still reading them. A request that fails cannot stop the
+# pages its workers are running, so their file is removed once the last of them is done.
+_pdf_readers: dict[str, int] = {}
+_pdf_remove_when_read: set[str] = set()
+
+
+def _hold_pdf(pdf_path: str, task) -> None:
+    """Keep pdf_path until the page task is done."""
+    _pdf_readers[pdf_path] = _pdf_readers.get(pdf_path, 0) + 1
+
+    def _release(_):
+        _pdf_readers[pdf_path] -= 1
+        if not _pdf_readers[pdf_path]:
+            del _pdf_readers[pdf_path]
+            if pdf_path in _pdf_remove_when_read:
+                _pdf_remove_when_read.discard(pdf_path)
+                _remove_pdf(pdf_path)
+
+    task.add_done_callback(_release)
+
+
+def _remove_pdf(pdf_path: str) -> None:
+    """Remove a temporary PDF now, or once the page tasks still reading it are done."""
+    if pdf_path in _pdf_readers:
+        _pdf_remove_when_read.add(pdf_path)
+    elif os.path.exists(pdf_path):
+        os.remove(pdf_path)
+        logger.info(f"Removed temporary PDF {pdf_path}")
+
+
 async def _process_pdf_windowed(pdf_path: str, filename: str, page_count: int, metadata: dict) -> TextDoc:
     """
     Process all pages of a PDF using a sliding window of at most _max_workers
@@ -183,6 +213,7 @@ async def _process_pdf_windowed(pdf_path: str, filename: str, page_count: int, m
             while next_page < page_count and len(inflight) < _max_workers:
                 page_num = next_page
                 task = _submit(_process_single_page_from_file, pdf_path, page_num)
+                _hold_pdf(pdf_path, task)
                 inflight[task] = page_num
                 next_page += 1
 
@@ -215,9 +246,8 @@ async def _process_pdf_windowed(pdf_path: str, filename: str, page_count: int, m
 
     finally:
         pdf_path_to_remove = metadata.get('_pdf_path')
-        if pdf_path_to_remove and os.path.exists(pdf_path_to_remove):
-            os.remove(pdf_path_to_remove)
-            logger.info(f"Removed temporary PDF {pdf_path_to_remove}")
+        if pdf_path_to_remove:
+            _remove_pdf(pdf_path_to_remove)
 
 # Register the multipart file-upload endpoint. Used by EDP for file ingestion and
 # by the DocSum pipeline, whose uploads the GMC router forwards here (it sends a
@@ -326,6 +356,7 @@ async def _process_files(decoded_files: list[tuple[str, bytes]]) -> TextSplitter
     # The windowed approach submits only _max_workers pages at a time and yields
     # to the event loop after each completion. This ensures concurrent requests
     # interleave their pages in the pool instead of one request monopolising all workers.
+    loaded_docs: list[TextDoc] = []
     try:
         for filename, file_bytes in decoded_files:
             if not filename.lower().endswith('.pdf'):
@@ -357,38 +388,37 @@ async def _process_files(decoded_files: list[tuple[str, bytes]]) -> TextSplitter
                 metadata = {'filename': filename}
             metadata['_pdf_path'] = pdf_path
             all_tasks.append(asyncio.ensure_future(_process_pdf_windowed(pdf_path, filename, page_count, metadata)))
-    except BaseException:
-        # Drop this request's queued work; a PDF task cancelled before it starts does
-        # not reach its finally, so remove the files here.
+
+        if all_tasks:
+            try:
+                results = await asyncio.gather(*all_tasks)
+            except HTTPError as e:
+                logger.exception(e)
+                raise HTTPException(status_code=400, detail=f"A HTTP Error occurred while processing files: {str(e)}")
+            except (ConnectionError, ProxyError) as e:
+                logger.exception(e)
+                raise HTTPException(status_code=400, detail=f"Could not connect to remote server: {str(e)}")
+            except ValueError as e:
+                logger.exception(e)
+                raise HTTPException(status_code=400, detail=f"A Value Error occurred while processing: {str(e)}")
+            except MaxRetryError as e:
+                logger.exception(e)
+                raise HTTPException(status_code=503, detail=f"Could not connect to remote server: {str(e)}")
+
+            for result in results:
+                if isinstance(result, TextDoc):
+                    loaded_docs.append(result)      # PDF windowed coroutine result
+                elif isinstance(result, list):
+                    loaded_docs.extend(result)      # non-PDF file result list
+    finally:
+        # On success every task is done and has removed its own file. On a failure, here or in
+        # another task, drop this request's remaining work; a PDF task cancelled before it starts
+        # does not reach its finally, so remove what is left of the files here.
         for task in all_tasks:
-            task.cancel()
+            if not task.done():
+                task.cancel()
         for path in pdf_paths:
-            if os.path.exists(path):
-                os.remove(path)
-        raise
-
-    loaded_docs: list[TextDoc] = []
-    if all_tasks:
-        try:
-            results = await asyncio.gather(*all_tasks)
-        except HTTPError as e:
-            logger.exception(e)
-            raise HTTPException(status_code=400, detail=f"A HTTP Error occurred while processing files: {str(e)}")
-        except (ConnectionError, ProxyError) as e:
-            logger.exception(e)
-            raise HTTPException(status_code=400, detail=f"Could not connect to remote server: {str(e)}")
-        except ValueError as e:
-            logger.exception(e)
-            raise HTTPException(status_code=400, detail=f"A Value Error occurred while processing: {str(e)}")
-        except MaxRetryError as e:
-            logger.exception(e)
-            raise HTTPException(status_code=503, detail=f"Could not connect to remote server: {str(e)}")
-
-        for result in results:
-            if isinstance(result, TextDoc):
-                loaded_docs.append(result)      # PDF windowed coroutine result
-            elif isinstance(result, list):
-                loaded_docs.extend(result)      # non-PDF file result list
+            _remove_pdf(path)
 
     if not loaded_docs:
         raise HTTPException(status_code=400, detail="No documents were extracted from the provided input.")

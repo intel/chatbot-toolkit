@@ -181,6 +181,7 @@ class TestErrors:
         def _queue(coro):
             coro.close()
             task = MagicMock()
+            task.done.return_value = False
             queued.append(task)
             return task
 
@@ -191,6 +192,67 @@ class TestErrors:
                 await te_mod._process_files([("a.pdf", good_bytes), ("b.pdf", good_bytes)])
         assert len(queued) == 1 and queued[0].cancel.called
         assert list(tmp_path.iterdir()) == []
+
+    @pytest.mark.asyncio
+    async def test_a_pdf_failing_in_gather_cancels_the_other_pdfs_and_leaves_no_files(self, tmp_path, monkeypatch):
+        import asyncio
+        import pymupdf
+        from fastapi import HTTPException
+
+        monkeypatch.setenv("UPLOAD_PATH", str(tmp_path))
+        with pymupdf.open() as good:
+            good.new_page().insert_text((72, 300), "good")
+            good_bytes = good.tobytes()
+
+        async def _windowed(pdf_path, filename, page_count, metadata):
+            if filename == "a.pdf":
+                raise ValueError("a.pdf page 1 failed")
+            await asyncio.Event().wait()
+
+        tasks = []
+        ensure_future = asyncio.ensure_future
+
+        def _track(coro):
+            task = ensure_future(coro)
+            tasks.append(task)
+            return task
+
+        with patch.object(te_mod, "_process_pdf_windowed", _windowed), \
+                patch.object(te_mod.asyncio, "ensure_future", side_effect=_track):
+            with pytest.raises(HTTPException) as exc_info:
+                await te_mod._process_files([("a.pdf", good_bytes), ("b.pdf", good_bytes)])
+            await asyncio.sleep(0)
+        assert exc_info.value.status_code == 400
+        assert len(tasks) == 2 and tasks[1].cancelled()
+        assert list(tmp_path.iterdir()) == []
+
+    @pytest.mark.asyncio
+    async def test_a_cancelled_pdf_keeps_its_file_until_the_running_pages_are_done(self, tmp_path, monkeypatch):
+        import asyncio
+
+        pdf_path = tmp_path / "doc.pdf"
+        pdf_path.write_bytes(b"%PDF-1.4")
+        pages = []
+
+        def _page(func, *args):
+            pages.append(asyncio.get_running_loop().create_future())
+            return pages[-1]
+
+        monkeypatch.setattr(te_mod, "_max_workers", 2)
+        with patch.object(te_mod, "_submit", side_effect=_page):
+            task = asyncio.ensure_future(
+                te_mod._process_pdf_windowed(str(pdf_path), "doc.pdf", 10, {"_pdf_path": str(pdf_path)}))
+            await asyncio.sleep(0)
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+        assert len(pages) == 2 and pdf_path.exists()
+        pages[0].set_result({"success": True, "text": "one"})
+        await asyncio.sleep(0)
+        assert pdf_path.exists()
+        pages[1].set_result({"success": True, "text": "two"})
+        await asyncio.sleep(0)
+        assert not pdf_path.exists() and te_mod._pdf_readers == {}
 
 
 def _die():
