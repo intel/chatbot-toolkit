@@ -52,7 +52,7 @@ class Evaluator:
         k8s_helper = K8sHelper()
         self.keycloak_helper = KeycloakHelper(credentials_file=auth_file, k8s_helper=k8s_helper)
         self.keycloak_helper.remove_required_actions(self.keycloak_helper.admin_access_token,
-                                                     self.keycloak_helper.erag_admin_username)
+                                                     self.keycloak_helper.chattool_admin_username)
         self.chatqa_api_helper = ChatQaApiHelper(keycloak_helper=self.keycloak_helper)
         self.edp_helper = EdpHelper(keycloak_helper=self.keycloak_helper, bucket_name=ingestion_bucket_name)
         self.fingerprint_api_helper = FingerprintApiHelper(self.keycloak_helper)

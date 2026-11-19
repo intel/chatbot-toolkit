@@ -11,22 +11,22 @@
 # safety).
 #
 # Variable ownership:
-#   erag_keycloak_* — this role's own realm/client/domain/OIDC/federation
+#   chattool_keycloak_* — this role's own realm/client/domain/OIDC/federation
 #     config. Prefixed to avoid shadowing core/keycloak and inference's
 #     keycloak_realm / keycloak_client_id when they share a playbook.
 #   keycloak_*     — shared, owned by core/keycloak (namespace, admin user,
 #     admin secret). This role reads them; it does not define their meaning.
 
 # --- Realm + domain ---
-erag_keycloak_realm: "EnterpriseRAG"
-erag_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"
+chattool_keycloak_realm: "ChatbotToolkit"
+chattool_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"
 # Must match where the platform serves Keycloak in path mode (keycloak role: keycloak_path,
 # default /keycloak); a different prefix breaks every issuer URL.
-erag_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"
-erag_keycloak_path_prefix: "{{ erag_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"
+chattool_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"
+chattool_keycloak_path_prefix: "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"
 
 # --- Client registration (used by get_secret_id.yaml) ---
-erag_keycloak_client_id: "EnterpriseRAG-oidc-backend"
+chattool_keycloak_client_id: "ChatbotToolkit-oidc-backend"
 
 # --- MCP gateway caller identity (service account, client_credentials only) ---
 mcp_keycloak_client_id: "mcp-client"
@@ -41,25 +41,25 @@ keycloak_admin_secret_name: "keycloak-admin-secret"
 keycloak_namespace: "keycloak"
 keycloak_admin_user: "admin"
 
-erag_keycloak_oidc_endpoint: ""
-erag_keycloak_oidc_alias: "enterprise-sso"
-erag_keycloak_oidc_client_id: ""
-erag_keycloak_oidc_client_secret: ""
-erag_keycloak_oidc_admin_gid: ""
-erag_keycloak_oidc_maintainer_gid: ""
-erag_keycloak_oidc_user_gid: ""
-erag_keycloak_oidc_tenant_id: ""
+chattool_keycloak_oidc_endpoint: ""
+chattool_keycloak_oidc_alias: "enterprise-sso"
+chattool_keycloak_oidc_client_id: ""
+chattool_keycloak_oidc_client_secret: ""
+chattool_keycloak_oidc_admin_gid: ""
+chattool_keycloak_oidc_maintainer_gid: ""
+chattool_keycloak_oidc_user_gid: ""
+chattool_keycloak_oidc_tenant_id: ""
 
 # --- LDAP federation (optional; all-empty = disabled) ---
-erag_keycloak_federation_endpoint: ""
-erag_keycloak_federation_bind_dn: ""
-erag_keycloak_federation_bind_password: ""
-erag_keycloak_federation_users_dn: ""
-erag_keycloak_federation_user_attribute: "sAMAccountName"
-erag_keycloak_federation_groups_dn: ""
-erag_keycloak_federation_user_group_ldap_filter: "(cn=erag-user-group)"
-erag_keycloak_federation_maintainer_group_ldap_filter: "(cn=erag-maintainer-group)"
-erag_keycloak_federation_admin_group_ldap_filter: "(cn=erag-admin-group)"
+chattool_keycloak_federation_endpoint: ""
+chattool_keycloak_federation_bind_dn: ""
+chattool_keycloak_federation_bind_password: ""
+chattool_keycloak_federation_users_dn: ""
+chattool_keycloak_federation_user_attribute: "sAMAccountName"
+chattool_keycloak_federation_groups_dn: ""
+chattool_keycloak_federation_user_group_ldap_filter: "(cn=chattool-user-group)"
+chattool_keycloak_federation_maintainer_group_ldap_filter: "(cn=chattool-maintainer-group)"
+chattool_keycloak_federation_admin_group_ldap_filter: "(cn=chattool-admin-group)"
 
 # --- Cross-role shared defaults - Owned by other roles; declared here so this role is standalone-runnable. ---
 edp_minio_domain_name: "seaweedfs.{{ base_domain_name | default('solutions.ai') }}"      # app_edp

@@ -105,9 +105,9 @@ Settings are read from environment variables. The `impl/microservice/.env` file 
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `MCP_JWT_ISSUER` | Yes | (none) | Realm issuer URL that caller tokens must carry in `iss`, e.g. `https://keycloak.<base_domain_name>/realms/EnterpriseRAG` (`https://<base_domain_name>/auth/realms/...` in `path` routing mode). This is the externally reachable URL, because that is what Keycloak stamps into tokens. |
+| `MCP_JWT_ISSUER` | Yes | (none) | Realm issuer URL that caller tokens must carry in `iss`, e.g. `https://keycloak.<base_domain_name>/realms/ChatbotToolkit` (`https://<base_domain_name>/auth/realms/...` in `path` routing mode). This is the externally reachable URL, because that is what Keycloak stamps into tokens. |
 | `MCP_JWT_AUDIENCE` | Yes | (none) | Audience caller tokens must contain, `mcp-gateway` by default. Tokens issued for another service are refused. |
-| `MCP_JWKS_URI` | Yes | (none) | In-cluster JWKS endpoint used to verify token signatures, e.g. `http://keycloak-service.<keycloak-namespace>.svc:8080/realms/EnterpriseRAG/protocol/openid-connect/certs`. |
+| `MCP_JWKS_URI` | Yes | (none) | In-cluster JWKS endpoint used to verify token signatures, e.g. `http://keycloak-service.<keycloak-namespace>.svc:8080/realms/ChatbotToolkit/protocol/openid-connect/certs`. |
 | `MCP_JWT_ALGORITHMS` | No | `RS256,RS384` | Comma-separated signing algorithms accepted. The realm signs with RS384. |
 | `MCP_RESOURCE_URL` | No | (none) | Canonical URL of this MCP resource, e.g. `https://<base_domain_name>/api/v1/mcp`. Published in the protected-resource metadata document and in the `WWW-Authenticate` challenge. |
 | `EDP_ENDPOINT` | Yes | (none) | Internal EDP backend URL. Required - MCP gateway exposes only EDP retrieval/ingestion tools. |
@@ -170,9 +170,9 @@ If the backend services are running at different endpoints than the default, upd
 
 ```bash
 docker run -d --name="mcp-gateway" \
-  -e MCP_JWT_ISSUER=https://keycloak.<base-domain>/realms/EnterpriseRAG \
+  -e MCP_JWT_ISSUER=https://keycloak.<base-domain>/realms/ChatbotToolkit \
   -e MCP_JWT_AUDIENCE=mcp-gateway \
-  -e MCP_JWKS_URI=http://<keycloak-host>/realms/EnterpriseRAG/protocol/openid-connect/certs \
+  -e MCP_JWKS_URI=http://<keycloak-host>/realms/ChatbotToolkit/protocol/openid-connect/certs \
   -e MCP_RESOURCE_URL=https://<base-domain>/api/v1/mcp \
   -e EDP_ENDPOINT=http://<edp-host>:5000 \
   --net=host \

@@ -93,7 +93,7 @@ Chatbot Toolkit accounts are in `env/<name>/logs/rag/` (one-time passwords; chan
 
 | Service | Username | Location |
 |---------|----------|----------|
-| UI admin/user/maintainer (realm `EnterpriseRAG`) | `erag-admin`, `erag-user`, `erag-maintainer` | default_credentials.txt |
+| UI admin/user/maintainer (realm `ChatbotToolkit`) | `chattool-admin`, `chattool-user`, `chattool-maintainer` | default_credentials.txt |
 | Keycloak admin console (realm `master`) | admin | `keycloak-admin-secret` Secret, namespace `keycloak` |
 | Grafana, **Sign in with Keycloak** (realm `platform`) | platform-admin | `platform-bootstrap-admin` Secret, namespace `keycloak` (temporary; change at first login) |
 | Grafana, local admin on the login form | admin | `grafana-admin-credentials` Secret, namespace `monitoring` |
@@ -120,11 +120,11 @@ Use **Data Ingestion** tab in **Admin Panel** (admin only; ChatQnA and AudioQnA 
 SSO and SharePoint share one Microsoft Entra ID app registration. Configure in `env/<name>/config.erag.yaml`:
 
 ```yaml
-erag_keycloak_oidc_endpoint: ""       # enables SSO
-erag_keycloak_oidc_alias: "enterprise-sso"
-erag_keycloak_oidc_client_id: ""
-erag_keycloak_oidc_client_secret: ""
-erag_keycloak_oidc_tenant_id: ""      # additionally enables SharePoint
+chattool_keycloak_oidc_endpoint: ""       # enables SSO
+chattool_keycloak_oidc_alias: "enterprise-sso"
+chattool_keycloak_oidc_client_id: ""
+chattool_keycloak_oidc_client_secret: ""
+chattool_keycloak_oidc_tenant_id: ""      # additionally enables SharePoint
 ```
 
 All empty = disabled. Partial config rejected. Apply: `./es_auto_installer.sh install erag --env <name>`. Full procedure: [Single Sign-On and SharePoint Integration](../customize/sharepoint.md).

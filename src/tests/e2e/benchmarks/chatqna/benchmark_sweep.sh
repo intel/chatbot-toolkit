@@ -156,7 +156,7 @@ if [[ $DRY_RUN -eq 0 ]]; then
     gen_rc=$?
     set -eu
     if [[ $gen_rc -ne 0 ]]; then
-        log_error "Failed to generate bearer token. Ensure KEYCLOAK_REALM_ADMIN_PASSWORD and KEYCLOAK_ERAG_ADMIN_PASSWORD are set."
+        log_error "Failed to generate bearer token. Ensure KEYCLOAK_REALM_ADMIN_PASSWORD and KEYCLOAK_CHATTOOL_ADMIN_PASSWORD are set."
         exit 1
     fi
     log_ok "Credentials validated."

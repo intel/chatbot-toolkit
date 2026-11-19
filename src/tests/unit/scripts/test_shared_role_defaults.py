@@ -6,7 +6,7 @@
 """
 Guard the routing-mode defaults that several deployment roles share.
 
-ui_domain_name, erag_keycloak_domain_name and erag_keycloak_path_prefix are role defaults,
+ui_domain_name, chattool_keycloak_domain_name and chattool_keycloak_path_prefix are role defaults,
 not facts: teardown, the upgrade pre-steps and --only never run
 app_pre_install/tasks/solution_config.yaml, so a value that only that file set was missing
 there (path-mode teardown called Keycloak without /keycloak and failed). Each role that reads
@@ -29,18 +29,18 @@ _ROLES_DIR = Path(__file__).resolve().parents[4] / "deployment" / "roles"
 # The one accepted definition of each shared default.
 CANONICAL = {
     "ui_domain_name": "{{ base_domain_name | default('solutions.ai') }}",
-    "erag_keycloak_domain_name": (
+    "chattool_keycloak_domain_name": (
         "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path'"
         " else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"
     ),
-    "erag_keycloak_default_path_prefix": "{{ keycloak_path | default('/keycloak') }}",
-    "erag_keycloak_path_prefix": (
-        "{{ erag_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"
+    "chattool_keycloak_default_path_prefix": "{{ keycloak_path | default('/keycloak') }}",
+    "chattool_keycloak_path_prefix": (
+        "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"
     ),
 }
-# erag_keycloak_path_prefix is defined in terms of this one, so a role that declares the
+# chattool_keycloak_path_prefix is defined in terms of this one, so a role that declares the
 # former must declare it too.
-_REQUIRES = {"erag_keycloak_path_prefix": "erag_keycloak_default_path_prefix"}
+_REQUIRES = {"chattool_keycloak_path_prefix": "chattool_keycloak_default_path_prefix"}
 
 
 def _roles():
@@ -106,8 +106,8 @@ def _render(extra_vars):
     env = jinja2.Environment(undefined=jinja2.Undefined)
     scope = dict(extra_vars)
     # Resolve in dependency order, as Ansible does lazily.
-    for var in ("erag_keycloak_default_path_prefix", "erag_keycloak_path_prefix",
-                "erag_keycloak_domain_name", "ui_domain_name"):
+    for var in ("chattool_keycloak_default_path_prefix", "chattool_keycloak_path_prefix",
+                "chattool_keycloak_domain_name", "ui_domain_name"):
         scope[var] = env.from_string(CANONICAL[var]).render(**scope)
     return scope
 
@@ -127,6 +127,6 @@ def test_rendered_values_match_the_platform(extra_vars, domain, prefix):
     """Path mode: Keycloak on the base domain under keycloak_path (its http-relative-path);
     subdomain mode: keycloak.<base> with no prefix (enterprise-ai-solutions roles/keycloak)."""
     scope = _render(extra_vars)
-    assert scope["erag_keycloak_domain_name"] == domain
-    assert scope["erag_keycloak_path_prefix"] == prefix
+    assert scope["chattool_keycloak_domain_name"] == domain
+    assert scope["chattool_keycloak_path_prefix"] == prefix
     assert scope["ui_domain_name"] == "example.com"

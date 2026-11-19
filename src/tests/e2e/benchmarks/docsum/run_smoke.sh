@@ -16,7 +16,7 @@ echo ""
 
 echo "Step 2: Generate bearer token"
 BEARER_FILE="${SCRIPT_DIR}/.bearer"
-if [[ -n "${KEYCLOAK_ERAG_ADMIN_PASSWORD:-}" ]]; then
+if [[ -n "${KEYCLOAK_CHATTOOL_ADMIN_PASSWORD:-}" ]]; then
     python3 -c "
 import sys; sys.path.insert(0, '.')
 from benchmark import refresh_token_file
@@ -27,7 +27,7 @@ print('Token refreshed inline')
 elif [[ -f "${SCRIPT_DIR}/../chatqna/generate_uat_to_file.sh" ]]; then
     "${SCRIPT_DIR}/../chatqna/generate_uat_to_file.sh" "${BEARER_FILE}" 1
 else
-    echo "Error: set KEYCLOAK_ERAG_ADMIN_PASSWORD or ensure ../chatqna/generate_uat_to_file.sh exists"
+    echo "Error: set KEYCLOAK_CHATTOOL_ADMIN_PASSWORD or ensure ../chatqna/generate_uat_to_file.sh exists"
     exit 1
 fi
 echo ""

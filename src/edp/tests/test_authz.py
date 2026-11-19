@@ -12,13 +12,13 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 
-BACKEND_CLIENT = "EnterpriseRAG-oidc-backend"
+BACKEND_CLIENT = "ChatbotToolkit-oidc-backend"
 SIGNING_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 FORGED_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
-USER = ["ERAG-user"]
-MAINTAINER = ["ERAG-user", "ERAG-maintainer"]
-ADMIN = ["ERAG-admin"]
+USER = ["CHATTOOL-user"]
+MAINTAINER = ["CHATTOOL-user", "CHATTOOL-maintainer"]
+ADMIN = ["CHATTOOL-admin"]
 
 client = TestClient(app, raise_server_exceptions=False)
 
@@ -41,7 +41,7 @@ def auth(token):
 
 @pytest.fixture(autouse=True)
 def keycloak_jwks(monkeypatch):
-    monkeypatch.setenv("EDP_OIDC_CONFIG_URL", "http://keycloak/realms/EnterpriseRAG/.well-known/openid-configuration")
+    monkeypatch.setenv("EDP_OIDC_CONFIG_URL", "http://keycloak/realms/ChatbotToolkit/.well-known/openid-configuration")
     monkeypatch.setattr("app.main._jwks_client", None)
     signing_key = MagicMock(key=SIGNING_KEY.public_key())
     monkeypatch.setattr(jwt.PyJWKClient, "get_signing_key_from_jwt", lambda self, token: signing_key)

@@ -102,10 +102,10 @@ def refresh_token_file(bearer_path):
         auth_domain = f"https://{domain}{os.environ.get('KEYCLOAK_PATH', '/keycloak')}"
     else:
         auth_domain = f"https://auth.{domain}"
-    realm = os.environ.get("KEYCLOAK_REALM", "EnterpriseRAG")
-    client_id = os.environ.get("KEYCLOAK_CLIENT_ID", "EnterpriseRAG-oidc")
-    username = os.environ.get("KEYCLOAK_ERAG_ADMIN_USERNAME", "erag-admin")
-    password = os.environ.get("KEYCLOAK_ERAG_ADMIN_PASSWORD", "")
+    realm = os.environ.get("KEYCLOAK_REALM", "ChatbotToolkit")
+    client_id = os.environ.get("KEYCLOAK_CLIENT_ID", "ChatbotToolkit-oidc")
+    username = os.environ.get("KEYCLOAK_CHATTOOL_ADMIN_USERNAME", "chattool-admin")
+    password = os.environ.get("KEYCLOAK_CHATTOOL_ADMIN_PASSWORD", "")
     if not password:
         return False
     token_url = f"{auth_domain}/realms/{realm}/protocol/openid-connect/token"
@@ -492,7 +492,7 @@ def main():
     if not Path(args.bearer).is_file():
         if not refresh_token_file(args.bearer):
             print(f"Error: bearer token file not found: {args.bearer}", file=sys.stderr)
-            print("Set KEYCLOAK_ERAG_ADMIN_PASSWORD or use ../chatqna/generate_uat_to_file.sh first", file=sys.stderr)
+            print("Set KEYCLOAK_CHATTOOL_ADMIN_PASSWORD or use ../chatqna/generate_uat_to_file.sh first", file=sys.stderr)
             sys.exit(1)
 
     run_benchmark(args)

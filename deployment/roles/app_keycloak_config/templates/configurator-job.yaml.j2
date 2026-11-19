@@ -39,8 +39,8 @@ metadata:
 data:
   configurator.sh: |
 {{ lookup('file', role_path + '/files/keycloak_configurator_job.sh') | indent(4, first=True) }}
-{% if (erag_keycloak_oidc_endpoint is defined and erag_keycloak_oidc_endpoint) or
-      (erag_keycloak_federation_endpoint is defined and erag_keycloak_federation_endpoint) %}
+{% if (chattool_keycloak_oidc_endpoint is defined and chattool_keycloak_oidc_endpoint) or
+      (chattool_keycloak_federation_endpoint is defined and chattool_keycloak_federation_endpoint) %}
 ---
 apiVersion: v1
 kind: Secret
@@ -52,11 +52,11 @@ metadata:
     app.kubernetes.io/component: configuration
 type: Opaque
 data:
-{% if erag_keycloak_oidc_endpoint is defined and erag_keycloak_oidc_endpoint %}
-  oidc-client-secret: {{ erag_keycloak_oidc_client_secret | default('') | b64encode }}
+{% if chattool_keycloak_oidc_endpoint is defined and chattool_keycloak_oidc_endpoint %}
+  oidc-client-secret: {{ chattool_keycloak_oidc_client_secret | default('') | b64encode }}
 {% endif %}
-{% if erag_keycloak_federation_endpoint is defined and erag_keycloak_federation_endpoint %}
-  federation-bind-password: {{ erag_keycloak_federation_bind_password | default('') | b64encode }}
+{% if chattool_keycloak_federation_endpoint is defined and chattool_keycloak_federation_endpoint %}
+  federation-bind-password: {{ chattool_keycloak_federation_bind_password | default('') | b64encode }}
 {% endif %}
 {% endif %}
 ---
@@ -101,9 +101,9 @@ spec:
           command: ["/bin/bash", "/scripts/configurator.sh"]
           env:
             - name: KEYCLOAK_URL
-              value: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ erag_keycloak_path_prefix }}"
+              value: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ chattool_keycloak_path_prefix }}"
             - name: KEYCLOAK_REALM
-              value: "{{ erag_keycloak_realm }}"
+              value: "{{ chattool_keycloak_realm }}"
             - name: KEYCLOAK_ADMIN_USER
               value: "{{ keycloak_admin_user }}"
             - name: KEYCLOAK_ADMIN_PASSWORD
@@ -133,47 +133,47 @@ spec:
               value: "{{ credentials_secret_name }}"
             - name: CREDENTIALS_SECRET_NAMESPACE
               value: "{{ keycloak_namespace }}"
-{% if erag_keycloak_oidc_endpoint is defined and erag_keycloak_oidc_endpoint %}
+{% if chattool_keycloak_oidc_endpoint is defined and chattool_keycloak_oidc_endpoint %}
             - name: OIDC_ENDPOINT
-              value: "{{ erag_keycloak_oidc_endpoint }}"
+              value: "{{ chattool_keycloak_oidc_endpoint }}"
             - name: OIDC_ALIAS
-              value: "{{ erag_keycloak_oidc_alias | default('enterprise-sso') }}"
+              value: "{{ chattool_keycloak_oidc_alias | default('enterprise-sso') }}"
             - name: OIDC_CLIENT_ID
-              value: "{{ erag_keycloak_oidc_client_id | default('') }}"
+              value: "{{ chattool_keycloak_oidc_client_id | default('') }}"
             - name: OIDC_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: keycloak-configurator-sensitive
                   key: oidc-client-secret
             - name: OIDC_ADMIN_GID
-              value: "{{ erag_keycloak_oidc_admin_gid | default('') }}"
+              value: "{{ chattool_keycloak_oidc_admin_gid | default('') }}"
             - name: OIDC_MAINTAINER_GID
-              value: "{{ erag_keycloak_oidc_maintainer_gid | default('') }}"
+              value: "{{ chattool_keycloak_oidc_maintainer_gid | default('') }}"
             - name: OIDC_USER_GID
-              value: "{{ erag_keycloak_oidc_user_gid | default('') }}"
+              value: "{{ chattool_keycloak_oidc_user_gid | default('') }}"
 {% endif %}
-{% if erag_keycloak_federation_endpoint is defined and erag_keycloak_federation_endpoint %}
+{% if chattool_keycloak_federation_endpoint is defined and chattool_keycloak_federation_endpoint %}
             - name: FEDERATION_ENDPOINT
-              value: "{{ erag_keycloak_federation_endpoint }}"
+              value: "{{ chattool_keycloak_federation_endpoint }}"
             - name: FEDERATION_BIND_DN
-              value: "{{ erag_keycloak_federation_bind_dn | default('') }}"
+              value: "{{ chattool_keycloak_federation_bind_dn | default('') }}"
             - name: FEDERATION_BIND_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: keycloak-configurator-sensitive
                   key: federation-bind-password
             - name: FEDERATION_USERS_DN
-              value: "{{ erag_keycloak_federation_users_dn | default('') }}"
+              value: "{{ chattool_keycloak_federation_users_dn | default('') }}"
             - name: FEDERATION_USER_ATTRIBUTE
-              value: "{{ erag_keycloak_federation_user_attribute | default('sAMAccountName') }}"
+              value: "{{ chattool_keycloak_federation_user_attribute | default('sAMAccountName') }}"
             - name: FEDERATION_GROUPS_DN
-              value: "{{ erag_keycloak_federation_groups_dn | default('') }}"
+              value: "{{ chattool_keycloak_federation_groups_dn | default('') }}"
             - name: FEDERATION_USER_GROUP_LDAP_FILTER
-              value: "{{ erag_keycloak_federation_user_group_ldap_filter | default('(cn=erag-user-group)') }}"
+              value: "{{ chattool_keycloak_federation_user_group_ldap_filter | default('(cn=chattool-user-group)') }}"
             - name: FEDERATION_MAINTAINER_GROUP_LDAP_FILTER
-              value: "{{ erag_keycloak_federation_maintainer_group_ldap_filter | default('(cn=erag-maintainer-group)') }}"
+              value: "{{ chattool_keycloak_federation_maintainer_group_ldap_filter | default('(cn=chattool-maintainer-group)') }}"
             - name: FEDERATION_ADMIN_GROUP_LDAP_FILTER
-              value: "{{ erag_keycloak_federation_admin_group_ldap_filter | default('(cn=erag-admin-group)') }}"
+              value: "{{ chattool_keycloak_federation_admin_group_ldap_filter | default('(cn=chattool-admin-group)') }}"
 {% endif %}
 {% if http_proxy is defined and http_proxy != "" %}
             - name: http_proxy

@@ -21,11 +21,11 @@ It measures:
 - Network access (HTTPS) to the RAG deployment FQDN and Keycloak (or custom `ERAG_DOMAIN_NAME`)
 - Python 3.11+ with packages: `pip install -r requirements.txt`
 - HuggingFace tokenizer cached locally (or `HF_TOKEN` for download)
-- Keycloak credentials: both `KEYCLOAK_ERAG_ADMIN_PASSWORD` and `KEYCLOAK_REALM_ADMIN_PASSWORD`
+- Keycloak credentials: both `KEYCLOAK_CHATTOOL_ADMIN_PASSWORD` and `KEYCLOAK_REALM_ADMIN_PASSWORD`
 
 Export credentials from deployment defaults (if not changed after install):
 ```bash
-source ../../../../../deployment/ansible-logs/default_credentials.txt && export KEYCLOAK_ERAG_ADMIN_PASSWORD=$KEYCLOAK_ERAG_ADMIN_PASSWORD
+source ../../../../../deployment/ansible-logs/default_credentials.txt && export KEYCLOAK_CHATTOOL_ADMIN_PASSWORD=$KEYCLOAK_CHATTOOL_ADMIN_PASSWORD
 export KEYCLOAK_REALM_ADMIN_PASSWORD=$(cat ../../../../../deployment/ansible-logs/default_credentials.yaml | grep KEYCLOAK_REALM_ADMIN_PASSWORD | awk '{print $2}')
 ```
 
