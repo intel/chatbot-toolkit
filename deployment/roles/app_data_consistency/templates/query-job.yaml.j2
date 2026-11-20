@@ -21,6 +21,10 @@ metadata:
 data:
   query.sh: |
 {{ lookup('file', role_path + '/files/' + dcj_script) | indent(4, first=True) }}
+{% if _dcj_ambient %}
+  wait-for-ztunnel.sh: |
+{{ lookup('file', role_path + '/files/wait_for_ztunnel.sh') | indent(4, first=True) }}
+{% endif %}
 ---
 apiVersion: batch/v1
 kind: Job
@@ -51,6 +55,34 @@ spec:
 {% endif %}
         seccompProfile:
           type: RuntimeDefault
+{% if _dcj_ambient %}
+      # The query must not start before ztunnel has captured the pod.
+      initContainers:
+        - name: wait-for-ztunnel
+          image: {{ dcj_image }}
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          command: ["{{ dcj_shell | default('/bin/sh') }}", "/scripts/wait-for-ztunnel.sh"]
+          env:
+            - name: ZTUNNEL_WAIT_SECONDS
+              value: "{{ data_consistency_ztunnel_wait_seconds }}"
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              cpu: "100m"
+              memory: "32Mi"
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+{% endif %}
       containers:
         - name: query
           image: {{ dcj_image }}

@@ -25,6 +25,7 @@
     _dcj_job_name: "{{ data_consistency_job_label }}-{{ dcj_label }}-{{ _snapshot_file_timestamp | lower }}"
     _dcj_configmap_name: "{{ data_consistency_job_label }}-{{ dcj_label }}-script"
     _dcj_manifest_path: "{{ rag_tmp_dir }}/{{ data_consistency_job_label }}-{{ dcj_label }}-job.yaml"
+    _dcj_ambient: "{{ istio_enabled | default(false) | bool and istio_dataplane_mode | default('ambient') == 'ambient' }}"
 
 - name: "app_data_consistency | Query — find previous {{ dcj_store }} Jobs"
   kubernetes.core.k8s_info:

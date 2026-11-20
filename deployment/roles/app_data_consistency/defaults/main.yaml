@@ -41,6 +41,9 @@ data_consistency_job_deadline_seconds: 120
 data_consistency_job_retries: 30
 data_consistency_job_delay: 5
 data_consistency_job_run_as_user: 1000
+# Under ambient mesh, how long a Job waits for ztunnel to capture its pod before
+# it queries anyway.
+data_consistency_ztunnel_wait_seconds: 30
 
 # --- Vector stores this role knows how to count. Anything else is recorded as
 #     skipped, naming the store that was configured. ---
