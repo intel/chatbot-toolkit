@@ -1,4 +1,10 @@
 ---
+- name: "app_post_install | Open the metrics ports to the OpenShift Prometheus"
+  ansible.builtin.include_tasks: mesh_metrics.yaml
+  when:
+    - istio_enabled | default(false) | bool
+    - cluster_distribution | default('kubernetes') == 'openshift'
+
 - name: "app_post_install | Check pod health after installation"
   ansible.builtin.include_role:
     name: app_check_pods
