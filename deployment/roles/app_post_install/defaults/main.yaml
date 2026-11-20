@@ -27,3 +27,6 @@ erag_keycloak_path_prefix: "{{ erag_keycloak_default_path_prefix if (routing_mod
 ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"  # app_ui
 rag_tmp_dir: "{{ tmp_dir }}/rag"          # app_pre_install (derived from tmp_dir)
 rag_log_dir: "{{ log_dir }}/rag"
+# Istio's fixed source address for the kubelet's probes: istio-cni SNATs them to it
+# on the node, so the metrics NetworkPolicies (mesh_metrics.yaml) admit it.
+app_post_install_probe_address: 169.254.7.127/32

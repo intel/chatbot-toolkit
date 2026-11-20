@@ -3,8 +3,8 @@
 # Prometheus scrapes from outside it, so ztunnel refuses its plain TCP. For every
 # ServiceMonitor and PodMonitor in the eRAG namespaces, the scraped container port
 # accepts plain TCP, and a NetworkPolicy lets in only the monitoring namespaces.
-# Meshed traffic arrives on HBONE (15008); 169.254.7.127 is the address ztunnel
-# gives the kubelet's probes. Pods that already have a PeerAuthentication (the
+# Meshed traffic arrives on HBONE (15008), the kubelet's probes from
+# app_post_install_probe_address. Pods that already have a PeerAuthentication (the
 # webhooks' 9443) keep it: the scraped ports are merged into it, and the ports it
 # already accepted in plain TCP stay open to everyone, as before.
 # Every namespace eRAG puts in the mesh carries erag-istio-protected (NATS too,
@@ -142,7 +142,7 @@
   vars:
     _mesh_ingress: >-
       {%- set rules = [{'ports': [{'port': 15008, 'protocol': 'TCP'}]},
-                       {'from': [{'ipBlock': {'cidr': '169.254.7.127/32'}}]}] -%}
+                       {'from': [{'ipBlock': {'cidr': app_post_install_probe_address}}]}] -%}
       {%- if item.open -%}
       {%-   set _ = rules.append({'ports': item.open | map('community.general.dict_kv', 'port') | list}) -%}
       {%- endif -%}
