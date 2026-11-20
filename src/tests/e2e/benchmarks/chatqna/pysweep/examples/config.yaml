@@ -1,0 +1,20 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Example pysweep *run* configuration (--config).
+#
+# This describes how a sweep executes; what it varies lives in the sweep config
+# (--sweep, see sweep.yaml). Keys here are never expanded into combinations.
+#
+# Validated by pysweep.config.load_run_config: any unknown key or wrong value
+# type raises ConfigError before the sweep runs.
+
+# Whether to show the kr8s/httpx Kubernetes client's own output. Two kinds of
+# noise come from the port-forward that carries the load test:
+#   - one '101 Switching Protocols' line per benchmark request (a websocket is
+#     opened per forwarded connection), and
+#   - a multi-frame ConnectionResetError traceback when a connection or the
+#     forward itself is torn down (a race inside kr8s; requests still return 200).
+# Both are hidden when false; genuine warnings and errors still surface. Set true
+# to debug cluster connectivity.
+display_kubernetes_client_logs: false

@@ -1,0 +1,128 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+# Example pysweep sweep configuration.
+#
+# Two kinds of knob, which the runner nests rather than interleaves:
+#
+#   * DEPLOYMENT knobs (llms:, retriever:, reranker:) change the running RAG. Each one is OPTIONAL —
+#     omit a key to leave that knob untouched. They form the OUTER loop, because
+#     each change costs a rollout.
+#   * CLIENT knobs (client:) are the load generator's parameters, passed straight
+#     to benchmark.py. They are REQUIRED, because a load test always applies some
+#     load and leaving that undeclared makes a result unattributable. They form
+#     the INNER loop: each value costs one more load test, nothing on the cluster.
+#
+# Any knob may be a single value (fixed for the whole sweep) or a list (one
+# dimension of the cartesian product — see DESIGN.md "product" strategy). Total
+# runs = (deployment combinations) x (client combinations); the config below is
+# (2 max_new_tokens x 2 models) x (3 concurrency x 2 input_tokens) = 24 runs.
+#
+# Validated by pysweep.config.load_config: any unknown key or wrong/out-of-range
+# value raises ConfigError before the sweep runs.
+#
+# Every run also appends a row to benchmark_summary_results.csv, in the directory
+# given by --summaries (default ./results): one column per knob declared below,
+# named by its dotted path (e.g. 'client.input_tokens'), then mean/p90 TTFT and
+# TPOT. Its per-request CSV goes in per_case_results/ next to it. NOTE that the
+# previous sweep's results there are deleted before a new sweep starts.
+
+llms:
+  max_new_tokens: [128, 256]
+
+  # K8s-spec plane knob -> LlmModel property: the model the pipeline generates
+  # with (the generation model — not the embedding or reranking ones).
+  #
+  # Values are model-manager CATALOG NAMES, not HuggingFace repo ids: 'llama3-8b-awq',
+  # never 'casperhansen/llama-3-8b-instruct-awq'. The short name is what the AI
+  # gateway routes on and what LLM_MODEL_NAME has to contain; the repo id is
+  # derived from it for the benchmark's tokenizer only. The catalog is the
+  # deployment's own models.yaml (env/local/models.yaml, i.e. $MM_CONFIG) —
+  # naming a model that is not in it fails before anything is applied, listing
+  # the names that are.
+  #
+  # The pair below is the interesting comparison on a CPU box: a 0.6B model
+  # against a quantized 8B one, i.e. what generation quality costs in latency
+  # and throughput at the same concurrency.
+  #
+  # This is by far the most expensive knob, and it is not read-only:
+  # 'model-manager deploy' serves the model (downloading weights on first use)
+  # and reconciles it toward the catalog, then the GMC operator repoints the
+  # pipeline and its pods are restarted. Budget hours, not minutes — which is why
+  # it is the OUTER loop of the product (every other knob is swept per model, so
+  # the model changes as few times as possible).
+  model:
+    - llama3-8b-awq
+    - qwen3-0-6b
+
+retriever:
+  # Runtime-API plane knob -> RetrieverK: documents fetched per query. Bounds the
+  # retrieval and reranking work.
+  k: 5
+
+reranker:
+  # Runtime-API plane knob -> RerankerTopN: how many of those k documents survive
+  # reranking and are appended to the prompt. This is the LLM's *input* length,
+  # so it is what moves prefill cost and TTFT — the counterpart to k above, which
+  # is why the two are normally set as a pair (../README.md lists the canonical
+  # ones: k=10/top_n=7, k=4/top_n=2, k=20/top_n=15).
+  #
+  # top_n is a ceiling, not a guarantee: the reranker can only keep what
+  # retrieval found, so any value above the live k produces the same prompt as
+  # top_n == k. Sweeping past k spends runs on duplicate configurations, and
+  # nothing in the deployment reports that.
+  top_n: 1
+
+# Load generator (benchmark.py) parameters. Every option below is required: a
+# missing one would silently fall back to benchmark.py's own default and the
+# result CSV records none of it. These need no apply/converge/verify — they are
+# arguments to the load test, not state on the cluster — which is why they are the
+# innermost loop: all of them are re-run against each deployment combination
+# without touching it.
+client:
+  # -f  Question corpus the load is drawn from.
+  #
+  #     A relative path is resolved against pysweep_bench.py's directory, NOT the
+  #     directory the sweep was launched from — so this value means the same file
+  #     wherever you run from. The corpora live one level up beside benchmark.py,
+  #     hence the '../'. Absolute paths are used as given.
+  #
+  #     Checked by preflight() before anything is applied, so a path typo
+  #     fails immediately instead of after a rollout has been paid for.
+  question_file: ../questions-short.csv
+
+  # -c  Concurrent users (worker threads). The classic scaling dimension: a list
+  #     here re-runs the same deployment under each load level, back to back and
+  #     with no reconfiguration between them, so the numbers are comparable.
+  concurrency: [1, 16, 128]
+
+  # -d  from benchmark.py
+  duration: 5m
+
+  # -u  Stagger between worker starts. '0s' starts all workers at once, which is
+  #     the harsher and more repeatable pattern.
+  worker_startup_delay: 0s
+
+  # NOTE: there is no 'tokenizer' key, though benchmark.py has -m. It has to be
+  # the model being served (otherwise the token counts come from a tokenizer that
+  # did not tokenize them), so it is not a knob — pysweep reads the served model
+  # back from the engine after each deployment combination converges and passes it
+  # itself. Declaring it here is an error.
+
+  # -e  Failed requests tolerated before the run gives up.
+  failures_allowed: 200
+
+  # -x  Pad/trim every question to exactly this many tokens; 0 leaves them as
+  #     written. Fixing it removes prompt-length variance between runs.
+  input_tokens: [128, 256]
+
+  # -w  Requests per worker discarded as warmup (first-request latency includes
+  #     connection setup and cache warming).
+  warmup_requests: 1
+
+  # -s / -b  Endpoint and bearer file. Both OPTIONAL and left unset here: pysweep
+  #     port-forwards router-service and writes a bearer file itself, which is what
+  #     lets a sweep run with no preparation steps. Set them only to benchmark
+  #     through a real ingress instead.
+  # server: https://erag.com/api/v1/chatqna
+  # bearer_file: uat.txt

@@ -999,18 +999,18 @@ func newRenderReconciler(t *testing.T, templateName, templateYaml string) (*GMCo
 func containerEnvNames(t *testing.T, obj *unstructured.Unstructured) []string {
 	t.Helper()
 
-containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
-if err != nil || !found || len(containers) == 0 {
-	t.Fatalf("no containers in rendered %s/%s: found=%v err=%v", obj.GetKind(), obj.GetName(), found, err)
-}
-container0, ok := containers[0].(map[string]interface{})
-if !ok {
-	t.Fatalf("unexpected container type %T in rendered %s/%s", containers[0], obj.GetKind(), obj.GetName())
-}
-env, found, err := unstructured.NestedSlice(container0, "env")
-if err != nil || !found {
-	t.Fatalf("no env in rendered %s/%s: found=%v err=%v", obj.GetKind(), obj.GetName(), found, err)
-}
+	containers, found, err := unstructured.NestedSlice(obj.Object, "spec", "template", "spec", "containers")
+	if err != nil || !found || len(containers) == 0 {
+		t.Fatalf("no containers in rendered %s/%s: found=%v err=%v", obj.GetKind(), obj.GetName(), found, err)
+	}
+	container0, ok := containers[0].(map[string]interface{})
+	if !ok {
+		t.Fatalf("unexpected container type %T in rendered %s/%s", containers[0], obj.GetKind(), obj.GetName())
+	}
+	env, found, err := unstructured.NestedSlice(container0, "env")
+	if err != nil || !found {
+		t.Fatalf("no env in rendered %s/%s: found=%v err=%v", obj.GetKind(), obj.GetName(), found, err)
+	}
 
 	names := make([]string, 0, len(env))
 	for _, e := range env {
