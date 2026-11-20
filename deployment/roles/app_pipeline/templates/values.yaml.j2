@@ -15,6 +15,19 @@ tokens:
 {% endif %}
 common_tag: &tag "{{ tag }}"
 common_registry: &repo "{{ registry }}"
+{% if _pipeline_service_ca %}
+{# The model workload svcs serve https with the OpenShift service CA, mounted in #}
+{# every pod: the model-facing usvcs point Python (httpx, aiohttp, requests) and #}
+{# their curl init containers at it.                                             #}
+openshift_service_ca: &service_ca "{{ _pipeline_service_ca }}"
+{% endif %}
+{% macro service_ca_envs() %}
+{% if _pipeline_service_ca %}
+      SSL_CERT_FILE: *service_ca
+      REQUESTS_CA_BUNDLE: *service_ca
+      CURL_CA_BUNDLE: *service_ca
+{% endif %}
+{% endmacro %}
 
 {# Resolve solution language: explicit value or auto-detect from LLM model name #}
 {% if solution_language is defined and solution_language != "auto" %}
@@ -51,18 +64,19 @@ fingerprint:
 {% if hpa_enabled is defined %}
 hpa_enabled: {{ hpa_enabled }}
 {% endif %}
+hpaProvider: {{ _pipeline_hpa_provider }}
 
 images:
   gmcManager:
-    image: "enterprise-rag-gmcmanager"
+    image: "chatbot-toolkit-gmcmanager"
     repository: *repo
     tag: *tag
   gmcRouter:
-    image: "enterprise-rag-gmcrouter"
+    image: "chatbot-toolkit-gmcrouter"
     repository: *repo
     tag: *tag
   text-extractor-usvc:
-    image: "enterprise-rag-text-extractor"
+    image: "chatbot-toolkit-text-extractor"
     repository: *repo
     tag: *tag
 {% if audio_enabled is defined and audio_enabled %}
@@ -70,11 +84,11 @@ images:
       ASR_MODEL_SERVER_ENDPOINT: "http://asr-svc.{{ audio_namespace }}.svc:9009"
 {% endif %}
   text-compression-usvc:
-    image: "enterprise-rag-text-compression"
+    image: "chatbot-toolkit-text-compression"
     repository: *repo
     tag: *tag
   text-splitter-usvc:
-    image: "enterprise-rag-text-splitter"
+    image: "chatbot-toolkit-text-splitter"
     repository: *repo
     tag: *tag
     envs:
@@ -88,7 +102,7 @@ images:
       EMBEDDING_SERVICE_ENDPOINT: ""
 {% endif %}
   embedding-usvc:
-    image: "enterprise-rag-embedding"
+    image: "chatbot-toolkit-embedding"
     repository: *repo
     tag: *tag
     envs:
@@ -97,8 +111,9 @@ images:
       EMBEDDING_MODEL_SERVER_ENDPOINT: "{{ embedding_endpoint }}"
       EMBEDDING_MODEL_SERVER: "vllm"
 {% endif %}
+{{ service_ca_envs() }}
   reranking-usvc:
-    image: "enterprise-rag-reranking"
+    image: "chatbot-toolkit-reranking"
     repository: *repo
     tag: *tag
     envs:
@@ -107,14 +122,15 @@ images:
       RERANKING_SERVICE_ENDPOINT: "{{ reranking_endpoint }}"
       RERANKING_MODEL_SERVER: "vllm"
 {% endif %}
+{{ service_ca_envs() }}
   prompt-template-usvc:
-    image: "enterprise-rag-prompt_template"
+    image: "chatbot-toolkit-prompt_template"
     repository: *repo
     tag: *tag
     envs:
       PROMPT_TEMPLATE_LANGUAGE: "{{ resolved_language }}"
   retriever-usvc:
-    image: "enterprise-rag-retriever"
+    image: "chatbot-toolkit-retriever"
     repository: *repo
     tag: *tag
 {% if vector_databases_enabled %}
@@ -138,7 +154,7 @@ images:
       VECTOR_DIMS: {{ vector_databases_vector_dims }}
 {% endif %}
   llm-usvc:
-    image: "enterprise-rag-llm"
+    image: "chatbot-toolkit-llm"
     repository: *repo
     tag: *tag
 {# All models are served by KServe (solutions-poc.inference) — wire llm-usvc   #}
@@ -147,31 +163,32 @@ images:
       LLM_MODEL_SERVER_ENDPOINT: "{{ llm_endpoint }}"
       LLM_MODEL_NAME: "{{ llm_model_name }}"
       LLM_MODEL_SERVER: "vllm"
+{{ service_ca_envs() }}
 {% if pipeline_variant == 'output_guard' %}
       LLM_OUTPUT_GUARD_EXISTS: "True"
 {% endif %}
   in-guard-usvc:
-    image: "enterprise-rag-in-guard"
+    image: "chatbot-toolkit-in-guard"
     repository: *repo
     tag: *tag
   out-guard-usvc:
-    image: "enterprise-rag-out-guard"
+    image: "chatbot-toolkit-out-guard"
     repository: *repo
     tag: *tag
   ui-usvc:
-    image: "enterprise-rag-chatqna-conversation-ui"
+    image: "chatbot-toolkit-chatqna-conversation-ui"
     repository: *repo
     tag: *tag
   langdtct-usvc:
-    image: "enterprise-rag-language-detection"
+    image: "chatbot-toolkit-language-detection"
     repository: *repo
     tag: *tag
   chat-history-usvc:
-    image: "enterprise-rag-chat-history"
+    image: "chatbot-toolkit-chat-history"
     repository: *repo
     tag: *tag
   docsum-usvc:
-    image: "enterprise-rag-docsum"
+    image: "chatbot-toolkit-docsum"
     repository: *repo
     tag: *tag
 {% if llm_max_model_len is defined and llm_max_model_len | string | length > 0 %}
@@ -181,16 +198,21 @@ images:
       DOCSUM_MODEL_CONTEXT_LENGTH: "{{ llm_max_model_len }}"
 {% endif %}
   query-rewrite-usvc:
-    image: "enterprise-rag-query-rewrite"
+    image: "chatbot-toolkit-query-rewrite"
     repository: *repo
     tag: *tag
+{% if _pipeline_service_ca %}
+{# Calls the LLM's https endpoint itself (QUERY_REWRITE_LLM_ENDPOINT). #}
+    envs:
+{{ service_ca_envs() }}
+{% endif %}
   init-container:
-    image: "enterprise-rag-init-container"
+    image: "chatbot-toolkit-init-container"
     repository: *repo
     tag: *tag
     pullPolicy: Always
   ovms_ner:
-    image: "enterprise-rag-ovms_ner"
+    image: "chatbot-toolkit-ovms_ner"
     repository: *repo
     tag: *tag
     pullPolicy: Always
@@ -205,3 +227,12 @@ images:
 
 monitoring:
   enabled: {{ observability_enabled | default(true) | bool | string | lower }}
+{% if not _pipeline_fixed_uids | bool %}
+
+# The GMC manager renders the microservices from these values, past the Helm
+# post-renderer: unset the UIDs here.
+podSecurityContext:
+  runAsUser: null
+  runAsGroup: null
+  fsGroup: null
+{% endif %}

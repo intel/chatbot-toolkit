@@ -1,6 +1,6 @@
-# Intel® AI for Enterprise RAG E2E benchmark
-### Deploy Enterprise RAG and Adjust the parameters
-Before running the E2E benchmark, ensure that Enterprise RAG is deployed and configured with the recommended parameters as outlined in the [Performance tuning tips](../../../../../docs/operate/performance.md) guide.
+# Intel® Chatbot Toolkit E2E benchmark
+### Deploy Intel® Chatbot Toolkit and Adjust the parameters
+Before running the E2E benchmark, ensure that Intel® Chatbot Toolkit is deployed and configured with the recommended parameters as outlined in the [Performance tuning tips](../../../../../docs/operate/performance.md) guide.
 
 ### Test prerequisites
 In order to be able to run the e2e performance benchmark you need to:
@@ -8,12 +8,12 @@ In order to be able to run the e2e performance benchmark you need to:
 ```bash
 pip3 install -r requirements.txt
 ```
-* bash scripts assumes that Intel AI for Enterprise RAG is deployed under `solutions.ai` domain:
+* bash scripts assumes that Intel® Chatbot Toolkit is deployed under `solutions.ai` domain:
   * if you are using the domain different than `solutions.ai` one you can overwrite it with `ERAG_DOMAIN_NAME` environmental variable
   * this variable has the impact on all the bash helpers
   * for python based benchmark see the relevant section to specify your domain
 * benchmark and the bash helpers rely only on https protocol and can be run from any machine with https connection to the RAG deployment, so you need to ensure that you have network (https) access to `solutions.ai` (or your own domain):
-  * configure `/etc/hosts`, so `solutions.ai` domain and subdomains points to your RAG deployment IP, for example: `127.0.0.1 minio.solutions.ai grafana.solutions.ai s3.solutions.ai solutions.ai auth.solutions.ai`
+  * configure `/etc/hosts`, so `solutions.ai` domain and subdomains points to your RAG deployment IP, for example: `127.0.0.1 minio.solutions.ai grafana.solutions.ai s3.solutions.ai solutions.ai keycloak.solutions.ai`
   * export both `no_proxy` and `NO_PROXY` env variables, so they contain  `solutions.ai` and `.solutions.ai` domains
 * export UI username and password of the account with administrative rights using `KEYCLOAK_ERAG_ADMIN_USERNAME` and `KEYCLOAK_ERAG_ADMIN_PASSWORD` env variables. You can read them directly from the `erag-credentials` secret in the `keycloak` namespace:
 ```bash
@@ -73,7 +73,7 @@ By default `questions-pubmed.csv` file contains 1024 randomly generated question
 python3 generate_pubmed_questions.py --help
 ```
 
-### Helpers for configuring Intel AI for Enterprise RAG
+### Helpers for configuring Intel® Chatbot Toolkit
 Some of the RAG parameters have a significant impact on the performance, so in order to change them without logging into UI, there are some helpers to change those parameters using bash scripts:
 * configuring `k` for retriever (number of documents retrieved from vector database)
 ```bash
