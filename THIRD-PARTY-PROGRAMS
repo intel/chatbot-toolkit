@@ -7637,6 +7637,10 @@
     * Origin: dockerhub
     * License: collection of licenses
 
+* Component: curlimages/curl
+    * Origin: dockerhub
+    * License: collection of licenses
+
 * Component: intel/vllm
     * Origin: dockerhub
     * License: collection of licenses
@@ -7671,6 +7675,10 @@
 
 * Component: vllm/vllm-openai-cpu
     * Origin: dockerhub
+    * License: collection of licenses
+
+* Component: api7/adc
+    * Origin: ghcr.io
     * License: collection of licenses
 
 * Component: ferretdb/ferretdb
