@@ -56,7 +56,6 @@ spec:
         seccompProfile:
           type: RuntimeDefault
 {% if _dcj_ambient %}
-      # The query must not start before ztunnel has captured the pod.
       initContainers:
         - name: wait-for-ztunnel
           image: {{ dcj_image }}

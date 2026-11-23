@@ -33,6 +33,33 @@
       - erag-istio-protected=true
   register: _mesh_namespaces
 
+# The list is kept by hand: catch a chart that renamed a label or moved a port.
+- name: "app_post_install | mesh | List the pods each exception selects"
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: "{{ item.namespace }}"
+    label_selectors: "{{ item.pods | dict2items | map('join', '=') | list }}"
+  loop: "{{ _post_install_metrics_exceptions
+            | selectattr('namespace', 'in', _mesh_namespaces.resources | map(attribute='metadata.name') | list) }}"
+  loop_control:
+    label: "{{ item.namespace }}/{{ item.name }}"
+  register: _mesh_pods
+
+- name: "app_post_install | mesh | Check each exception selects a pod exposing its port"
+  ansible.builtin.assert:
+    that: >-
+      item.item.port in (item.resources | map(attribute='spec.containers') | flatten
+                         | map(attribute='ports', default=[]) | flatten
+                         | map(attribute='containerPort') | list)
+    fail_msg: >-
+      No pod in {{ item.item.namespace }} with labels {{ item.item.pods }} exposes port
+      {{ item.item.port }}. Update {{ item.item.name }} in
+      _post_install_metrics_exceptions (app_post_install/vars/openshift.yaml).
+    quiet: true
+  loop: "{{ _mesh_pods.results }}"
+  loop_control:
+    label: "{{ item.item.namespace }}/{{ item.item.name }} {{ item.item.port }}"
+
 - name: "app_post_install | mesh | Open the metrics ports to the user-workload Prometheus"
   kubernetes.core.k8s:
     state: present

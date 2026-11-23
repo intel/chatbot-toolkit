@@ -12,6 +12,5 @@ _pipeline_gmc_out_of_mesh_callers:
   - {port: 9443, namespace_labels: {policy-group.network.openshift.io/host-network: ""}}
   - {port: 8080, namespace_labels: {network.openshift.io/policy-group: monitoring}}
 _pipeline_gmc_network_policy: true
-# The kubelet's probes. ztunnel lets them in as plain TCP and refuses anything else
-# that is not mTLS, so the NetworkPolicy admits these ports from any source.
+# Ports only the kubelet's probes call, open to any source.
 _pipeline_gmc_probe_ports: [8081]

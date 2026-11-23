@@ -97,7 +97,8 @@ spec:
               --cluster-replicas 0 \
               --cluster-yes || echo "Cluster creation incomplete; joining the missing nodes below"
             # Slots assigned means the create got far enough for the joins below to finish it.
-            if [ "$(info cluster_slots_assigned)" = "0" ]; then
+            SLOTS_ASSIGNED=$(info cluster_slots_assigned)
+            if [ "${SLOTS_ASSIGNED:-0}" -eq 0 ]; then
               echo "❌ Cluster creation failed: no slots assigned"
               exit 1
             fi

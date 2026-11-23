@@ -259,10 +259,8 @@
         labels: "{{ istio_namespace_labels | default({'istio.io/dataplane-mode': 'ambient'}) | combine({'erag-istio-protected': 'true'}) }}"
   when: istio_enabled | default(false) | bool
 
-# Callers outside the mesh (_pipeline_gmc_out_of_mesh_callers, vars/<platform>.yaml)
-# have no mesh identity, so under STRICT only their ports accept plain TCP. Where the
-# platform asks for it, a NetworkPolicy lets in only their namespaces, the probe ports
-# and HBONE (15008), which carries the meshed traffic.
+# Only the out-of-mesh callers' ports (vars/<platform>.yaml) accept plain TCP. Where the
+# platform asks for it, a NetworkPolicy also admits the probe ports and HBONE (15008).
 - name: "app_pipeline | Open the GMC controller's ports to its out-of-mesh callers"
   kubernetes.core.k8s:
     state: present
@@ -278,12 +276,8 @@
             control-plane: gmc-controller
         mtls:
           mode: STRICT
-        portLevelMtls: >-
-          {%- set out = {} -%}
-          {%- for c in _pipeline_gmc_out_of_mesh_callers -%}
-          {%- set _ = out.update({c.port | string: {'mode': 'PERMISSIVE'}}) -%}
-          {%- endfor -%}
-          {{ out }}
+        portLevelMtls: "{{ dict(_pipeline_gmc_out_of_mesh_callers | map(attribute='port') | map('string')
+                                 | zip_longest([], fillvalue={'mode': 'PERMISSIVE'})) }}"
   when: istio_enabled | default(false) | bool
 
 - name: "app_pipeline | Admit only the GMC controller's callers"
