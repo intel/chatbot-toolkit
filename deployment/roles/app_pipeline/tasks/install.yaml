@@ -299,8 +299,9 @@
           {%- set _ = out.append({'ports': [{'port': p, 'protocol': 'TCP'}]}) -%}
           {%- endfor -%}
           {%- for c in _pipeline_gmc_out_of_mesh_callers -%}
-          {%- set _ = out.append({'from': [{'namespaceSelector': {'matchLabels': c.namespace_labels}}],
-                                  'ports': [{'port': c.port, 'protocol': 'TCP'}]}) -%}
+          {%- set _ = out.append({'ports': [{'port': c.port, 'protocol': 'TCP'}]}
+                                 | combine({'from': [{'namespaceSelector': {'matchLabels': c.namespace_labels}}]}
+                                           if c.namespace_labels is defined else {})) -%}
           {%- endfor -%}
           {{ out }}
   when:
