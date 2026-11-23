@@ -3,3 +3,6 @@
 ---
 _vector_databases_post_renderer: "{{ role_path }}/../../scripts/openshift_post_renderer.py"
 _vector_databases_fixed_uids: false
+# Without CNI chaining ztunnel captures a pod only once it runs: a new Redis node's
+# first MEET can leave unenforced and be refused, and Redis does not retry it.
+_vector_databases_redis_join_repair: true

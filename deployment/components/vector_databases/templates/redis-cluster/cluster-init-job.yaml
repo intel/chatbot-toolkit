@@ -77,6 +77,7 @@ spec:
             echo "  ✅ ${NODE_DNS} is ready"
           done
           echo ""
+          {{- if $redisCluster.cluster.joinRepair }}
           
           FIRST_NODE="vdb-redis-cluster-0.vdb-redis-cluster-headless.${NAMESPACE}.svc.cluster.local"
           cli() { node=$1; shift; redis-cli -h "$node" -a "$REDIS_PASSWORD" --no-auth-warning "$@"; }
@@ -133,6 +134,59 @@ spec:
           echo "❌ Cluster not ready"
           cli "$FIRST_NODE" CLUSTER NODES 2>/dev/null || true
           exit 1
+          {{- else }}
+          
+          # Check if cluster already exists
+          FIRST_NODE="vdb-redis-cluster-0.vdb-redis-cluster-headless.${NAMESPACE}.svc.cluster.local"
+          CLUSTER_STATE=$(redis-cli -h "$FIRST_NODE" -a "$REDIS_PASSWORD" CLUSTER INFO 2>/dev/null | grep "cluster_state:" | cut -d':' -f2 | tr -d '\r\n ' || echo "")
+          SLOTS_ASSIGNED=$(redis-cli -h "$FIRST_NODE" -a "$REDIS_PASSWORD" CLUSTER INFO 2>/dev/null | grep "cluster_slots_assigned:" | cut -d':' -f2 | tr -d '\r\n ' || echo "0")
+          
+          echo "Current cluster state: $CLUSTER_STATE"
+          echo "Slots assigned: $SLOTS_ASSIGNED / 16384"
+          echo ""
+          
+          # If cluster already has slots assigned, do nothing
+          if [ "$SLOTS_ASSIGNED" -gt "0" ]; then
+            echo "✅ Cluster already exists (has $SLOTS_ASSIGNED slots). Nothing to do."
+            echo ""
+            redis-cli -h "$FIRST_NODE" -a "$REDIS_PASSWORD" CLUSTER NODES 2>/dev/null
+            exit 0
+          fi
+          
+          # Create new cluster
+          echo "No cluster detected. Creating new cluster..."
+          echo ""
+          
+          # Build node list
+          CLUSTER_IPS=""
+          for i in $(seq 0 $((CLUSTER_NODES - 1))); do
+            NODE_DNS="vdb-redis-cluster-${i}.vdb-redis-cluster-headless.${NAMESPACE}.svc.cluster.local"
+            CLUSTER_IPS="$CLUSTER_IPS $NODE_DNS:6379"
+          done
+          
+          echo "Creating cluster with nodes:$CLUSTER_IPS"
+          echo ""
+          
+          redis-cli -a "$REDIS_PASSWORD" --cluster create $CLUSTER_IPS \
+            --cluster-replicas 0 \
+            --cluster-yes
+          
+          # Verify creation
+          sleep 5
+          FINAL_STATE=$(redis-cli -h "$FIRST_NODE" -a "$REDIS_PASSWORD" CLUSTER INFO 2>/dev/null | grep "cluster_state:" | cut -d':' -f2 | tr -d '\r\n ')
+          FINAL_SLOTS=$(redis-cli -h "$FIRST_NODE" -a "$REDIS_PASSWORD" CLUSTER INFO 2>/dev/null | grep "cluster_slots_assigned:" | cut -d':' -f2 | tr -d '\r\n ')
+          
+          echo ""
+          if [ "$FINAL_STATE" = "ok" ] && [ "$FINAL_SLOTS" = "16384" ]; then
+            echo "✅ Cluster created successfully!"
+            echo ""
+            redis-cli -h "$FIRST_NODE" -a "$REDIS_PASSWORD" CLUSTER NODES 2>/dev/null
+            exit 0
+          else
+            echo "❌ Cluster creation failed"
+            exit 1
+          fi
+          {{- end }}
       volumes:
       - name: tmp
         emptyDir: {}

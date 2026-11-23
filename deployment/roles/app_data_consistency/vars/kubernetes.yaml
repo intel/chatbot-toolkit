@@ -2,3 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
 _data_consistency_fixed_uids: true
+_data_consistency_ztunnel_wait: false

@@ -3,3 +3,4 @@
 ---
 _vector_databases_post_renderer: ""
 _vector_databases_fixed_uids: true
+_vector_databases_redis_join_repair: false

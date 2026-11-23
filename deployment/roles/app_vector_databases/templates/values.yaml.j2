@@ -35,6 +35,7 @@ redis-cluster:
   cluster:
     nodes: {{ redis.cluster.nodes | default(3) }}
     replicas: {{ redis.cluster.replicas | default(0) }}
+    joinRepair: {{ _vector_databases_redis_join_repair | bool | lower }}
   image:
     repository: {{ redis.image.repository | default('redis') }}
   redis:

@@ -78,6 +78,8 @@ redis-cluster:
   cluster:
     nodes: 3
     replicas: 0
+    # The init Job meets the nodes that missed the join until the cluster is complete.
+    joinRepair: false
   redis:
     image:
       repository: redis
