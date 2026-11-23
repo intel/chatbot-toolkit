@@ -3,4 +3,3 @@
 ---
 _vector_databases_post_renderer: "{{ role_path }}/../../scripts/openshift_post_renderer.py"
 _vector_databases_fixed_uids: false
-_vector_databases_redis_join_repair: true

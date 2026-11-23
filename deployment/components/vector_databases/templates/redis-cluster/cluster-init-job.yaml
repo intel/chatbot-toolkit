@@ -80,41 +80,6 @@ spec:
           
           # Check if cluster already exists
           FIRST_NODE="vdb-redis-cluster-0.vdb-redis-cluster-headless.${NAMESPACE}.svc.cluster.local"
-          {{- if $redisCluster.cluster.joinRepair }}
-
-          # Redis does not retry a refused MEET, and without CNI chaining ztunnel captures
-          # a new pod only once it runs, so a node can miss the join and keep its slots to
-          # itself. The first node meets every node it does not know, until it knows them
-          # all and every slot is served.
-          cli() { redis-cli -h "$FIRST_NODE" -a "$REDIS_PASSWORD" --no-auth-warning "$@"; }
-          info() { cli CLUSTER INFO 2>/dev/null | grep "^$1:" | cut -d':' -f2 | tr -d '\r\n ' || true; }
-          join_missing_nodes() {
-            for attempt in $(seq 1 30); do
-              STATE=$(info cluster_state)
-              SLOTS=$(info cluster_slots_assigned)
-              KNOWN=$(info cluster_known_nodes)
-              if [ "$STATE" = "ok" ] && [ "$SLOTS" = "16384" ] && [ "${KNOWN:-0}" -ge "$CLUSTER_NODES" ]; then
-                echo "✅ Cluster ready"
-                echo ""
-                cli CLUSTER NODES 2>/dev/null
-                exit 0
-              fi
-              echo "Cluster incomplete (state=${STATE:-?}, slots ${SLOTS:-0}/16384, nodes ${KNOWN:-0}/${CLUSTER_NODES}), attempt ${attempt}/30"
-              KNOWN_ADDRS=$(cli CLUSTER NODES 2>/dev/null | awk '{print $2}' | cut -d'@' -f1 || true)
-              for i in $(seq 1 $((CLUSTER_NODES - 1))); do
-                NODE_IP=$(getent hosts "vdb-redis-cluster-${i}.vdb-redis-cluster-headless.${NAMESPACE}.svc.cluster.local" | awk '{print $1}' || true)
-                if [ -n "$NODE_IP" ] && ! echo "$KNOWN_ADDRS" | grep -qx "${NODE_IP}:6379"; then
-                  echo "  Meeting vdb-redis-cluster-${i} (${NODE_IP})"
-                  cli CLUSTER MEET "$NODE_IP" 6379 16379 || true
-                fi
-              done
-              sleep 5
-            done
-            echo "❌ Cluster not ready"
-            cli CLUSTER NODES 2>/dev/null || true
-            exit 1
-          }
-          {{- end }}
           CLUSTER_STATE=$(redis-cli -h "$FIRST_NODE" -a "$REDIS_PASSWORD" CLUSTER INFO 2>/dev/null | grep "cluster_state:" | cut -d':' -f2 | tr -d '\r\n ' || echo "")
           SLOTS_ASSIGNED=$(redis-cli -h "$FIRST_NODE" -a "$REDIS_PASSWORD" CLUSTER INFO 2>/dev/null | grep "cluster_slots_assigned:" | cut -d':' -f2 | tr -d '\r\n ' || echo "0")
           
@@ -124,14 +89,10 @@ spec:
           
           # If cluster already has slots assigned, do nothing
           if [ "$SLOTS_ASSIGNED" -gt "0" ]; then
-            {{- if $redisCluster.cluster.joinRepair }}
-            join_missing_nodes
-            {{- else }}
             echo "✅ Cluster already exists (has $SLOTS_ASSIGNED slots). Nothing to do."
             echo ""
             redis-cli -h "$FIRST_NODE" -a "$REDIS_PASSWORD" CLUSTER NODES 2>/dev/null
             exit 0
-            {{- end }}
           fi
           
           # Create new cluster
@@ -150,16 +111,7 @@ spec:
           
           redis-cli -a "$REDIS_PASSWORD" --cluster create $CLUSTER_IPS \
             --cluster-replicas 0 \
-            --cluster-yes{{ if $redisCluster.cluster.joinRepair }} || echo "Cluster creation incomplete; joining the missing nodes"{{ end }}
-          {{- if $redisCluster.cluster.joinRepair }}
-          # A MEET cannot fix a create that assigned no slots (a wrong password, a node not empty).
-          SLOTS=$(info cluster_slots_assigned)
-          if [ "${SLOTS:-0}" -eq 0 ]; then
-            echo "❌ Cluster creation failed: no slots assigned"
-            exit 1
-          fi
-          join_missing_nodes
-          {{- else }}
+            --cluster-yes
           
           # Verify creation
           sleep 5
@@ -176,7 +128,6 @@ spec:
             echo "❌ Cluster creation failed"
             exit 1
           fi
-          {{- end }}
       volumes:
       - name: tmp
         emptyDir: {}
