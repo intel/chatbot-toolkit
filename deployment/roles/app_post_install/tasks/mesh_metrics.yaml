@@ -1,14 +1,8 @@
 ---
-# On OpenShift the mesh is STRICT (a core prerequisite) and the user-workload
-# Prometheus scrapes from outside it, so ztunnel refuses its plain TCP. For every
-# ServiceMonitor and PodMonitor in the eRAG namespaces, the scraped container port
-# accepts plain TCP, and a NetworkPolicy lets in only the monitoring namespaces.
-# Meshed traffic arrives on HBONE (15008), the kubelet's probes from
-# app_post_install_probe_address. Pods that already have a PeerAuthentication (the
-# webhooks' 9443) keep it: the scraped ports are merged into it, and the ports it
-# already accepted in plain TCP stay open to everyone, as before.
-# Every namespace eRAG puts in the mesh carries erag-istio-protected (NATS too,
-# which the pod health check does not list).
+# Each workload in _post_install_metrics_exceptions (vars/<platform>.yaml) accepts plain
+# TCP on its metrics port, and the NetworkPolicy lets in only the monitoring namespaces
+# there, the kubelet's probes and HBONE (15008), which carries the meshed traffic.
+# Workloads of a component that is not installed have no namespace and are skipped.
 - name: "app_post_install | mesh | List the eRAG namespaces"
   kubernetes.core.k8s_info:
     kind: Namespace
@@ -16,139 +10,39 @@
       - erag-istio-protected=true
   register: _mesh_namespaces
 
-- name: "app_post_install | mesh | Find the monitors"
-  kubernetes.core.k8s_info:
-    api_version: monitoring.coreos.com/v1
-    kind: "{{ item.1 }}"
-    namespace: "{{ item.0 }}"
-  loop: "{{ _mesh_namespaces.resources | map(attribute='metadata.name') | product(['ServiceMonitor', 'PodMonitor']) | list }}"
-  loop_control:
-    label: "{{ item.0 }}/{{ item.1 }}"
-  register: _mesh_monitors
-
-- name: "app_post_install | mesh | Find the Services and Pods they scrape"
-  kubernetes.core.k8s_info:
-    kind: "{{ item.1 }}"
-    namespace: "{{ item.0 }}"
-  loop: "{{ _mesh_namespaces.resources | map(attribute='metadata.name') | product(['Service', 'Pod', 'PeerAuthentication']) | list }}"
-  loop_control:
-    label: "{{ item.0 }}/{{ item.1 }}"
-  register: _mesh_objects
-
-# One target per scraped Service (or PodMonitor): the pods' labels and the container port number
-# (PeerAuthentication takes no port names). A ServiceMonitor's port is a Service
-# port name; its targetPort may be a container port name.
-- name: "app_post_install | mesh | Resolve the scraped container ports"
-  ansible.builtin.set_fact:
-    _mesh_targets: >-
-      {%- set services = _mesh_objects.results | selectattr('item.1', '==', 'Service') | map(attribute='resources') | flatten -%}
-      {%- set pods = _mesh_objects.results | selectattr('item.1', '==', 'Pod') | map(attribute='resources') | flatten -%}
-      {%- set pas = _mesh_objects.results | selectattr('item.1', '==', 'PeerAuthentication') | map(attribute='resources') | flatten -%}
-      {%- set out = {} -%}
-      {%- for m in _mesh_monitors.results | map(attribute='resources') | flatten -%}
-      {%-   set ns = m.metadata.namespace -%}
-      {%-   set want = m.spec.selector.matchLabels | default({}) -%}
-      {%-   set scraped = [] -%}
-      {%-   if m.kind == 'ServiceMonitor' -%}
-      {%-     for s in services if s.metadata.namespace == ns and s.spec.selector is defined
-                and (s.metadata.labels | default({}) | dict2items | intersect(want | dict2items) | length) == (want | length) -%}
-      {%-       set ports = [] -%}
-      {%-       for e in m.spec.endpoints | default([]) -%}
-      {%-         for p in s.spec.ports if p.name | default('') == e.port | default('') -%}
-      {%-           set _ = ports.append(p.targetPort | default(p.port)) -%}
-      {%-         endfor -%}
-      {%-       endfor -%}
-      {%-       set _ = scraped.append({'name': s.metadata.name, 'selector': s.spec.selector, 'ports': ports}) if ports else none -%}
-      {%-     endfor -%}
-      {%-   else -%}
-      {%-     set ports = [] -%}
-      {%-     for e in m.spec.podMetricsEndpoints | default([]) if e.port is defined or e.targetPort is defined -%}
-      {%-       set _ = ports.append(e.port if e.port is defined else e.targetPort) -%}
-      {%-     endfor -%}
-      {%-     set _ = scraped.append({'name': m.metadata.name, 'selector': want, 'ports': ports}) -%}
-      {%-   endif -%}
-      {%-   for target in scraped -%}
-      {%-     set sel = target.selector -%}
-      {%-     set ports = target.ports -%}
-      {%-     set numbers = [] -%}
-      {%-     for port in ports -%}
-      {%-       if port is number or port | string is match('^[0-9]+$') -%}
-      {%-         set _ = numbers.append(port | int) -%}
-      {%-       else -%}
-      {%-         for pod in pods if pod.metadata.namespace == ns
-                    and (pod.metadata.labels | default({}) | dict2items | intersect(sel | dict2items) | length) == (sel | length) -%}
-      {%-           for c in pod.spec.containers -%}
-      {%-             for cp in c.ports | default([]) if cp.name | default('') == port -%}
-      {%-               set _ = numbers.append(cp.containerPort) -%}
-      {%-             endfor -%}
-      {%-           endfor -%}
-      {%-         endfor -%}
-      {%-       endif -%}
-      {%-     endfor -%}
-      {%-     if numbers -%}
-      {%-       set own = target.name if target.name is match('.*-metrics$') else target.name ~ '-metrics' -%}
-      {%-       set selected = [] -%}
-      {%-       for pod in pods if pod.metadata.namespace == ns
-                  and (pod.metadata.labels | default({}) | dict2items | intersect(sel | dict2items) | length) == (sel | length) -%}
-      {%-         set _ = selected.append(pod.metadata.labels | default({})) -%}
-      {%-       endfor -%}
-      {%-       set same = [] -%}
-      {%-       for pa in pas if pa.metadata.namespace == ns and pa.metadata.name != own
-                  and (pa.spec.selector.matchLabels | default({})) -%}
-      {%-         set pl = pa.spec.selector.matchLabels | dict2items -%}
-      {%-         for labels in selected if (labels | dict2items | intersect(pl) | length) == (pl | length) and pa not in same -%}
-      {%-           set _ = same.append(pa) -%}
-      {%-         endfor -%}
-      {%-       endfor -%}
-      {%-       set open = [] -%}
-      {%-       for pa in same -%}
-      {%-         for port, mode in (pa.spec.portLevelMtls | default({})).items() if mode.mode == 'PERMISSIVE' -%}
-      {%-           set _ = open.append(port | int) -%}
-      {%-         endfor -%}
-      {%-       endfor -%}
-      {%-       set _ = out.update({ns ~ '/' ~ own: {'namespace': ns, 'name': own, 'selector': sel,
-                    'pa_name': (same | first).metadata.name if same else own,
-                    'pa_selector': (same | first).spec.selector.matchLabels if same else sel,
-                    'ports': numbers | unique | sort, 'open': open | difference(numbers) | unique | sort}}) -%}
-      {%-     endif -%}
-      {%-   endfor -%}
-      {%- endfor -%}
-      {{ out.values() | list }}
-
-- name: "app_post_install | mesh | Open the scraped ports to the user-workload Prometheus"
+- name: "app_post_install | mesh | Open the metrics ports to the user-workload Prometheus"
   kubernetes.core.k8s:
     state: present
     definition:
       - apiVersion: security.istio.io/v1
         kind: PeerAuthentication
         metadata:
-          name: "{{ item.pa_name }}"
+          name: "{{ item.name }}-metrics"
           namespace: "{{ item.namespace }}"
         spec:
-          selector:
-            matchLabels: "{{ item.pa_selector }}"
+          selector: {matchLabels: "{{ item.pods }}"}
           mtls: {mode: STRICT}
-          portLevelMtls: "{{ dict(item.ports | map('string') | product([{'mode': 'PERMISSIVE'}])) }}"
+          portLevelMtls: "{{ {item.port | string: {'mode': 'PERMISSIVE'}} }}"
       - apiVersion: networking.k8s.io/v1
         kind: NetworkPolicy
         metadata:
-          name: "{{ item.name }}"
+          name: "{{ item.name }}-metrics"
           namespace: "{{ item.namespace }}"
         spec:
-          podSelector:
-            matchLabels: "{{ item.selector }}"
+          podSelector: {matchLabels: "{{ item.pods }}"}
           policyTypes: [Ingress]
           ingress: "{{ _mesh_ingress }}"
   vars:
     _mesh_ingress: >-
-      {%- set rules = [{'ports': [{'port': 15008, 'protocol': 'TCP'}]},
-                       {'from': [{'ipBlock': {'cidr': app_post_install_probe_address}}]}] -%}
-      {%- if item.open -%}
-      {%-   set _ = rules.append({'ports': item.open | map('community.general.dict_kv', 'port') | list}) -%}
-      {%- endif -%}
-      {%- set _ = rules.append({'from': [{'namespaceSelector': {'matchLabels': {'network.openshift.io/policy-group': 'monitoring'}}}],
-                                'ports': item.ports | map('community.general.dict_kv', 'port') | list}) -%}
-      {{ rules }}
-  loop: "{{ _mesh_targets }}"
+      {%- set out = [{'ports': [{'port': 15008, 'protocol': 'TCP'}]}] -%}
+      {%- for p in item.probe_ports | default([]) -%}
+      {%- set _ = out.append({'ports': [{'port': p, 'protocol': 'TCP'}]}) -%}
+      {%- endfor -%}
+      {%- set _ = out.append({'from': [{'namespaceSelector': {'matchLabels': {'network.openshift.io/policy-group': 'monitoring'}}}]
+                                      + ([{'ipBlock': {'cidr': _post_install_probe_address}}] if item.probed | default(false) else []),
+                              'ports': [{'port': item.port, 'protocol': 'TCP'}]}) -%}
+      {{ out }}
+  loop: "{{ _post_install_metrics_exceptions
+            | selectattr('namespace', 'in', _mesh_namespaces.resources | map(attribute='metadata.name') | list) }}"
   loop_control:
-    label: "{{ item.namespace }}/{{ item.name }} {{ item.ports }}"
+    label: "{{ item.namespace }}/{{ item.name }} {{ item.port }}"

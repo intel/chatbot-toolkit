@@ -259,9 +259,11 @@
         labels: "{{ istio_namespace_labels | default({'istio.io/dataplane-mode': 'ambient'}) | combine({'erag-istio-protected': 'true'}) }}"
   when: istio_enabled | default(false) | bool
 
-# Host-network apiserver (no mesh identity) can't reach the GMC controller's
-# admission webhook under STRICT; open only its port, rest stays STRICT.
-- name: "app_pipeline | Allow apiserver to reach GMC webhook (port-level mTLS)"
+# Callers outside the mesh (_pipeline_gmc_out_of_mesh_callers, vars/<platform>.yaml)
+# have no mesh identity, so under STRICT only their ports accept plain TCP. Where the
+# platform asks for it, a NetworkPolicy lets in only their namespaces, the probe ports
+# and HBONE (15008), which carries the meshed traffic.
+- name: "app_pipeline | Open the GMC controller's ports to its out-of-mesh callers"
   kubernetes.core.k8s:
     state: present
     definition:
@@ -276,8 +278,40 @@
             control-plane: gmc-controller
         mtls:
           mode: STRICT
-        portLevelMtls: "{{ {'9443': {'mode': 'PERMISSIVE'}} }}"
+        portLevelMtls: >-
+          {%- set out = {} -%}
+          {%- for c in _pipeline_gmc_out_of_mesh_callers -%}
+          {%- set _ = out.update({c.port | string: {'mode': 'PERMISSIVE'}}) -%}
+          {%- endfor -%}
+          {{ out }}
   when: istio_enabled | default(false) | bool
+
+- name: "app_pipeline | Admit only the GMC controller's callers"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: gmc-controller-ingress
+        namespace: "{{ gmc_namespace }}"
+      spec:
+        podSelector:
+          matchLabels: {control-plane: gmc-controller}
+        policyTypes: [Ingress]
+        ingress: >-
+          {%- set out = [{'ports': [{'port': 15008, 'protocol': 'TCP'}]}] -%}
+          {%- for p in _pipeline_gmc_probe_ports -%}
+          {%- set _ = out.append({'ports': [{'port': p, 'protocol': 'TCP'}]}) -%}
+          {%- endfor -%}
+          {%- for c in _pipeline_gmc_out_of_mesh_callers -%}
+          {%- set _ = out.append({'from': [{'namespaceSelector': {'matchLabels': c.namespace_labels}}],
+                                  'ports': [{'port': c.port, 'protocol': 'TCP'}]}) -%}
+          {%- endfor -%}
+          {{ out }}
+  when:
+    - istio_enabled | default(false) | bool
+    - _pipeline_gmc_network_policy | bool
 
 - name: "app_pipeline | Label GMC namespace - PSS"
   kubernetes.core.k8s:
