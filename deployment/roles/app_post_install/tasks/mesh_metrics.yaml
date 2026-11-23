@@ -3,6 +3,22 @@
 # TCP on its metrics port, and the NetworkPolicy lets in only the monitoring namespaces
 # there, the kubelet's probes and HBONE (15008), which carries the meshed traffic.
 # Workloads of a component that is not installed have no namespace and are skipped.
+- name: "app_post_install | mesh | Read the kubelet probes' source address from the IstioCNI"
+  kubernetes.core.k8s_info:
+    api_version: sailoperator.io/v1
+    kind: IstioCNI
+    name: default
+  register: _mesh_istio_cni
+
+- name: "app_post_install | mesh | Check the kubelet probes' source address"
+  ansible.builtin.assert:
+    that: _post_install_probe_address | length > 0
+    fail_msg: >-
+      The IstioCNI 'default' does not set spec.values.cni.env.HOST_PROBE_SNAT_IP, which
+      the metrics NetworkPolicies need to admit the kubelet's probes. Set it as the
+      platform's OpenShift guide describes (docs/deploy/openshift.md, step 3).
+    quiet: true
+
 - name: "app_post_install | mesh | List the eRAG namespaces"
   kubernetes.core.k8s_info:
     kind: Namespace
@@ -39,7 +55,7 @@
       {%- set _ = out.append({'ports': [{'port': p, 'protocol': 'TCP'}]}) -%}
       {%- endfor -%}
       {%- set _ = out.append({'from': [{'namespaceSelector': {'matchLabels': {'network.openshift.io/policy-group': 'monitoring'}}}]
-                                      + ([{'ipBlock': {'cidr': _post_install_probe_address}}] if item.probed | default(false) else []),
+                                      + ([{'ipBlock': {'cidr': _post_install_probe_address ~ '/32'}}] if item.probed | default(false) else []),
                               'ports': [{'port': item.port, 'protocol': 'TCP'}]}) -%}
       {{ out }}
   loop: "{{ _post_install_metrics_exceptions
