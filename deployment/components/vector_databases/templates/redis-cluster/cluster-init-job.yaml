@@ -126,11 +126,12 @@ spec:
           if [ "$SLOTS_ASSIGNED" -gt "0" ]; then
             {{- if $redisCluster.cluster.joinRepair }}
             join_missing_nodes
-            {{- end }}
+            {{- else }}
             echo "✅ Cluster already exists (has $SLOTS_ASSIGNED slots). Nothing to do."
             echo ""
             redis-cli -h "$FIRST_NODE" -a "$REDIS_PASSWORD" CLUSTER NODES 2>/dev/null
             exit 0
+            {{- end }}
           fi
           
           # Create new cluster
@@ -151,8 +152,14 @@ spec:
             --cluster-replicas 0 \
             --cluster-yes{{ if $redisCluster.cluster.joinRepair }} || echo "Cluster creation incomplete; joining the missing nodes"{{ end }}
           {{- if $redisCluster.cluster.joinRepair }}
+          # A MEET cannot fix a create that assigned no slots (a wrong password, a node not empty).
+          SLOTS=$(info cluster_slots_assigned)
+          if [ "${SLOTS:-0}" -eq 0 ]; then
+            echo "❌ Cluster creation failed: no slots assigned"
+            exit 1
+          fi
           join_missing_nodes
-          {{- end }}
+          {{- else }}
           
           # Verify creation
           sleep 5
@@ -169,6 +176,7 @@ spec:
             echo "❌ Cluster creation failed"
             exit 1
           fi
+          {{- end }}
       volumes:
       - name: tmp
         emptyDir: {}
