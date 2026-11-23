@@ -1,10 +1,8 @@
 ---
-# Each workload in _post_install_metrics_exceptions (vars/<platform>.yaml) accepts plain
-# TCP on its metrics port, from the monitoring namespaces and the kubelet's probes (which
-# istio-cni SNATs to HOST_PROBE_SNAT_IP) only. Meshed traffic arrives on HBONE (15008).
-# Workloads that are not deployed (a component not installed, a pipeline variant
-# without the service) have no pods and are skipped; exceptions this run does not
-# create are removed.
+# The user-workload Prometheus scrapes from outside the STRICT mesh, so each workload in
+# _post_install_metrics_exceptions (vars/<platform>.yaml) accepts plain TCP on its metrics
+# port, from the monitoring namespaces and the kubelet's probes (which istio-cni SNATs to
+# HOST_PROBE_SNAT_IP) only. Meshed traffic arrives on HBONE (15008).
 - name: "app_post_install | mesh | Read the kubelet probes' source address from the IstioCNI"
   kubernetes.core.k8s_info:
     api_version: sailoperator.io/v1

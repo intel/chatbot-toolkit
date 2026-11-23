@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 ---
-# The user-workload Prometheus scrapes from outside the STRICT mesh (tasks/mesh_metrics.yaml).
+# Metrics ports opened by tasks/mesh_metrics.yaml.
 # `probed`: the kubelet's probes call the metrics port too. `probe_ports`: ports only the
 # probes call, open to any source.
 # The GMC controller's metrics port is opened by app_pipeline, with its webhook.
