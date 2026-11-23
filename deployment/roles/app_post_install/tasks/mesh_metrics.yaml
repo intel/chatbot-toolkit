@@ -38,7 +38,7 @@
   kubernetes.core.k8s_info:
     kind: Pod
     namespace: "{{ item.namespace }}"
-    label_selectors: "{{ item.pods | dict2items | map('join', '=') | list }}"
+    label_selectors: "{{ item.pods.items() | map('join', '=') | list }}"
   loop: "{{ _post_install_metrics_exceptions
             | selectattr('namespace', 'in', _mesh_namespaces.resources | map(attribute='metadata.name') | list) }}"
   loop_control:
