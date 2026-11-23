@@ -277,7 +277,7 @@
         mtls:
           mode: STRICT
         portLevelMtls: "{{ dict(_pipeline_gmc_out_of_mesh_callers | map(attribute='port') | map('string')
-                                 | zip_longest([], fillvalue={'mode': 'PERMISSIVE'})) }}"
+                                 | product([{'mode': 'PERMISSIVE'}])) }}"
   when: istio_enabled | default(false) | bool
 
 - name: "app_pipeline | Admit only the GMC controller's callers"

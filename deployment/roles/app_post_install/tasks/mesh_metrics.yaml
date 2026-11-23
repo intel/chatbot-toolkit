@@ -2,7 +2,8 @@
 # Each workload in _post_install_metrics_exceptions (vars/<platform>.yaml) accepts plain
 # TCP on its metrics port, from the monitoring namespaces and the kubelet's probes (which
 # istio-cni SNATs to HOST_PROBE_SNAT_IP) only. Meshed traffic arrives on HBONE (15008).
-# Workloads of a component that is not installed have no namespace and are skipped.
+# Workloads that are not deployed (a component not installed, a pipeline variant
+# without the service) have no pods and are skipped.
 - name: "app_post_install | mesh | Read the kubelet probes' source address from the IstioCNI"
   kubernetes.core.k8s_info:
     api_version: sailoperator.io/v1
@@ -33,7 +34,6 @@
       - erag-istio-protected=true
   register: _mesh_namespaces
 
-# The list is kept by hand: catch a chart that renamed a label or moved a port.
 - name: "app_post_install | mesh | List the pods each exception selects"
   kubernetes.core.k8s_info:
     kind: Pod
@@ -45,7 +45,12 @@
     label: "{{ item.namespace }}/{{ item.name }}"
   register: _mesh_pods
 
-- name: "app_post_install | mesh | Check each exception selects a pod exposing its port"
+- name: "app_post_install | mesh | Keep the deployed workloads"
+  ansible.builtin.set_fact:
+    _mesh_deployed: "{{ _mesh_pods.results | selectattr('resources') | list }}"
+
+# The list is kept by hand: catch a chart that moved a port.
+- name: "app_post_install | mesh | Check each deployed workload exposes its port"
   ansible.builtin.assert:
     that: >-
       item.item.port in (item.resources | map(attribute='spec.containers') | flatten
@@ -56,7 +61,7 @@
       {{ item.item.port }}. Update {{ item.item.name }} in
       _post_install_metrics_exceptions (app_post_install/vars/openshift.yaml).
     quiet: true
-  loop: "{{ _mesh_pods.results }}"
+  loop: "{{ _mesh_deployed }}"
   loop_control:
     label: "{{ item.item.namespace }}/{{ item.item.name }} {{ item.item.port }}"
 
@@ -92,7 +97,6 @@
                                       + ([{'ipBlock': {'cidr': _post_install_probe_address ~ '/32'}}] if item.probed | default(false) else []),
                               'ports': [{'port': item.port, 'protocol': 'TCP'}]}) -%}
       {{ out }}
-  loop: "{{ _post_install_metrics_exceptions
-            | selectattr('namespace', 'in', _mesh_namespaces.resources | map(attribute='metadata.name') | list) }}"
+  loop: "{{ _mesh_deployed | map(attribute='item') | list }}"
   loop_control:
     label: "{{ item.namespace }}/{{ item.name }} {{ item.port }}"
