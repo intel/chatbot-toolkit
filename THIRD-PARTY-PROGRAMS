@@ -2339,6 +2339,10 @@
     * Origin: gopkg
     * License: mit
 
+* Component: github.com/evanphx/json-patch
+    * Origin: gopkg
+    * License: bsd-3-clause
+
 * Component: github.com/evanphx/json-patch/v5
     * Origin: gopkg
     * License: bsd-3-clause
@@ -2372,6 +2376,50 @@
     * License: apache-2.0
 
 * Component: github.com/go-openapi/swag
+    * Origin: gopkg
+    * License: apache-2.0
+
+* Component: github.com/go-openapi/swag/cmdutils
+    * Origin: gopkg
+    * License: apache-2.0
+
+* Component: github.com/go-openapi/swag/conv
+    * Origin: gopkg
+    * License: apache-2.0
+
+* Component: github.com/go-openapi/swag/fileutils
+    * Origin: gopkg
+    * License: apache-2.0
+
+* Component: github.com/go-openapi/swag/jsonutils
+    * Origin: gopkg
+    * License: apache-2.0
+
+* Component: github.com/go-openapi/swag/loading
+    * Origin: gopkg
+    * License: apache-2.0
+
+* Component: github.com/go-openapi/swag/mangling
+    * Origin: gopkg
+    * License: apache-2.0
+
+* Component: github.com/go-openapi/swag/netutils
+    * Origin: gopkg
+    * License: apache-2.0
+
+* Component: github.com/go-openapi/swag/pools
+    * Origin: gopkg
+    * License: apache-2.0
+
+* Component: github.com/go-openapi/swag/stringutils
+    * Origin: gopkg
+    * License: apache-2.0
+
+* Component: github.com/go-openapi/swag/typeutils
+    * Origin: gopkg
+    * License: apache-2.0
+
+* Component: github.com/go-openapi/swag/yamlutils
     * Origin: gopkg
     * License: apache-2.0
 
@@ -2427,10 +2475,6 @@
     * Origin: gopkg
     * License: mit
 
-* Component: github.com/josharian/intern
-    * Origin: gopkg
-    * License: mit
-
 * Component: github.com/json-iterator/go
     * Origin: gopkg
     * License: mit
@@ -2438,10 +2482,6 @@
 * Component: github.com/klauspost/compress
     * Origin: gopkg
     * License: apache-2.0, bsd-3-clause, mit
-
-* Component: github.com/mailru/easyjson
-    * Origin: gopkg
-    * License: mit
 
 * Component: github.com/modern-go/concurrent
     * Origin: gopkg
@@ -2482,10 +2522,6 @@
 * Component: github.com/pkg/errors
     * Origin: gopkg
     * License: bsd-2-clause
-
-* Component: github.com/pmezard/go-difflib
-    * Origin: gopkg
-    * License: bsd-3-clause
 
 * Component: github.com/prometheus/client_golang
     * Origin: gopkg
@@ -2595,6 +2631,10 @@
     * Origin: gopkg
     * License: apache-2.0, bsd-3-clause
 
+* Component: go.opentelemetry.io/otel/log
+    * Origin: gopkg
+    * License: apache-2.0, bsd-3-clause
+
 * Component: go.opentelemetry.io/otel/metric
     * Origin: gopkg
     * License: apache-2.0, bsd-3-clause
@@ -2623,9 +2663,9 @@
     * Origin: gopkg
     * License: mit
 
-* Component: go.yaml.in/yaml/v2
+* Component: go.yaml.in/yaml/v3
     * Origin: gopkg
-    * License: apache-2.0
+    * License: apache-2.0, mit
 
 * Component: golang.org/x/crypto
     * Origin: gopkg
@@ -3338,10 +3378,6 @@
 * Component: kiwisolver
     * Origin: pypi
     * License: mit
-
-* Component: knative.dev/pkg
-    * Origin: gopkg
-    * License: apache-2.0
 
 * Component: kolorist
     * Origin: npm
