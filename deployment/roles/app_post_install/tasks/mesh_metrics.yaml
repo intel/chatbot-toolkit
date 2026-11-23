@@ -57,22 +57,18 @@
     label: "{{ item.item.namespace }}/{{ item.item.name }} {{ item.item.port }}"
 
 - name: "app_post_install | mesh | Open the metrics ports to the user-workload Prometheus"
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: security.istio.io/v1
-      kind: PeerAuthentication
-      metadata:
-        name: "{{ item.name }}-metrics"
-        namespace: "{{ item.namespace }}"
-        labels: {erag-metrics-exception: "true"}
-      spec:
-        selector: {matchLabels: "{{ item.pods }}"}
-        mtls: {mode: STRICT}
-        portLevelMtls: "{{ {item.port | string: {'mode': 'PERMISSIVE'}} }}"
-  loop: "{{ _mesh_deployed | map(attribute='item') | list }}"
-  loop_control:
-    label: "{{ item.namespace }}/{{ item.name }} {{ item.port }}"
+  ansible.builtin.include_role:
+    name: istio
+    tasks_from: out_of_mesh_exception.yaml
+  vars:
+    istio_out_of_mesh_exception_workloads: >-
+      {%- set out = [] -%}
+      {%- for r in _mesh_deployed -%}
+      {%- set _ = out.append({'name': r.item.name ~ '-metrics', 'namespace': r.item.namespace,
+                              'selector': r.item.pods, 'ports': [r.item.port],
+                              'labels': {'erag-metrics-exception': 'true'}}) -%}
+      {%- endfor -%}
+      {{ out }}
 
 - name: "app_post_install | mesh | Find the metrics exceptions"
   kubernetes.core.k8s_info:
