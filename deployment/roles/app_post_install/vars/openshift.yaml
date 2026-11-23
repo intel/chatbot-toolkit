@@ -5,7 +5,8 @@
 # `probed`: the kubelet's probes call the metrics port too. `probe_ports`: ports only the
 # probes call, open to any source.
 # The GMC controller's metrics port is opened by app_pipeline, with its webhook.
-# Workloads not listed (audio, MSSQL) are not scraped under STRICT yet.
+# Workloads not listed (audio, MSSQL) are not scraped under STRICT yet. edp-backend's
+# monitor also selects edp-celery, which serves nothing on 5000.
 _post_install_metrics_exceptions:
   - name: chat-history
     namespace: "{{ chat_history_namespace }}"
@@ -66,6 +67,11 @@ _post_install_metrics_exceptions:
     namespace: "{{ edp_namespace }}"
     pods: {app.kubernetes.io/name: edp-backend, app.kubernetes.io/instance: edp}
     port: 5000
+    probed: true
+  - name: edp-flower
+    namespace: "{{ edp_namespace }}"
+    pods: {app.kubernetes.io/name: edp-flower, app.kubernetes.io/instance: edp}
+    port: 5555
     probed: true
   - name: edp-ingestion
     namespace: "{{ edp_namespace }}"
