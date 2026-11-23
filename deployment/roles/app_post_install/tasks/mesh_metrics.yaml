@@ -1,7 +1,7 @@
 ---
 # Each workload in _post_install_metrics_exceptions (vars/<platform>.yaml) accepts plain
-# TCP on its metrics port, and the NetworkPolicy lets in only the monitoring namespaces
-# there, the kubelet's probes and HBONE (15008), which carries the meshed traffic.
+# TCP on its metrics port, from the monitoring namespaces and the kubelet's probes (which
+# istio-cni SNATs to HOST_PROBE_SNAT_IP) only. Meshed traffic arrives on HBONE (15008).
 # Workloads of a component that is not installed have no namespace and are skipped.
 - name: "app_post_install | mesh | Read the kubelet probes' source address from the IstioCNI"
   kubernetes.core.k8s_info:
@@ -9,6 +9,13 @@
     kind: IstioCNI
     name: default
   register: _mesh_istio_cni
+
+# preflight doesn't cover the eRAG layer, so the role checks HOST_PROBE_SNAT_IP itself.
+- name: "app_post_install | mesh | Note the kubelet probes' source address"
+  ansible.builtin.set_fact:
+    _post_install_probe_address: >-
+      {{ _mesh_istio_cni.resources | map(attribute='spec.values.cni.env.HOST_PROBE_SNAT_IP', default='')
+         | first | default('') }}
 
 - name: "app_post_install | mesh | Check the kubelet probes' source address"
   ansible.builtin.assert:

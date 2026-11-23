@@ -96,6 +96,11 @@ spec:
             redis-cli -a "$REDIS_PASSWORD" --cluster create $CLUSTER_IPS \
               --cluster-replicas 0 \
               --cluster-yes || echo "Cluster creation incomplete; joining the missing nodes below"
+            # Slots assigned means the create got far enough for the joins below to finish it.
+            if [ "$(info cluster_slots_assigned)" = "0" ]; then
+              echo "❌ Cluster creation failed: no slots assigned"
+              exit 1
+            fi
           fi
 
           # A node can miss the join and keep its slots to itself: in a mesh, the first
@@ -106,7 +111,7 @@ spec:
             STATE=$(info cluster_state)
             SLOTS=$(info cluster_slots_assigned)
             KNOWN=$(info cluster_known_nodes)
-            if [ "$STATE" = "ok" ] && [ "$SLOTS" = "16384" ] && [ "$KNOWN" = "$CLUSTER_NODES" ]; then
+            if [ "$STATE" = "ok" ] && [ "$SLOTS" = "16384" ] && [ "${KNOWN:-0}" -ge "$CLUSTER_NODES" ]; then
               echo "✅ Cluster ready"
               echo ""
               cli "$FIRST_NODE" CLUSTER NODES 2>/dev/null

@@ -1,10 +1,9 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 ---
-# The user-workload Prometheus scrapes from outside the STRICT mesh. Each entry opens
-# one workload's metrics port to the monitoring namespaces only. `probed`: the kubelet's
-# probes call the port too. `probe_ports`: ports only the probes call, open to any
-# source (ztunnel lets probes in as plain TCP and refuses any other plain TCP).
+# The user-workload Prometheus scrapes from outside the STRICT mesh (tasks/mesh_metrics.yaml).
+# `probed`: the kubelet's probes call the metrics port too. `probe_ports`: ports only the
+# probes call, open to any source.
 # The GMC controller's metrics port is opened by app_pipeline, with its webhook.
 # Workloads not listed (audio, MSSQL) are not scraped under STRICT yet.
 _post_install_metrics_exceptions:
@@ -68,15 +67,6 @@ _post_install_metrics_exceptions:
     pods: {app.kubernetes.io/name: edp-backend, app.kubernetes.io/instance: edp}
     port: 5000
     probed: true
-  - name: edp-celery
-    namespace: "{{ edp_namespace }}"
-    pods: {app.kubernetes.io/name: edp-celery, app.kubernetes.io/instance: edp}
-    port: 5000
-  - name: edp-flower
-    namespace: "{{ edp_namespace }}"
-    pods: {app.kubernetes.io/name: edp-flower, app.kubernetes.io/instance: edp}
-    port: 5555
-    probed: true
   - name: edp-ingestion
     namespace: "{{ edp_namespace }}"
     pods: {app.kubernetes.io/name: edp-ingestion, app.kubernetes.io/instance: edp}
@@ -97,9 +87,3 @@ _post_install_metrics_exceptions:
     pods: {app.kubernetes.io/name: edp-text-splitter, app.kubernetes.io/instance: edp}
     port: 9399
     probed: true
-# The kubelet's probes reach the pod from the address istio-cni SNATs them to:
-# HOST_PROBE_SNAT_IP on the admin's IstioCNI, read by tasks/mesh_metrics.yaml. A
-# `probed` port admits it.
-_post_install_probe_address: >-
-  {{ _mesh_istio_cni.resources | default([])
-     | map(attribute='spec.values.cni.env.HOST_PROBE_SNAT_IP', default='') | first | default('') }}
