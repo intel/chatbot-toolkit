@@ -3,7 +3,8 @@
 # TCP on its metrics port, from the monitoring namespaces and the kubelet's probes (which
 # istio-cni SNATs to HOST_PROBE_SNAT_IP) only. Meshed traffic arrives on HBONE (15008).
 # Workloads that are not deployed (a component not installed, a pipeline variant
-# without the service) have no pods and are skipped.
+# without the service) have no pods and are skipped; exceptions this run does not
+# create are removed.
 - name: "app_post_install | mesh | Read the kubelet probes' source address from the IstioCNI"
   kubernetes.core.k8s_info:
     api_version: sailoperator.io/v1
@@ -49,6 +50,22 @@
   ansible.builtin.set_fact:
     _mesh_deployed: "{{ _mesh_pods.results | selectattr('resources') | list }}"
 
+# A chart that renames a pod label also lands here: its metrics stay unscraped.
+- name: "app_post_install | mesh | Warn about the exceptions that select no pod"
+  ansible.builtin.debug:
+    msg: >-
+      No pod matches these metrics exceptions, so they are skipped:
+      {{ _mesh_skipped | join(', ') }}. If the workload is deployed, update its
+      labels in _post_install_metrics_exceptions (app_post_install/vars/openshift.yaml).
+  vars:
+    _mesh_skipped: >-
+      {%- set out = [] -%}
+      {%- for r in _mesh_pods.results | rejectattr('resources') -%}
+      {%- set _ = out.append(r.item.namespace ~ '/' ~ r.item.name) -%}
+      {%- endfor -%}
+      {{ out }}
+  when: _mesh_skipped | length > 0
+
 # The list is kept by hand: catch a chart that moved a port.
 - name: "app_post_install | mesh | Check each deployed workload exposes its port"
   ansible.builtin.assert:
@@ -74,6 +91,7 @@
         metadata:
           name: "{{ item.name }}-metrics"
           namespace: "{{ item.namespace }}"
+          labels: {erag-metrics-exception: "true"}
         spec:
           selector: {matchLabels: "{{ item.pods }}"}
           mtls: {mode: STRICT}
@@ -83,6 +101,7 @@
         metadata:
           name: "{{ item.name }}-metrics"
           namespace: "{{ item.namespace }}"
+          labels: {erag-metrics-exception: "true"}
         spec:
           podSelector: {matchLabels: "{{ item.pods }}"}
           policyTypes: [Ingress]
@@ -100,3 +119,35 @@
   loop: "{{ _mesh_deployed | map(attribute='item') | list }}"
   loop_control:
     label: "{{ item.namespace }}/{{ item.name }} {{ item.port }}"
+
+- name: "app_post_install | mesh | Find the metrics exceptions"
+  kubernetes.core.k8s_info:
+    api_version: "{{ item.api_version }}"
+    kind: "{{ item.kind }}"
+    label_selectors: [erag-metrics-exception=true]
+  loop:
+    - {api_version: security.istio.io/v1, kind: PeerAuthentication}
+    - {api_version: networking.k8s.io/v1, kind: NetworkPolicy}
+  loop_control:
+    label: "{{ item.kind }}"
+  register: _mesh_existing
+
+# A workload no longer deployed, or an entry renamed or dropped from the list.
+- name: "app_post_install | mesh | Remove the exceptions this run did not create"
+  kubernetes.core.k8s:
+    state: absent
+    api_version: "{{ item.apiVersion }}"
+    kind: "{{ item.kind }}"
+    name: "{{ item.metadata.name }}"
+    namespace: "{{ item.metadata.namespace }}"
+  loop: "{{ _mesh_existing.results | map(attribute='resources') | flatten }}"
+  loop_control:
+    label: "{{ item.kind }} {{ item.metadata.namespace }}/{{ item.metadata.name }}"
+  vars:
+    _mesh_wanted: >-
+      {%- set out = [] -%}
+      {%- for r in _mesh_deployed -%}
+      {%- set _ = out.append(r.item.namespace ~ '/' ~ r.item.name ~ '-metrics') -%}
+      {%- endfor -%}
+      {{ out }}
+  when: (item.metadata.namespace ~ '/' ~ item.metadata.name) not in _mesh_wanted

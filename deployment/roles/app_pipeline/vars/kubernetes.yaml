@@ -10,4 +10,3 @@ _pipeline_service_ca: ""
 _pipeline_gmc_out_of_mesh_callers:
   - {port: 9443}
 _pipeline_gmc_network_policy: false
-_pipeline_gmc_probe_ports: []
