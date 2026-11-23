@@ -1,31 +1,7 @@
 ---
 # The user-workload Prometheus scrapes from outside the STRICT mesh, so each workload in
 # _post_install_metrics_exceptions (vars/<platform>.yaml) accepts plain TCP on its metrics
-# port, from the monitoring namespaces and the kubelet's probes (which istio-cni SNATs to
-# HOST_PROBE_SNAT_IP) only. Meshed traffic arrives on HBONE (15008).
-- name: "app_post_install | mesh | Read the kubelet probes' source address from the IstioCNI"
-  kubernetes.core.k8s_info:
-    api_version: sailoperator.io/v1
-    kind: IstioCNI
-    name: default
-  register: _mesh_istio_cni
-
-# preflight doesn't cover the eRAG layer, so the role checks HOST_PROBE_SNAT_IP itself.
-- name: "app_post_install | mesh | Note the kubelet probes' source address"
-  ansible.builtin.set_fact:
-    _post_install_probe_address: >-
-      {{ _mesh_istio_cni.resources | map(attribute='spec.values.cni.env.HOST_PROBE_SNAT_IP', default='')
-         | first | default('') }}
-
-- name: "app_post_install | mesh | Check the kubelet probes' source address"
-  ansible.builtin.assert:
-    that: _post_install_probe_address | length > 0
-    fail_msg: >-
-      The IstioCNI 'default' does not set spec.values.cni.env.HOST_PROBE_SNAT_IP, which
-      the metrics NetworkPolicies need to admit the kubelet's probes. Set it as the
-      platform's OpenShift guide describes (docs/deploy/openshift.md, step 3).
-    quiet: true
-
+# port.
 - name: "app_post_install | mesh | List the eRAG namespaces"
   kubernetes.core.k8s_info:
     kind: Namespace
@@ -84,50 +60,25 @@
   kubernetes.core.k8s:
     state: present
     definition:
-      - apiVersion: security.istio.io/v1
-        kind: PeerAuthentication
-        metadata:
-          name: "{{ item.name }}-metrics"
-          namespace: "{{ item.namespace }}"
-          labels: {erag-metrics-exception: "true"}
-        spec:
-          selector: {matchLabels: "{{ item.pods }}"}
-          mtls: {mode: STRICT}
-          portLevelMtls: "{{ {item.port | string: {'mode': 'PERMISSIVE'}} }}"
-      - apiVersion: networking.k8s.io/v1
-        kind: NetworkPolicy
-        metadata:
-          name: "{{ item.name }}-metrics"
-          namespace: "{{ item.namespace }}"
-          labels: {erag-metrics-exception: "true"}
-        spec:
-          podSelector: {matchLabels: "{{ item.pods }}"}
-          policyTypes: [Ingress]
-          ingress: "{{ _mesh_ingress }}"
-  vars:
-    _mesh_ingress: >-
-      {%- set out = [{'ports': [{'port': 15008, 'protocol': 'TCP'}]}] -%}
-      {%- for p in item.probe_ports | default([]) -%}
-      {%- set _ = out.append({'ports': [{'port': p, 'protocol': 'TCP'}]}) -%}
-      {%- endfor -%}
-      {%- set _ = out.append({'from': [{'namespaceSelector': {'matchLabels': {'network.openshift.io/policy-group': 'monitoring'}}}]
-                                      + ([{'ipBlock': {'cidr': _post_install_probe_address ~ '/32'}}] if item.probed | default(false) else []),
-                              'ports': [{'port': item.port, 'protocol': 'TCP'}]}) -%}
-      {{ out }}
+      apiVersion: security.istio.io/v1
+      kind: PeerAuthentication
+      metadata:
+        name: "{{ item.name }}-metrics"
+        namespace: "{{ item.namespace }}"
+        labels: {erag-metrics-exception: "true"}
+      spec:
+        selector: {matchLabels: "{{ item.pods }}"}
+        mtls: {mode: STRICT}
+        portLevelMtls: "{{ {item.port | string: {'mode': 'PERMISSIVE'}} }}"
   loop: "{{ _mesh_deployed | map(attribute='item') | list }}"
   loop_control:
     label: "{{ item.namespace }}/{{ item.name }} {{ item.port }}"
 
 - name: "app_post_install | mesh | Find the metrics exceptions"
   kubernetes.core.k8s_info:
-    api_version: "{{ item.api_version }}"
-    kind: "{{ item.kind }}"
+    api_version: security.istio.io/v1
+    kind: PeerAuthentication
     label_selectors: [erag-metrics-exception=true]
-  loop:
-    - {api_version: security.istio.io/v1, kind: PeerAuthentication}
-    - {api_version: networking.k8s.io/v1, kind: NetworkPolicy}
-  loop_control:
-    label: "{{ item.kind }}"
   register: _mesh_existing
 
 # A workload no longer deployed, or an entry renamed or dropped from the list.
@@ -138,7 +89,7 @@
     kind: "{{ item.kind }}"
     name: "{{ item.metadata.name }}"
     namespace: "{{ item.metadata.namespace }}"
-  loop: "{{ _mesh_existing.results | map(attribute='resources') | flatten }}"
+  loop: "{{ _mesh_existing.resources }}"
   loop_control:
     label: "{{ item.kind }} {{ item.metadata.namespace }}/{{ item.metadata.name }}"
   vars:

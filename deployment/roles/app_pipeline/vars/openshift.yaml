@@ -5,13 +5,6 @@ _pipeline_post_renderer: "{{ role_path }}/../../scripts/openshift_post_renderer.
 _pipeline_fixed_uids: false
 _pipeline_hpa_provider: keda
 _pipeline_service_ca: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
-# Callers of the GMC controller from outside the mesh, each admitted by the
-# NetworkPolicy from its namespaces only: the apiserver calls the admission webhook,
-# the user-workload Prometheus scrapes the metrics. The apiserver's address is in no
-# namespace, so the webhook is open to any source.
-_pipeline_gmc_out_of_mesh_callers:
-  - {port: 9443}
-  - {port: 8080, namespace_labels: {network.openshift.io/policy-group: monitoring}}
-_pipeline_gmc_network_policy: true
-# Ports only the kubelet's probes call, open to any source.
-_pipeline_gmc_probe_ports: [8081]
+# The GMC controller's ports called from outside the mesh: the apiserver calls the
+# admission webhook, the user-workload Prometheus scrapes the metrics.
+_pipeline_gmc_out_of_mesh_ports: [9443, 8080]
