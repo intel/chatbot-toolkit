@@ -10,6 +10,14 @@
   container's command or args, so `kubectl get pod <pod> -o yaml` shows the
   script path and nothing else.
 #}
+{% set container_security_context %}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+{% endset %}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -60,12 +68,7 @@ spec:
         - name: wait-for-ztunnel
           image: {{ dcj_image }}
           imagePullPolicy: IfNotPresent
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
+{{ container_security_context.rstrip('\n') }}
           command: ["{{ dcj_shell | default('/bin/sh') }}", "/scripts/wait-for-ztunnel.sh"]
           env:
             - name: ZTUNNEL_WAIT_SECONDS
@@ -86,12 +89,7 @@ spec:
         - name: query
           image: {{ dcj_image }}
           imagePullPolicy: IfNotPresent
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
+{{ container_security_context.rstrip('\n') }}
           command: ["{{ dcj_shell | default('/bin/sh') }}", "/scripts/query.sh"]
           env:
             - name: HOME

@@ -20,9 +20,20 @@
     label: "{{ item.namespace }}/{{ item.name }}"
   register: _mesh_pods
 
-- name: "app_post_install | mesh | Keep the deployed workloads"
+# key (namespace/name) names the exception in the warning and the prune.
+- name: "app_post_install | mesh | Build the exceptions"
   ansible.builtin.set_fact:
     _mesh_deployed: "{{ _mesh_pods.results | selectattr('resources') | list }}"
+    _mesh_exceptions: >-
+      {%- set out = [] -%}
+      {%- for r in _mesh_pods.results -%}
+      {%- set _ = out.append({'name': r.item.name ~ '-metrics', 'namespace': r.item.namespace,
+                              'selector': r.item.pods, 'ports': [r.item.port],
+                              'labels': {'erag-metrics-exception': 'true'},
+                              'key': r.item.namespace ~ '/' ~ r.item.name ~ '-metrics',
+                              'deployed': r.resources | length > 0}) -%}
+      {%- endfor -%}
+      {{ out }}
 
 # A chart that renames a pod label also lands here: its metrics stay unscraped.
 - name: "app_post_install | mesh | Warn about the exceptions that select no pod"
@@ -32,12 +43,7 @@
       {{ _mesh_skipped | join(', ') }}. If the workload is deployed, update its
       labels in _post_install_metrics_exceptions (app_post_install/vars/openshift.yaml).
   vars:
-    _mesh_skipped: >-
-      {%- set out = [] -%}
-      {%- for r in _mesh_pods.results | rejectattr('resources') -%}
-      {%- set _ = out.append(r.item.namespace ~ '/' ~ r.item.name) -%}
-      {%- endfor -%}
-      {{ out }}
+    _mesh_skipped: "{{ _mesh_exceptions | rejectattr('deployed') | map(attribute='key') | list }}"
   when: _mesh_skipped | length > 0
 
 # The list is kept by hand: catch a chart that moved a port.
@@ -61,14 +67,7 @@
     name: istio
     tasks_from: out_of_mesh_exception.yaml
   vars:
-    istio_out_of_mesh_exception_workloads: >-
-      {%- set out = [] -%}
-      {%- for r in _mesh_deployed -%}
-      {%- set _ = out.append({'name': r.item.name ~ '-metrics', 'namespace': r.item.namespace,
-                              'selector': r.item.pods, 'ports': [r.item.port],
-                              'labels': {'erag-metrics-exception': 'true'}}) -%}
-      {%- endfor -%}
-      {{ out }}
+    istio_out_of_mesh_exception_workloads: "{{ _mesh_exceptions | selectattr('deployed') | list }}"
 
 - name: "app_post_install | mesh | Find the metrics exceptions"
   kubernetes.core.k8s_info:
@@ -77,7 +76,6 @@
     label_selectors: [erag-metrics-exception=true]
   register: _mesh_existing
 
-# A workload no longer deployed, or an entry renamed or dropped from the list.
 - name: "app_post_install | mesh | Remove the exceptions this run did not create"
   kubernetes.core.k8s:
     state: absent
@@ -89,10 +87,5 @@
   loop_control:
     label: "{{ item.kind }} {{ item.metadata.namespace }}/{{ item.metadata.name }}"
   vars:
-    _mesh_wanted: >-
-      {%- set out = [] -%}
-      {%- for r in _mesh_deployed -%}
-      {%- set _ = out.append(r.item.namespace ~ '/' ~ r.item.name ~ '-metrics') -%}
-      {%- endfor -%}
-      {{ out }}
+    _mesh_wanted: "{{ _mesh_exceptions | selectattr('deployed') | map(attribute='key') | list }}"
   when: (item.metadata.namespace ~ '/' ~ item.metadata.name) not in _mesh_wanted
