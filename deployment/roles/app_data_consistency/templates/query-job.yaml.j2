@@ -66,10 +66,10 @@ spec:
 {% if _dcj_ambient %}
       initContainers:
         - name: wait-for-ztunnel
-          image: {{ dcj_image }}
+          image: {{ data_consistency_ztunnel_wait_image }}
           imagePullPolicy: IfNotPresent
 {{ container_security_context.rstrip('\n') }}
-          command: ["{{ dcj_shell | default('/bin/sh') }}", "/scripts/wait-for-ztunnel.sh"]
+          command: ["/bin/sh", "/scripts/wait-for-ztunnel.sh"]
           env:
             - name: ZTUNNEL_WAIT_SECONDS
               value: "{{ data_consistency_ztunnel_wait_seconds }}"

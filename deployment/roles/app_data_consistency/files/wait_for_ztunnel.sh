@@ -5,7 +5,7 @@
 # Without CNI chaining, as on OpenShift, ztunnel captures a pod only once one of
 # its containers runs; a connection opened before that leaves as plain TCP and is
 # dropped. Captured, the pod listens on HBONE 15008 (3AA0 in /proc/net/tcp*).
-# Shell builtins only: the query images do not all ship grep.
+# Runs in busybox (data_consistency_ztunnel_wait_image): sh builtins and sleep.
 set -u
 
 waited=0
