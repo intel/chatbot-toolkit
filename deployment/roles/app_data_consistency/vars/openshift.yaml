@@ -3,6 +3,3 @@
 ---
 # Its Jobs are applied without Helm, so the post-renderer never sees them.
 _data_consistency_fixed_uids: false
-# Under ambient, the query Jobs wait for ztunnel to capture their pod (see
-# files/wait_for_ztunnel.sh).
-_data_consistency_ztunnel_wait: true
