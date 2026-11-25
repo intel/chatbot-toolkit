@@ -52,7 +52,7 @@ _PLAY = """
     - ansible.builtin.set_fact:
         _layer_class: "{{ fixture_layer_class }}"
         _layer_records: "{{ fixture_layer_records }}"
-        _layer_release: {erag: "3.1.0"}
+        _layer_release: {erag: "3.1.1"}
         _upgrade_force: "{{ fixture_force }}"
     - ansible.builtin.set_fact:
         _upgrade_gate: "{{ fixture_gate }}"
@@ -75,7 +75,7 @@ _PLAY = """
             mode: "0644"
 """
 
-_PENDING = "pending-pre-snapshot-3.0.1-to-3.1.0.yaml"
+_PENDING = "pending-pre-snapshot-3.1.0-to-3.1.1.yaml"
 
 
 def _counts(vdb):
@@ -96,13 +96,13 @@ def _roles(tmp_path):
     return f"{roles}:{_ROLES_DIR}"
 
 
-def _run(tmp_path, run_class, snapshots, record_version="3.0.1", target=None, force=False, gate=None):
+def _run(tmp_path, run_class, snapshots, record_version="3.1.0", target=None, force=False, gate=None):
     (tmp_path / "play.yaml").write_text(_PLAY)
     extra = {
         "env_dir": str(tmp_path),
         "tmp_dir": str(tmp_path / "tmp"),
         "fixture_layer_class": {"erag": run_class},
-        "fixture_layer_records": {"erag": {"version": record_version, "targetVersion": target or "3.1.0"}},
+        "fixture_layer_records": {"erag": {"version": record_version, "targetVersion": target or "3.1.1"}},
         "fixture_force": force,
         "fixture_gate": gate,
         "fixture_snapshots": snapshots,
@@ -166,7 +166,7 @@ def test_force_without_the_gate_fact_fails(tmp_path):
 
 
 def test_same_version_run_writes_only_the_data_report(tmp_path):
-    proc, out = _run(tmp_path, "reinstall", [_counts(5)], record_version="3.1.0")
+    proc, out = _run(tmp_path, "reinstall", [_counts(5)], record_version="3.1.1")
     assert proc.returncode == 0, proc.stdout
     assert out["version_change"] is False
     assert out["snapshot_calls"] == 1
@@ -176,7 +176,7 @@ def test_same_version_run_writes_only_the_data_report(tmp_path):
 
 def test_a_fresh_count_drops_snapshots_of_abandoned_version_changes(tmp_path):
     (tmp_path / "reports").mkdir()
-    stale = tmp_path / "reports" / "pending-pre-snapshot-3.0.1-to-3.0.9.yaml"
+    stale = tmp_path / "reports" / "pending-pre-snapshot-3.1.0-to-3.1.9.yaml"
     stale.write_text(yaml.safe_dump(_counts(9)))
     proc, out = _run(tmp_path, "upgrade", [_counts(5), _counts(5)])
     assert proc.returncode == 0, proc.stdout
