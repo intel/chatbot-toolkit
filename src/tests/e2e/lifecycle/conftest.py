@@ -53,8 +53,8 @@ def validation_user_persistent(request, suppress_logging):
             email=f"{validation_username}@ci.local"
         )
         keycloak_helper.remove_required_actions(keycloak_helper.admin_access_token, validation_username)
-        keycloak_helper.assign_client_role(validation_username, "ERAG-admin", "EnterpriseRAG-oidc")
-        keycloak_helper.assign_client_role(validation_username, "ERAG-admin", "EnterpriseRAG-oidc-backend")
+        keycloak_helper.assign_client_role(validation_username, "CHATTOOL-admin", "ChatbotToolkit-oidc")
+        keycloak_helper.assign_client_role(validation_username, "CHATTOOL-admin", "ChatbotToolkit-oidc-backend")
         logger.info(f"Validation user '{validation_username}' created successfully")
     else:
         logger.info(f"Validation user '{validation_username}' already exists, reusing")

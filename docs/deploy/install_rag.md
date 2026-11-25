@@ -93,7 +93,7 @@ Chatbot Toolkit accounts are in `env/<name>/logs/rag/` (one-time passwords; chan
 
 | Service | Username | Location |
 |---------|----------|----------|
-| UI admin/user/maintainer (realm `EnterpriseRAG`) | `erag-admin`, `erag-user`, `erag-maintainer` | default_credentials.txt |
+| UI admin/user/maintainer (realm `ChatbotToolkit`) | `chattool-admin`, `chattool-user`, `chattool-maintainer` | default_credentials.txt |
 | Keycloak admin console (realm `master`) | admin | `keycloak-admin-secret` Secret, namespace `keycloak` |
 | Grafana, **Sign in with Keycloak** (realm `platform`) | platform-admin | `platform-bootstrap-admin` Secret, namespace `keycloak` (temporary; change at first login) |
 | Grafana, local admin on the login form | admin | `grafana-admin-credentials` Secret, namespace `monitoring` |
@@ -120,11 +120,11 @@ Use **Data Ingestion** tab in **Admin Panel** (admin only; ChatQnA and AudioQnA 
 SSO and SharePoint share one Microsoft Entra ID app registration. Configure in `env/<name>/config.erag.yaml`:
 
 ```yaml
-erag_keycloak_oidc_endpoint: ""       # enables SSO
-erag_keycloak_oidc_alias: "enterprise-sso"
-erag_keycloak_oidc_client_id: ""
-erag_keycloak_oidc_client_secret: ""
-erag_keycloak_oidc_tenant_id: ""      # additionally enables SharePoint
+chattool_keycloak_oidc_endpoint: ""       # enables SSO
+chattool_keycloak_oidc_alias: "enterprise-sso"
+chattool_keycloak_oidc_client_id: ""
+chattool_keycloak_oidc_client_secret: ""
+chattool_keycloak_oidc_tenant_id: ""      # additionally enables SharePoint
 ```
 
 All empty = disabled. Partial config rejected. Apply: `./es_auto_installer.sh install erag --env <name>`. Full procedure: [Single Sign-On and SharePoint Integration](../customize/sharepoint.md).
@@ -139,6 +139,16 @@ Removes components in reverse order; models undeployed automatically.
 
 > [!WARNING]
 > Teardown is environment-scoped. Tear down with the same `--env` you installed with: running it against another environment silently does nothing to the one you meant. `teardown erag` keeps the cluster, the platform, and Intel® Inference Toolkit; `teardown infrastructure` removes the cluster and everything on it.
+
+## Upgrade from a release before the Chatbot Toolkit rename
+
+The Keycloak realm, clients, roles, users and groups were renamed (realm `EnterpriseRAG` → `ChatbotToolkit`, `erag-*` → `chattool-*`). An upgrade doesn't rename them in place, so reinstall:
+
+1. Tear down with the **previous** release: `./es_auto_installer.sh teardown erag --env <name>`. The new release's teardown only removes the new realm and the `chattool-credentials` Secret. It would leave the old `EnterpriseRAG` realm, with its users, passwords and client secrets, and the `erag-credentials` Secret in the platform's Keycloak.
+2. In `env/<name>/config.erag.yaml`, rename every `erag_keycloak_*` key to `chattool_keycloak_*`. The installer stops if an old key is still set.
+3. With LDAP/Active Directory federation, rename the AD groups `erag-{admin,user,maintainer}-group` to `chattool-{admin,user,maintainer}-group`. Keycloak names each mapped role after the group's `cn`, so changing the `chattool_keycloak_federation_*_group_ldap_filter` settings alone doesn't keep the old groups working.
+4. With Entra ID SSO, the app registration's redirect URI becomes `https://<keycloak host>/realms/ChatbotToolkit/broker/<alias>/endpoint`, and an IdP that sends `EnterpriseRAG.*Access` role claims must send `ChatbotToolkit.*Access`.
+5. Install the new release. Users get new accounts (`chattool-admin`, …) and new passwords in `default_credentials.txt`.
 
 ## Troubleshooting
 

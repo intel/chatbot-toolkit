@@ -9,7 +9,7 @@
 set -e
 
 # Configuration from environment variables
-KEYCLOAK_REALM="${KEYCLOAK_REALM:-EnterpriseRAG}"
+KEYCLOAK_REALM="${KEYCLOAK_REALM:-ChatbotToolkit}"
 KEYCLOAK_DEFAULT_REALM=master
 KEYCLOAK_USER="${KEYCLOAK_ADMIN_USER:-admin}"
 ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD}"
@@ -17,7 +17,7 @@ KEYCLOAK_URL="${KEYCLOAK_URL:-http://keycloak-service:8080}"
 MINIO_DOMAIN="${MINIO_DOMAIN:-minio.solutions.ai}"
 MINIO_PATH_PREFIX="${MINIO_PATH_PREFIX:-}"
 UI_DOMAIN="${UI_DOMAIN:-solutions.ai}"
-CREDENTIALS_SECRET_NAME="${CREDENTIALS_SECRET_NAME:-erag-credentials}"
+CREDENTIALS_SECRET_NAME="${CREDENTIALS_SECRET_NAME:-chattool-credentials}"
 CREDENTIALS_SECRET_NAMESPACE="${CREDENTIALS_SECRET_NAMESPACE:-auth}"
 
 # MCP gateway caller identity
@@ -52,9 +52,9 @@ FEDERATION_BIND_PASSWORD="${FEDERATION_BIND_PASSWORD:-}"
 FEDERATION_USERS_DN="${FEDERATION_USERS_DN:-}"
 FEDERATION_USER_ATTRIBUTE="${FEDERATION_USER_ATTRIBUTE:-sAMAccountName}"
 FEDERATION_GROUPS_DN="${FEDERATION_GROUPS_DN:-}"
-FEDERATION_USER_GROUP_LDAP_FILTER="${FEDERATION_USER_GROUP_LDAP_FILTER:-(cn=erag-user-group)}"
-FEDERATION_MAINTAINER_GROUP_LDAP_FILTER="${FEDERATION_MAINTAINER_GROUP_LDAP_FILTER:-(cn=erag-maintainer-group)}"
-FEDERATION_ADMIN_GROUP_LDAP_FILTER="${FEDERATION_ADMIN_GROUP_LDAP_FILTER:-(cn=erag-admin-group)}"
+FEDERATION_USER_GROUP_LDAP_FILTER="${FEDERATION_USER_GROUP_LDAP_FILTER:-(cn=chattool-user-group)}"
+FEDERATION_MAINTAINER_GROUP_LDAP_FILTER="${FEDERATION_MAINTAINER_GROUP_LDAP_FILTER:-(cn=chattool-maintainer-group)}"
+FEDERATION_ADMIN_GROUP_LDAP_FILTER="${FEDERATION_ADMIN_GROUP_LDAP_FILTER:-(cn=chattool-admin-group)}"
 
 # Session settings
 SSO_SESSION_MAX_LIFESPAN=10800
@@ -144,12 +144,12 @@ metadata:
     app.kubernetes.io/component: credentials
 type: Opaque
 data:
-  KEYCLOAK_ERAG_ADMIN_USERNAME: $(echo -n "$KEYCLOAK_ERAG_ADMIN_USERNAME" | base64 -w0)
-  KEYCLOAK_ERAG_ADMIN_PASSWORD: $(echo -n "$KEYCLOAK_ERAG_ADMIN_PASSWORD" | base64 -w0)
-  KEYCLOAK_ERAG_USER_USERNAME: $(echo -n "$KEYCLOAK_ERAG_USER_USERNAME" | base64 -w0)
-  KEYCLOAK_ERAG_USER_PASSWORD: $(echo -n "$KEYCLOAK_ERAG_USER_PASSWORD" | base64 -w0)
-  KEYCLOAK_ERAG_MAINTAINER_USERNAME: $(echo -n "$KEYCLOAK_ERAG_MAINTAINER_USERNAME" | base64 -w0)
-  KEYCLOAK_ERAG_MAINTAINER_PASSWORD: $(echo -n "$KEYCLOAK_ERAG_MAINTAINER_PASSWORD" | base64 -w0)
+  KEYCLOAK_CHATTOOL_ADMIN_USERNAME: $(echo -n "$KEYCLOAK_CHATTOOL_ADMIN_USERNAME" | base64 -w0)
+  KEYCLOAK_CHATTOOL_ADMIN_PASSWORD: $(echo -n "$KEYCLOAK_CHATTOOL_ADMIN_PASSWORD" | base64 -w0)
+  KEYCLOAK_CHATTOOL_USER_USERNAME: $(echo -n "$KEYCLOAK_CHATTOOL_USER_USERNAME" | base64 -w0)
+  KEYCLOAK_CHATTOOL_USER_PASSWORD: $(echo -n "$KEYCLOAK_CHATTOOL_USER_PASSWORD" | base64 -w0)
+  KEYCLOAK_CHATTOOL_MAINTAINER_USERNAME: $(echo -n "$KEYCLOAK_CHATTOOL_MAINTAINER_USERNAME" | base64 -w0)
+  KEYCLOAK_CHATTOOL_MAINTAINER_PASSWORD: $(echo -n "$KEYCLOAK_CHATTOOL_MAINTAINER_PASSWORD" | base64 -w0)
 $(if [[ -n "$extra_mcp_keys" ]]; then echo "$extra_mcp_keys"; fi)
 EOF
 
@@ -239,11 +239,11 @@ create_mcp_client() {
   log_info "Service account user '$sa_username' found (ID: ${sa_user_id:0:8}...)"
 
   # Every MCP tool calls EDP routes that require maintainer.
-  assign_user_client_role "$realm_name" "$sa_username" "ERAG-maintainer" "EnterpriseRAG-oidc-backend"
-  assign_user_client_role "$realm_name" "$sa_username" "erag-admin-group" "EnterpriseRAG-oidc-minio"
+  assign_user_client_role "$realm_name" "$sa_username" "CHATTOOL-maintainer" "ChatbotToolkit-oidc-backend"
+  assign_user_client_role "$realm_name" "$sa_username" "chattool-admin-group" "ChatbotToolkit-oidc-minio"
 
   # Project the MinIO client roles into the token so the EDP presigned-URL path authorizes.
-  add_client_scope_mapper "$realm_name" "$client_name" "$client_name" "minio_roles" "minio_roles" "EnterpriseRAG-oidc-minio"
+  add_client_scope_mapper "$realm_name" "$client_name" "$client_name" "minio_roles" "minio_roles" "ChatbotToolkit-oidc-minio"
 
   # The MCP gateway is an OAuth resource server: it accepts only tokens carrying its own
   # audience, so callers cannot replay a token minted for some other service.
@@ -1194,49 +1194,49 @@ prevent_bruteforce "$KEYCLOAK_REALM"
 
 # Create clients
 log_info "Creating clients..."
-create_client "$KEYCLOAK_REALM" "EnterpriseRAG-oidc" "false" "false" "true" "" "https://${UI_DOMAIN}/*" "true" "https://${UI_DOMAIN}"
-create_client "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "true" "true" "false" "" "https://${UI_DOMAIN}/*" "true" "https://${UI_DOMAIN}"
+create_client "$KEYCLOAK_REALM" "ChatbotToolkit-oidc" "false" "false" "true" "" "https://${UI_DOMAIN}/*" "true" "https://${UI_DOMAIN}"
+create_client "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "true" "true" "false" "" "https://${UI_DOMAIN}/*" "true" "https://${UI_DOMAIN}"
 
-# The frontend SPA client (EnterpriseRAG-oidc) issues user access tokens that
+# The frontend SPA client (ChatbotToolkit-oidc) issues user access tokens that
 # APISIX exchanges for an UMA permission token against the resource-server
-# client (EnterpriseRAG-oidc-backend). Keycloak rejects UMA permission requests
+# client (ChatbotToolkit-oidc-backend). Keycloak rejects UMA permission requests
 # with "invalid_token" / token endpoint 400 unless the access token's "aud"
 # claim contains the resource server. Add an audience mapper to inject it.
 log_info "Adding backend audience mapper to frontend client..."
-add_audience_mapper "$KEYCLOAK_REALM" "EnterpriseRAG-oidc" "EnterpriseRAG-oidc-backend" "erag-backend-audience"
+add_audience_mapper "$KEYCLOAK_REALM" "ChatbotToolkit-oidc" "ChatbotToolkit-oidc-backend" "chattool-backend-audience"
 
 # Create client roles
 log_info "Creating roles..."
-create_client_role "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "ERAG-admin"
-create_client_role "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "ERAG-user"
-create_client_role "$KEYCLOAK_REALM" "EnterpriseRAG-oidc" "ERAG-admin"
-create_client_role "$KEYCLOAK_REALM" "EnterpriseRAG-oidc" "ERAG-user"
-create_client_role "$KEYCLOAK_REALM" "EnterpriseRAG-oidc" "ERAG-maintainer"
-create_client_role "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "ERAG-maintainer"
+create_client_role "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "CHATTOOL-admin"
+create_client_role "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "CHATTOOL-user"
+create_client_role "$KEYCLOAK_REALM" "ChatbotToolkit-oidc" "CHATTOOL-admin"
+create_client_role "$KEYCLOAK_REALM" "ChatbotToolkit-oidc" "CHATTOOL-user"
+create_client_role "$KEYCLOAK_REALM" "ChatbotToolkit-oidc" "CHATTOOL-maintainer"
+create_client_role "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "CHATTOOL-maintainer"
 
 # Create users
 log_info "Creating users..."
-get_or_create_credential "KEYCLOAK_ERAG_ADMIN" "erag-admin"
-create_user "$KEYCLOAK_REALM" "erag-admin" "testadmin@example.com" "Test" "Admin" "$NEW_PASSWORD"
+get_or_create_credential "KEYCLOAK_CHATTOOL_ADMIN" "chattool-admin"
+create_user "$KEYCLOAK_REALM" "chattool-admin" "testadmin@example.com" "Test" "Admin" "$NEW_PASSWORD"
 
-get_or_create_credential "KEYCLOAK_ERAG_USER" "erag-user"
-create_user "$KEYCLOAK_REALM" "erag-user" "testuser@example.com" "Test" "User" "$NEW_PASSWORD"
+get_or_create_credential "KEYCLOAK_CHATTOOL_USER" "chattool-user"
+create_user "$KEYCLOAK_REALM" "chattool-user" "testuser@example.com" "Test" "User" "$NEW_PASSWORD"
 
-get_or_create_credential "KEYCLOAK_ERAG_MAINTAINER" "erag-maintainer"
-create_user "$KEYCLOAK_REALM" "erag-maintainer" "maintainer@example.com" "Test" "Maintainer" "$NEW_PASSWORD"
+get_or_create_credential "KEYCLOAK_CHATTOOL_MAINTAINER" "chattool-maintainer"
+create_user "$KEYCLOAK_REALM" "chattool-maintainer" "maintainer@example.com" "Test" "Maintainer" "$NEW_PASSWORD"
 
 store_credentials_to_secret
 
 # Assign roles to users
 log_info "Assigning roles to users..."
-assign_user_client_role "$KEYCLOAK_REALM" "erag-admin" "ERAG-admin" "EnterpriseRAG-oidc"
-assign_user_client_role "$KEYCLOAK_REALM" "erag-user" "ERAG-user" "EnterpriseRAG-oidc"
-assign_user_client_role "$KEYCLOAK_REALM" "erag-maintainer" "ERAG-user" "EnterpriseRAG-oidc"
-assign_user_client_role "$KEYCLOAK_REALM" "erag-maintainer" "ERAG-maintainer" "EnterpriseRAG-oidc"
-assign_user_client_role "$KEYCLOAK_REALM" "erag-admin" "ERAG-admin" "EnterpriseRAG-oidc-backend"
-assign_user_client_role "$KEYCLOAK_REALM" "erag-user" "ERAG-user" "EnterpriseRAG-oidc-backend"
-assign_user_client_role "$KEYCLOAK_REALM" "erag-maintainer" "ERAG-user" "EnterpriseRAG-oidc-backend"
-assign_user_client_role "$KEYCLOAK_REALM" "erag-maintainer" "ERAG-maintainer" "EnterpriseRAG-oidc-backend"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-admin" "CHATTOOL-admin" "ChatbotToolkit-oidc"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-user" "CHATTOOL-user" "ChatbotToolkit-oidc"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-maintainer" "CHATTOOL-user" "ChatbotToolkit-oidc"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-maintainer" "CHATTOOL-maintainer" "ChatbotToolkit-oidc"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-admin" "CHATTOOL-admin" "ChatbotToolkit-oidc-backend"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-user" "CHATTOOL-user" "ChatbotToolkit-oidc-backend"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-maintainer" "CHATTOOL-user" "ChatbotToolkit-oidc-backend"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-maintainer" "CHATTOOL-maintainer" "ChatbotToolkit-oidc-backend"
 
 # Set realm settings
 log_info "Configuring realm settings..."
@@ -1261,45 +1261,45 @@ else
   minio_base_url="https://$MINIO_DOMAIN"
   minio_redirect_uri="https://$MINIO_DOMAIN/oauth_callback"
 fi
-create_client "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-minio" "false" "true" "false" "$minio_base_url" "$minio_redirect_uri" "false" "https://${MINIO_DOMAIN}"
-create_client_role "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-minio" "consoleAdmin"
-create_client_role "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-minio" "readwrite"
-create_client_role "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-minio" "erag-admin-group"
-create_client_role "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-minio" "erag-user-group"
-create_client_role "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-minio" "erag-maintainer-group"
+create_client "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-minio" "false" "true" "false" "$minio_base_url" "$minio_redirect_uri" "false" "https://${MINIO_DOMAIN}"
+create_client_role "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-minio" "consoleAdmin"
+create_client_role "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-minio" "readwrite"
+create_client_role "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-minio" "chattool-admin-group"
+create_client_role "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-minio" "chattool-user-group"
+create_client_role "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-minio" "chattool-maintainer-group"
 
 # Add mappers
 log_info "Creating client scope mappers..."
-add_client_scope_mapper "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-minio-dedicated" "EnterpriseRAG-oidc-minio" "minio_roles" "minio_roles" "EnterpriseRAG-oidc-minio"
-add_client_scope_mapper "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-dedicated" "EnterpriseRAG-oidc" "minio_roles" "minio_roles" "EnterpriseRAG-oidc-minio"
+add_client_scope_mapper "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-minio-dedicated" "ChatbotToolkit-oidc-minio" "minio_roles" "minio_roles" "ChatbotToolkit-oidc-minio"
+add_client_scope_mapper "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-dedicated" "ChatbotToolkit-oidc" "minio_roles" "minio_roles" "ChatbotToolkit-oidc-minio"
 
 # Assign MinIO roles
 log_info "Assigning MinIO roles..."
-assign_user_client_role "$KEYCLOAK_REALM" "erag-admin" "consoleAdmin" "EnterpriseRAG-oidc-minio"
-assign_user_client_role "$KEYCLOAK_REALM" "erag-admin" "erag-admin-group" "EnterpriseRAG-oidc-minio"
-assign_user_client_role "$KEYCLOAK_REALM" "erag-maintainer" "erag-user-group" "EnterpriseRAG-oidc-minio"
-assign_user_client_role "$KEYCLOAK_REALM" "erag-maintainer" "erag-maintainer-group" "EnterpriseRAG-oidc-minio"
-assign_user_client_role "$KEYCLOAK_REALM" "erag-user" "erag-user-group" "EnterpriseRAG-oidc-minio"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-admin" "consoleAdmin" "ChatbotToolkit-oidc-minio"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-admin" "chattool-admin-group" "ChatbotToolkit-oidc-minio"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-maintainer" "chattool-user-group" "ChatbotToolkit-oidc-minio"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-maintainer" "chattool-maintainer-group" "ChatbotToolkit-oidc-minio"
+assign_user_client_role "$KEYCLOAK_REALM" "chattool-user" "chattool-user-group" "ChatbotToolkit-oidc-minio"
 
 # Groups
 log_info "Creating groups..."
-create_group "$KEYCLOAK_REALM" "erag-user-group"
-create_group "$KEYCLOAK_REALM" "erag-admin-group"
-create_group "$KEYCLOAK_REALM" "erag-maintainer-group"
+create_group "$KEYCLOAK_REALM" "chattool-user-group"
+create_group "$KEYCLOAK_REALM" "chattool-admin-group"
+create_group "$KEYCLOAK_REALM" "chattool-maintainer-group"
 
 # Map roles to groups
 log_info "Mapping roles to groups..."
-map_client_role_to_group "$KEYCLOAK_REALM" "erag-admin-group" "EnterpriseRAG-oidc" "ERAG-admin"
-map_client_role_to_group "$KEYCLOAK_REALM" "erag-admin-group" "EnterpriseRAG-oidc-backend" "ERAG-admin"
-map_client_role_to_group "$KEYCLOAK_REALM" "erag-admin-group" "EnterpriseRAG-oidc-minio" "consoleAdmin"
-map_client_role_to_group "$KEYCLOAK_REALM" "erag-user-group" "EnterpriseRAG-oidc" "ERAG-user"
-map_client_role_to_group "$KEYCLOAK_REALM" "erag-user-group" "EnterpriseRAG-oidc-backend" "ERAG-user"
-map_client_role_to_group "$KEYCLOAK_REALM" "erag-maintainer-group" "EnterpriseRAG-oidc" "ERAG-maintainer"
-map_client_role_to_group "$KEYCLOAK_REALM" "erag-maintainer-group" "EnterpriseRAG-oidc" "ERAG-user"
-map_client_role_to_group "$KEYCLOAK_REALM" "erag-maintainer-group" "EnterpriseRAG-oidc-backend" "ERAG-maintainer"
-map_client_role_to_group "$KEYCLOAK_REALM" "erag-maintainer-group" "EnterpriseRAG-oidc-backend" "ERAG-user"
-map_client_role_to_group "$KEYCLOAK_REALM" "erag-maintainer-group" "EnterpriseRAG-oidc-minio" "erag-user-group"
-map_client_role_to_group "$KEYCLOAK_REALM" "erag-maintainer-group" "EnterpriseRAG-oidc-minio" "erag-maintainer-group"
+map_client_role_to_group "$KEYCLOAK_REALM" "chattool-admin-group" "ChatbotToolkit-oidc" "CHATTOOL-admin"
+map_client_role_to_group "$KEYCLOAK_REALM" "chattool-admin-group" "ChatbotToolkit-oidc-backend" "CHATTOOL-admin"
+map_client_role_to_group "$KEYCLOAK_REALM" "chattool-admin-group" "ChatbotToolkit-oidc-minio" "consoleAdmin"
+map_client_role_to_group "$KEYCLOAK_REALM" "chattool-user-group" "ChatbotToolkit-oidc" "CHATTOOL-user"
+map_client_role_to_group "$KEYCLOAK_REALM" "chattool-user-group" "ChatbotToolkit-oidc-backend" "CHATTOOL-user"
+map_client_role_to_group "$KEYCLOAK_REALM" "chattool-maintainer-group" "ChatbotToolkit-oidc" "CHATTOOL-maintainer"
+map_client_role_to_group "$KEYCLOAK_REALM" "chattool-maintainer-group" "ChatbotToolkit-oidc" "CHATTOOL-user"
+map_client_role_to_group "$KEYCLOAK_REALM" "chattool-maintainer-group" "ChatbotToolkit-oidc-backend" "CHATTOOL-maintainer"
+map_client_role_to_group "$KEYCLOAK_REALM" "chattool-maintainer-group" "ChatbotToolkit-oidc-backend" "CHATTOOL-user"
+map_client_role_to_group "$KEYCLOAK_REALM" "chattool-maintainer-group" "ChatbotToolkit-oidc-minio" "chattool-user-group"
+map_client_role_to_group "$KEYCLOAK_REALM" "chattool-maintainer-group" "ChatbotToolkit-oidc-minio" "chattool-maintainer-group"
 
 # Earlier releases signed people in to Grafana through this realm; the platform realm does now.
 grafana_client_uuid=$(get_client_id "$KEYCLOAK_REALM" "grafana-oauth")
@@ -1317,29 +1317,29 @@ if [[ "$OIDC_ENDPOINT" =~ ^https?:// ]]; then
   create_oidc_config "$KEYCLOAK_REALM" "$OIDC_ENDPOINT" "$OIDC_ALIAS" "Enterprise SSO Login" "$OIDC_CLIENT_ID" "$OIDC_CLIENT_SECRET"
 
   # Create SSO realm roles and map them to client roles
-  create_role "$KEYCLOAK_REALM" "ERAG-SSO-Admin"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-Admin" "EnterpriseRAG-oidc" "ERAG-admin"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-Admin" "EnterpriseRAG-oidc-backend" "ERAG-admin"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-Admin" "EnterpriseRAG-oidc-minio" "erag-admin-group"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-Admin" "EnterpriseRAG-oidc-minio" "consoleAdmin"
+  create_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Admin"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Admin" "ChatbotToolkit-oidc" "CHATTOOL-admin"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Admin" "ChatbotToolkit-oidc-backend" "CHATTOOL-admin"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Admin" "ChatbotToolkit-oidc-minio" "chattool-admin-group"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Admin" "ChatbotToolkit-oidc-minio" "consoleAdmin"
 
-  create_role "$KEYCLOAK_REALM" "ERAG-SSO-User"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-User" "EnterpriseRAG-oidc" "ERAG-user"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-User" "EnterpriseRAG-oidc-backend" "ERAG-user"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-User" "EnterpriseRAG-oidc-minio" "erag-user-group"
+  create_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-User"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-User" "ChatbotToolkit-oidc" "CHATTOOL-user"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-User" "ChatbotToolkit-oidc-backend" "CHATTOOL-user"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-User" "ChatbotToolkit-oidc-minio" "chattool-user-group"
 
-  create_role "$KEYCLOAK_REALM" "ERAG-SSO-Maintainer"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-Maintainer" "EnterpriseRAG-oidc" "ERAG-user"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-Maintainer" "EnterpriseRAG-oidc" "ERAG-maintainer"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-Maintainer" "EnterpriseRAG-oidc-backend" "ERAG-user"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-Maintainer" "EnterpriseRAG-oidc-backend" "ERAG-maintainer"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-Maintainer" "EnterpriseRAG-oidc-minio" "erag-user-group"
-  assign_role_realm_role "$KEYCLOAK_REALM" "ERAG-SSO-Maintainer" "EnterpriseRAG-oidc-minio" "erag-maintainer-group"
+  create_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Maintainer"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Maintainer" "ChatbotToolkit-oidc" "CHATTOOL-user"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Maintainer" "ChatbotToolkit-oidc" "CHATTOOL-maintainer"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Maintainer" "ChatbotToolkit-oidc-backend" "CHATTOOL-user"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Maintainer" "ChatbotToolkit-oidc-backend" "CHATTOOL-maintainer"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Maintainer" "ChatbotToolkit-oidc-minio" "chattool-user-group"
+  assign_role_realm_role "$KEYCLOAK_REALM" "CHATTOOL-SSO-Maintainer" "ChatbotToolkit-oidc-minio" "chattool-maintainer-group"
 
   # Create SSO claim-to-role mappers
-  create_oidc_role_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "SSO-Admin-Mapper" "roles" "EnterpriseRAG.AdminAccess" "ERAG-SSO-Admin"
-  create_oidc_role_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "SSO-User-Mapper" "roles" "EnterpriseRAG.UserAccess" "ERAG-SSO-User"
-  create_oidc_role_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "SSO-Maintainer-Mapper" "roles" "EnterpriseRAG.MaintainerAccess" "ERAG-SSO-Maintainer"
+  create_oidc_role_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "SSO-Admin-Mapper" "roles" "ChatbotToolkit.AdminAccess" "CHATTOOL-SSO-Admin"
+  create_oidc_role_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "SSO-User-Mapper" "roles" "ChatbotToolkit.UserAccess" "CHATTOOL-SSO-User"
+  create_oidc_role_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "SSO-Maintainer-Mapper" "roles" "ChatbotToolkit.MaintainerAccess" "CHATTOOL-SSO-Maintainer"
 
   # Validate OIDC identity provider
   log_info "Validating OIDC identity provider '$OIDC_ALIAS'..."
@@ -1355,13 +1355,13 @@ if [[ "$OIDC_ENDPOINT" =~ ^https?:// ]]; then
 
   # Group-based OIDC mappers
   if [[ -n "$OIDC_ADMIN_GID" ]]; then
-    create_oidc_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "$OIDC_ADMIN_GID" "erag-admin-group"
+    create_oidc_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "$OIDC_ADMIN_GID" "chattool-admin-group"
   fi
   if [[ -n "$OIDC_MAINTAINER_GID" ]]; then
-    create_oidc_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "$OIDC_MAINTAINER_GID" "erag-maintainer-group"
+    create_oidc_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "$OIDC_MAINTAINER_GID" "chattool-maintainer-group"
   fi
   if [[ -n "$OIDC_USER_GID" ]]; then
-    create_oidc_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "$OIDC_USER_GID" "erag-user-group"
+    create_oidc_mapper "$KEYCLOAK_REALM" "$OIDC_ALIAS" "$OIDC_USER_GID" "chattool-user-group"
   fi
 
   # Validate upstream OIDC metadata endpoint
@@ -1375,30 +1375,30 @@ fi
 
 # RBAC Configuration
 log_info "Configuring RBAC..."
-create_client_resource "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "admin" "admin-access"
-create_client_resource "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "user" "user-access"
-create_client_resource "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "maintainer" "maintainer-access"
-create_client_policy "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "admin-policy" "ERAG-admin"
-create_client_policy "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "user-policy" "ERAG-user"
-create_client_policy "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "maintainer-policy" "ERAG-maintainer"
-create_client_permission "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "admin-permission" "admin" "admin-policy"
-create_client_permission "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "user-permission" "user" "user-policy"
-create_client_permission "$KEYCLOAK_REALM" "EnterpriseRAG-oidc-backend" "maintainer-permission" "maintainer" "maintainer-policy"
+create_client_resource "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "admin" "admin-access"
+create_client_resource "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "user" "user-access"
+create_client_resource "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "maintainer" "maintainer-access"
+create_client_policy "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "admin-policy" "CHATTOOL-admin"
+create_client_policy "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "user-policy" "CHATTOOL-user"
+create_client_policy "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "maintainer-policy" "CHATTOOL-maintainer"
+create_client_permission "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "admin-permission" "admin" "admin-policy"
+create_client_permission "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "user-permission" "user" "user-policy"
+create_client_permission "$KEYCLOAK_REALM" "ChatbotToolkit-oidc-backend" "maintainer-permission" "maintainer" "maintainer-policy"
 
 # Active Directory Federation (if configured)
 if [[ "$FEDERATION_ENDPOINT" =~ ^ldaps?:// ]]; then
   log_info "Configuring AD Federation..."
   create_ad_federation "$KEYCLOAK_REALM" "$FEDERATION_ENDPOINT" "$FEDERATION_BIND_DN" "$FEDERATION_BIND_PASSWORD" "$FEDERATION_USERS_DN" "$FEDERATION_USER_ATTRIBUTE"
-  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "ERAG-admin-oidc" "$FEDERATION_GROUPS_DN" "$FEDERATION_ADMIN_GROUP_LDAP_FILTER" "EnterpriseRAG-oidc"
-  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "ERAG-user-oidc" "$FEDERATION_GROUPS_DN" "$FEDERATION_USER_GROUP_LDAP_FILTER" "EnterpriseRAG-oidc"
-  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "ERAG-admin-oidc-backend" "$FEDERATION_GROUPS_DN" "$FEDERATION_ADMIN_GROUP_LDAP_FILTER" "EnterpriseRAG-oidc-backend"
-  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "ERAG-user-oidc-backend" "$FEDERATION_GROUPS_DN" "$FEDERATION_USER_GROUP_LDAP_FILTER" "EnterpriseRAG-oidc-backend"
-  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "consoleAdmin-oidc-minio" "$FEDERATION_GROUPS_DN" "(cn=consoleAdmin)" "EnterpriseRAG-oidc-minio"
-  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "ERAG-maintainer-oidc" "$FEDERATION_GROUPS_DN" "$FEDERATION_MAINTAINER_GROUP_LDAP_FILTER" "EnterpriseRAG-oidc"
-  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "ERAG-maintainer-oidc-backend" "$FEDERATION_GROUPS_DN" "$FEDERATION_MAINTAINER_GROUP_LDAP_FILTER" "EnterpriseRAG-oidc-backend"
-  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "erag-admin-group-oidc-minio" "$FEDERATION_GROUPS_DN" "(cn=erag-admin-group)" "EnterpriseRAG-oidc-minio"
-  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "erag-user-group-oidc-minio" "$FEDERATION_GROUPS_DN" "(cn=erag-user-group)" "EnterpriseRAG-oidc-minio"
-  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "erag-maintainer-group-oidc-minio" "$FEDERATION_GROUPS_DN" "(cn=erag-maintainer-group)" "EnterpriseRAG-oidc-minio"
+  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "CHATTOOL-admin-oidc" "$FEDERATION_GROUPS_DN" "$FEDERATION_ADMIN_GROUP_LDAP_FILTER" "ChatbotToolkit-oidc"
+  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "CHATTOOL-user-oidc" "$FEDERATION_GROUPS_DN" "$FEDERATION_USER_GROUP_LDAP_FILTER" "ChatbotToolkit-oidc"
+  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "CHATTOOL-admin-oidc-backend" "$FEDERATION_GROUPS_DN" "$FEDERATION_ADMIN_GROUP_LDAP_FILTER" "ChatbotToolkit-oidc-backend"
+  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "CHATTOOL-user-oidc-backend" "$FEDERATION_GROUPS_DN" "$FEDERATION_USER_GROUP_LDAP_FILTER" "ChatbotToolkit-oidc-backend"
+  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "consoleAdmin-oidc-minio" "$FEDERATION_GROUPS_DN" "(cn=consoleAdmin)" "ChatbotToolkit-oidc-minio"
+  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "CHATTOOL-maintainer-oidc" "$FEDERATION_GROUPS_DN" "$FEDERATION_MAINTAINER_GROUP_LDAP_FILTER" "ChatbotToolkit-oidc"
+  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "CHATTOOL-maintainer-oidc-backend" "$FEDERATION_GROUPS_DN" "$FEDERATION_MAINTAINER_GROUP_LDAP_FILTER" "ChatbotToolkit-oidc-backend"
+  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "chattool-admin-group-oidc-minio" "$FEDERATION_GROUPS_DN" "$FEDERATION_ADMIN_GROUP_LDAP_FILTER" "ChatbotToolkit-oidc-minio"
+  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "chattool-user-group-oidc-minio" "$FEDERATION_GROUPS_DN" "$FEDERATION_USER_GROUP_LDAP_FILTER" "ChatbotToolkit-oidc-minio"
+  create_federation_mapper "$KEYCLOAK_REALM" "Active Directory Federation" "chattool-maintainer-group-oidc-minio" "$FEDERATION_GROUPS_DN" "$FEDERATION_MAINTAINER_GROUP_LDAP_FILTER" "ChatbotToolkit-oidc-minio"
 fi
 
 if [[ "$MCP_ENABLED" == "true" ]]; then

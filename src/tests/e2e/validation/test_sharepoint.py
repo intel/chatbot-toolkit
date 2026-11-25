@@ -18,13 +18,13 @@ from tests.e2e.validation.constants import DATAPREP_UPLOAD_DIR
 
 logger = logging.getLogger(__name__)
 
-_sp_credential_keys = ("erag_keycloak_oidc_tenant_id", "erag_keycloak_oidc_client_id", "erag_keycloak_oidc_client_secret")
+_sp_credential_keys = ("chattool_keycloak_oidc_tenant_id", "chattool_keycloak_oidc_client_id", "chattool_keycloak_oidc_client_secret")
 _missing_sp_credentials = [k for k in _sp_credential_keys if not cfg.get(k)]
 if _missing_sp_credentials:
     _msg = (f"SharePoint is not configured: {', '.join(_missing_sp_credentials)} not set in "
             f"env/<name>/config.rag.yaml. SharePoint is enabled only when "
-            f"erag_keycloak_oidc_tenant_id, erag_keycloak_oidc_client_id and "
-            f"erag_keycloak_oidc_client_secret are all non-empty.")
+            f"chattool_keycloak_oidc_tenant_id, chattool_keycloak_oidc_client_id and "
+            f"chattool_keycloak_oidc_client_secret are all non-empty.")
     logger.debug(_msg)
     pytest.skip(_msg, allow_module_level=True)
 
@@ -63,18 +63,18 @@ SHAREPOINT_TEST_SITES = [
 _rbac_enabled = cfg.get("edp_rbac_enabled", False)
 
 _SSO_ENV_VARS = (
-    "KEYCLOAK_ERAG_SSO_ADMIN_USERNAME", "KEYCLOAK_ERAG_SSO_ADMIN_PASSWORD",
-    "KEYCLOAK_ERAG_SSO_USER_USERNAME", "KEYCLOAK_ERAG_SSO_USER_PASSWORD",
+    "KEYCLOAK_CHATTOOL_SSO_ADMIN_USERNAME", "KEYCLOAK_CHATTOOL_SSO_ADMIN_PASSWORD",
+    "KEYCLOAK_CHATTOOL_SSO_USER_USERNAME", "KEYCLOAK_CHATTOOL_SSO_USER_PASSWORD",
 )
 _missing_sso_vars = [v for v in _SSO_ENV_VARS if not os.environ.get(v)]
 _sso_credentials_missing = len(_missing_sso_vars) > 0
 _sso_skip_reason = (
     f"SSO credential environment variable(s) not set: {', '.join(_missing_sso_vars)}. "
     f"Export them before running RBAC SharePoint tests, e.g.:\n"
-    f"  export KEYCLOAK_ERAG_SSO_ADMIN_USERNAME='admin@example.com'\n"
-    f"  export KEYCLOAK_ERAG_SSO_ADMIN_PASSWORD='secret'\n"
-    f"  export KEYCLOAK_ERAG_SSO_USER_USERNAME='user@example.com'\n"
-    f"  export KEYCLOAK_ERAG_SSO_USER_PASSWORD='secret'"
+    f"  export KEYCLOAK_CHATTOOL_SSO_ADMIN_USERNAME='admin@example.com'\n"
+    f"  export KEYCLOAK_CHATTOOL_SSO_ADMIN_PASSWORD='secret'\n"
+    f"  export KEYCLOAK_CHATTOOL_SSO_USER_USERNAME='user@example.com'\n"
+    f"  export KEYCLOAK_CHATTOOL_SSO_USER_PASSWORD='secret'"
 ) if _sso_credentials_missing else ""
 
 

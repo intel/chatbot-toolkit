@@ -152,7 +152,7 @@ def _verify_layer(k8s_helper, layer):
             problems.append(f"Path grants still owned by removed or missing namespaces: {stale}")
 
     # 9) erag teardown deletes its realm through the platform Keycloak, which stays installed.
-    #    The realm endpoint needs no token, so this works after erag-credentials is gone. The
+    #    The realm endpoint needs no token, so this works after chattool-credentials is gone. The
     #    master realm is checked first: a 404 only proves the realm is gone if the same base URL
     #    serves master (a wrong path prefix also answers 404).
     if layer == "erag":

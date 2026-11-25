@@ -28,12 +28,12 @@ mcp_route_timeout: "0s"
 # issuer must match the token's iss claim exactly, which is the externally reachable
 # realm URL, not the in-cluster Service address.
 mcp_jwt_issuer: >-
-  {{ 'https://' ~ erag_keycloak_domain_name ~ erag_keycloak_path_prefix
-     ~ '/realms/' ~ erag_keycloak_realm }}
+  {{ 'https://' ~ chattool_keycloak_domain_name ~ chattool_keycloak_path_prefix
+     ~ '/realms/' ~ chattool_keycloak_realm }}
 mcp_jwt_audience: "mcp-gateway"
 mcp_jwks_uri: >-
   {{ 'http://keycloak-service.' ~ keycloak_namespace ~ '.svc.cluster.local:8080'
-     ~ erag_keycloak_path_prefix ~ '/realms/' ~ erag_keycloak_realm
+     ~ chattool_keycloak_path_prefix ~ '/realms/' ~ chattool_keycloak_realm
      ~ '/protocol/openid-connect/certs' }}
 # The realm signs with RS384; RS256 stays accepted for clients configured otherwise.
 mcp_jwks_cache_duration: "60s"
@@ -81,11 +81,11 @@ edp_namespace: "edp"                               # app_edp
 routing_mode: "subdomain"                          # global
 ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"  # app_ui
 keycloak_namespace: "keycloak"                     # core/keycloak
-credentials_secret_name: "erag-credentials"        # app_keycloak_config
-erag_keycloak_realm: "EnterpriseRAG"               # app_keycloak_config
-erag_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"  # app_keycloak_config
-erag_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
-erag_keycloak_path_prefix: "{{ erag_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
+credentials_secret_name: "chattool-credentials"        # app_keycloak_config
+chattool_keycloak_realm: "ChatbotToolkit"               # app_keycloak_config
+chattool_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"  # app_keycloak_config
+chattool_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
+chattool_keycloak_path_prefix: "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
 rag_tmp_dir: "{{ tmp_dir }}/rag"                   # app_pre_install (derived from tmp_dir)
 istio_enabled: false                               # global
 enforce_pss: false                                 # global

@@ -26,7 +26,7 @@ Edit when:
 | Different models | `inference_models` |
 | Different vector DB | `vector_databases_vector_store` |
 | External S3 | `edp_storage_type` + `edp_s3_*` |
-| SSO/SharePoint | `erag_keycloak_oidc_*` |
+| SSO/SharePoint | `chattool_keycloak_oidc_*` |
 
 ## Pipeline selection
 
@@ -144,11 +144,11 @@ Backends: **seaweedfs** (in-cluster), **s3** (AWS + SQS), **s3compatible** (ONTA
 SSO and SharePoint share one Entra app registration:
 
 ```yaml
-erag_keycloak_oidc_endpoint: ""       # non-empty enables SSO
-erag_keycloak_oidc_alias: "enterprise-sso"
-erag_keycloak_oidc_client_id: ""
-erag_keycloak_oidc_client_secret: ""
-erag_keycloak_oidc_tenant_id: ""      # non-empty additionally enables SharePoint
+chattool_keycloak_oidc_endpoint: ""       # non-empty enables SSO
+chattool_keycloak_oidc_alias: "enterprise-sso"
+chattool_keycloak_oidc_client_id: ""
+chattool_keycloak_oidc_client_secret: ""
+chattool_keycloak_oidc_tenant_id: ""      # non-empty additionally enables SharePoint
 ```
 
 No `_enabled` flags. All empty = disabled. Partial config rejected. See: [sharepoint.md](sharepoint.md), [auth.md](auth.md).
@@ -242,11 +242,11 @@ inference_models:
 # vector_databases_vector_store: "redis-cluster"
 # vector_databases_vector_datatype: "FLOAT32"
 # vector_databases_vector_dims: 768
-# erag_keycloak_oidc_endpoint: ""
-# erag_keycloak_oidc_alias: "enterprise-sso"
-# erag_keycloak_oidc_client_id: ""
-# erag_keycloak_oidc_client_secret: ""
-# erag_keycloak_oidc_tenant_id: ""
+# chattool_keycloak_oidc_endpoint: ""
+# chattool_keycloak_oidc_alias: "enterprise-sso"
+# chattool_keycloak_oidc_client_id: ""
+# chattool_keycloak_oidc_client_secret: ""
+# chattool_keycloak_oidc_tenant_id: ""
 # mcp_namespace: "mcp-gateway"
 # mcp_keycloak_client_id: "mcp-client"
 # namespace_node_selector: {}

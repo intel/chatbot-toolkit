@@ -15,10 +15,10 @@ pip3 install -r requirements.txt
 * benchmark and the bash helpers rely only on https protocol and can be run from any machine with https connection to the RAG deployment, so you need to ensure that you have network (https) access to `solutions.ai` (or your own domain):
   * configure `/etc/hosts`, so `solutions.ai` domain and subdomains points to your RAG deployment IP, for example: `127.0.0.1 minio.solutions.ai grafana.solutions.ai s3.solutions.ai solutions.ai keycloak.solutions.ai`
   * export both `no_proxy` and `NO_PROXY` env variables, so they contain  `solutions.ai` and `.solutions.ai` domains
-* export UI username and password of the account with administrative rights using `KEYCLOAK_ERAG_ADMIN_USERNAME` and `KEYCLOAK_ERAG_ADMIN_PASSWORD` env variables. You can read them directly from the `erag-credentials` secret in the `keycloak` namespace:
+* export UI username and password of the account with administrative rights using `KEYCLOAK_CHATTOOL_ADMIN_USERNAME` and `KEYCLOAK_CHATTOOL_ADMIN_PASSWORD` env variables. You can read them directly from the `chattool-credentials` secret in the `keycloak` namespace:
 ```bash
-export KEYCLOAK_ERAG_ADMIN_USERNAME=$(kubectl get secret -n keycloak erag-credentials -o jsonpath='{.data.KEYCLOAK_ERAG_ADMIN_USERNAME}' | base64 -d)
-export KEYCLOAK_ERAG_ADMIN_PASSWORD=$(kubectl get secret -n keycloak erag-credentials -o jsonpath='{.data.KEYCLOAK_ERAG_ADMIN_PASSWORD}' | base64 -d)
+export KEYCLOAK_CHATTOOL_ADMIN_USERNAME=$(kubectl get secret -n keycloak chattool-credentials -o jsonpath='{.data.KEYCLOAK_CHATTOOL_ADMIN_USERNAME}' | base64 -d)
+export KEYCLOAK_CHATTOOL_ADMIN_PASSWORD=$(kubectl get secret -n keycloak chattool-credentials -o jsonpath='{.data.KEYCLOAK_CHATTOOL_ADMIN_PASSWORD}' | base64 -d)
 ```
 * export Realm username and password using `KEYCLOAK_REALM_ADMIN_USERNAME` and `KEYCLOAK_REALM_ADMIN_PASSWORD` env variables. You can read them directly from the `keycloak-admin-secret` in the `keycloak` namespace:
 ```bash
@@ -118,7 +118,7 @@ SWEEP_MODELS="qwen3-0-6b,llama3-8b-awq" \
   ./run_benchmark_sweep.sh
 ```
 
-Required env vars (must be exported before running): `KEYCLOAK_ERAG_ADMIN_USERNAME`, `KEYCLOAK_ERAG_ADMIN_PASSWORD`, `KEYCLOAK_REALM_ADMIN_USERNAME`, `KEYCLOAK_REALM_ADMIN_PASSWORD`. See the [Test prerequisites](#test-prerequisites) section above for the exact `kubectl` commands that read them out of the `keycloak` namespace secrets.
+Required env vars (must be exported before running): `KEYCLOAK_CHATTOOL_ADMIN_USERNAME`, `KEYCLOAK_CHATTOOL_ADMIN_PASSWORD`, `KEYCLOAK_REALM_ADMIN_USERNAME`, `KEYCLOAK_REALM_ADMIN_PASSWORD`. See the [Test prerequisites](#test-prerequisites) section above for the exact `kubectl` commands that read them out of the `keycloak` namespace secrets.
 
 Optional env vars (defaults shown):
 * `ERAG_DOMAIN_NAME` – RAG deployment domain (default: `solutions.ai`)
