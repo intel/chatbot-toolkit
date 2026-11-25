@@ -13,9 +13,17 @@ global:
 
 pipelineNamespace: "chatqna"
 
-# Replica count of the embedding model served by Enterprise Inference. Supplied
+# Replica count of the embedding model served by Intel® Inference Toolkit. Supplied
 # by the app_edp role; drives MAX_NEW_WORKERS and CELERY_BATCH_SIZE.
 embeddingReplicas: 1
+
+# What scales the text extractor with hpa_enabled: an HPA on the Prometheus
+# Adapter's metrics (prometheus-adapter), or a KEDA ScaledObject (keda).
+hpaProvider: prometheus-adapter
+keda:
+  prometheus:
+    serverAddress: ""
+  operatorNamespace: keda
 
 proxy:
   http_proxy: ""
@@ -210,7 +218,7 @@ minimalResources:
 
 celery:
   nameOverride: "edp-celery"
-  name: "enterprise-rag-enhanced-dataprep"
+  name: "chatbot-toolkit-enhanced-dataprep"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -391,7 +399,7 @@ celery:
 flower:
   enabled: true
   nameOverride: "edp-flower"
-  name: "enterprise-rag-enhanced-dataprep"
+  name: "chatbot-toolkit-enhanced-dataprep"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -606,7 +614,7 @@ backend:
           "default"
         ]
   nameOverride: "edp-backend"
-  name: "enterprise-rag-enhanced-dataprep"
+  name: "chatbot-toolkit-enhanced-dataprep"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -621,11 +629,15 @@ backend:
 
 textExtractor:
   nameOverride: "edp-text-extractor"
-  name: "enterprise-rag-text-extractor"
+  name: "chatbot-toolkit-text-extractor"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
   replicas: 1
+  # A part takes up to ~400 s (100 pages of a large PDF), and celery doesn't retry a part whose
+  # pod went away, so a scale-down must let the parts in flight finish. The extractor doesn't stop
+  # on SIGTERM, so a terminating pod is only killed when this runs out, idle or not.
+  terminationGracePeriodSeconds: 450
   environment:
     - name: OMP_NUM_THREADS
       value: "1"
@@ -676,7 +688,7 @@ textExtractor:
 
 textCompression:
   nameOverride: "edp-text-compression"
-  name: "enterprise-rag-text-compression"
+  name: "chatbot-toolkit-text-compression"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -698,7 +710,7 @@ textCompression:
 
 textSplitter:
   nameOverride: "edp-text-splitter"
-  name: "enterprise-rag-text-splitter"
+  name: "chatbot-toolkit-text-splitter"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -725,7 +737,7 @@ textSplitter:
 dpguard:
   enabled: false
   nameOverride: "edp-dpguard"
-  name: "enterprise-rag-dpguard"
+  name: "chatbot-toolkit-dpguard"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -749,13 +761,13 @@ embedding:
     connector: "langchain"
     modelName: "nomic-ai/nomic-embed-text-v1"
     modelServer: "vllm"
-    # Model servers live outside this namespace (deployed by Enterprise
-    # Inference), so there is no usable default. Supply it when enabling this.
+    # Model servers live outside this namespace (deployed by Intel®
+    # Inference Toolkit), so there is no usable default. Supply it when enabling this.
     modelServerEndpoint: ""
     timeout: "120"
     eragLoggerLevel: "INFO"
   nameOverride: "edp-embedding"
-  name: "enterprise-rag-embedding"
+  name: "chatbot-toolkit-embedding"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -770,7 +782,7 @@ embedding:
 
 ingestion:
   nameOverride: "edp-ingestion"
-  name: "enterprise-rag-ingestion"
+  name: "chatbot-toolkit-ingestion"
   repository: "docker.io/intel"
   tag: latest
   config:
@@ -825,7 +837,7 @@ awsSqs:
           key: AWS_SECRET_ACCESS_KEY
   enabled: false
   nameOverride: "edp-aws"
-  name: "enterprise-rag-enhanced-dataprep"
+  name: "chatbot-toolkit-enhanced-dataprep"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always

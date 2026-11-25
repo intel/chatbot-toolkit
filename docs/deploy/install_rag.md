@@ -10,7 +10,7 @@ One command installs: model servers, vector database, NATS, Enhanced Data Prepar
 
 ## Prerequisites
 
-The platform and Intel® Inference Toolkit must be installed first: [Platform Quickstart](https://github.com/intel/enterprise-ai-solutions/blob/main/docs/quickstart/quickstart.md). Hardware: [Prerequisites](../quickstart/prerequisites.md).
+The platform and Intel® Inference Toolkit must be installed first: [Platform Quickstart](https://github.com/intel/toolkit-manager/blob/main/docs/quickstart/quickstart.md). Hardware: [Prerequisites](../quickstart/prerequisites.md).
 
 ## Deployment workflow
 
@@ -89,13 +89,14 @@ URLs: `https://solutions.ai` (RAG UI), `https://keycloak.solutions.ai`, `https:/
 
 ### Credentials
 
-All in `env/<name>/logs/rag/default_credentials.yaml` (one-time passwords; change after first login):
+Chatbot Toolkit accounts are in `env/<name>/logs/rag/` (one-time passwords; change after first login). The platform's Keycloak and Grafana accounts are in Kubernetes Secrets:
 
 | Service | Username | Location |
 |---------|----------|----------|
-| UI admin/user | (in file) | default_credentials.yaml |
-| Keycloak | admin | default_credentials.yaml |
-| Grafana | admin | default_credentials.yaml |
+| UI admin/user/maintainer (realm `EnterpriseRAG`) | `erag-admin`, `erag-user`, `erag-maintainer` | default_credentials.txt |
+| Keycloak admin console (realm `master`) | admin | `keycloak-admin-secret` Secret, namespace `keycloak` |
+| Grafana, **Sign in with Keycloak** (realm `platform`) | platform-admin | `platform-bootstrap-admin` Secret, namespace `keycloak` (temporary; change at first login) |
+| Grafana, local admin on the login form | admin | `grafana-admin-credentials` Secret, namespace `monitoring` |
 | Vector store | (varies) | default_credentials.yaml |
 | SeaweedFS S3 | (access/secret keys) | default_credentials.yaml |
 | SeaweedFS Admin | (user/pass) | default_credentials.yaml |
@@ -153,4 +154,4 @@ Removes components in reverse order; models undeployed automatically.
 
 ## Related documentation
 
-[Prerequisites](../quickstart/prerequisites.md), [Quickstart](../quickstart/quickstart.md), [Pipeline Configuration](pipelines.md), [Configuration Reference](../customize/configuration.md), [Platform Documentation](https://github.com/intel/enterprise-ai-solutions/blob/main/docs/README.md).
+[Prerequisites](../quickstart/prerequisites.md), [Quickstart](../quickstart/quickstart.md), [Pipeline Configuration](pipelines.md), [Configuration Reference](../customize/configuration.md), [Platform Documentation](https://github.com/intel/toolkit-manager/blob/main/docs/README.md).

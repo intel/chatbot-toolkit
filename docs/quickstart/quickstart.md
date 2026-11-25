@@ -20,8 +20,8 @@ If the platform is already installed, skip to [Step 3](#step-3---initialize-the-
 Run from the Toolkit Manager repo root:
 
 ```bash
-git clone https://github.com/intel/enterprise-ai-solutions.git
-cd enterprise-ai-solutions
+git clone https://github.com/intel/toolkit-manager.git
+cd toolkit-manager
 ./es_auto_installer.sh configure
 ```
 
@@ -35,7 +35,7 @@ To stage the platform separately, for example to confirm model serving works bef
 ./es_auto_installer.sh install inference --env local
 ```
 
-For multi-node or bring-your-own-Kubernetes, see the [Platform Quickstart](https://github.com/intel/enterprise-ai-solutions/blob/main/docs/quickstart/quickstart.md).
+For multi-node or bring-your-own-Kubernetes, see the [Platform Quickstart](https://github.com/intel/toolkit-manager/blob/main/docs/quickstart/quickstart.md).
 
 ## Step 3 - Initialize the chatbot
 
@@ -130,7 +130,15 @@ Then add the same line to your local `/etc/hosts`.
 - Keycloak: `https://keycloak.solutions.ai`
 - Grafana: `https://grafana.solutions.ai`
 
-**Credentials:** `env/local/logs/rag/default_credentials.yaml` (one-time passwords; change after first login).
+**Credentials:** `env/local/logs/rag/default_credentials.txt` for the UI accounts and `default_credentials.yaml` for the services (one-time passwords; change after first login).
+
+**Grafana:** click **Sign in with Keycloak** and sign in as `platform-admin` (realm `platform`). Its temporary password, which must be changed at first login, is in a Secret:
+
+```bash
+kubectl -n keycloak get secret platform-bootstrap-admin -o jsonpath='{.data.value}' | base64 -d; echo
+```
+
+The local `admin` signs in on the same login form; see [Telemetry](../operate/telemetry.md#login).
 
 ## Next steps
 

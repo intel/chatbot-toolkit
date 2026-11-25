@@ -20,9 +20,9 @@ kubectl get secret -n monitoring grafana-admin-credentials \
 # Username: admin
 ```
 
-### Keycloak SSO
+### Platform Keycloak SSO
 
-On the Grafana login page, select **Sign in with Keycloak** and enter your username and password. Only users in the `erag-admins` or `erag-maintainers` Keycloak group can access Grafana.
+On the Grafana login page, select **Sign in with Keycloak** and sign in with your platform account, for example `platform-admin`. Its password is in `env/<name>/logs/rag/default_credentials.yaml` (`PLATFORM_ADMIN_PASSWORD`).
 
 ## Dashboards
 
@@ -109,4 +109,4 @@ For more on using this feature see [Grafana Logs Drilldown documentation](https:
 
 Grafana itself, Prometheus, Loki, and Tempo are deployed by the **platform** (`roles/observability/`). For login setup, data retention, and platform dashboards see the Toolkit Manager observability documentation:
 
-- [Toolkit Manager documentation](https://github.com/intel/enterprise-ai-solutions/blob/main/docs/README.md)
+- [Toolkit Manager documentation](https://github.com/intel/toolkit-manager/blob/main/docs/README.md)
