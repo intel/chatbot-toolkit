@@ -2,7 +2,7 @@
 # The user-workload Prometheus scrapes from outside the STRICT mesh, so each workload in
 # _post_install_metrics_exceptions (vars/<platform>.yaml) accepts plain TCP on its metrics
 # port.
-- name: "app_post_install | mesh | List the eRAG namespaces"
+- name: "app_post_install | mesh | List the Chatbot Toolkit namespaces"
   kubernetes.core.k8s_info:
     kind: Namespace
     label_selectors:

@@ -107,7 +107,7 @@
       {% endif %}
 
       TLS Configuration:
-        • Managed by cert-manager in ai-solutions (gateway_tls_mode)
+        • Managed by cert-manager in Toolkit Manager (gateway_tls_mode)
 
       Services Status:
         • Istio: {{ istio_enabled | default('undefined') }}

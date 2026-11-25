@@ -196,24 +196,24 @@ Include additional context that may help reviewers assess the change, when appli
 
 ## Contributing across the toolkit repositories
 
-The toolkits are related projects maintained across multiple repositories. Each repository owns a specific layer or capability, while [`toolkit-manager`][ai-solutions] serves as the parent integration repository that assembles and releases the complete solution.
+The toolkits are related projects maintained across multiple repositories. Each repository owns a specific layer or capability, while [`toolkit-manager`][toolkit-manager] serves as the parent integration repository that assembles and releases the complete solution.
 
 Intel® Chatbot Toolkit is one of the solutions within this portfolio. It uses the shared layers that Toolkit Manager installs, as well as capabilities from other portfolio solutions, such as [Intel® Inference Toolkit][ai-inference], which provides inference and model-serving functionality.
 
 
 Repositories relevant to Intel® Chatbot Toolkit include:
-- [`toolkit-manager`][ai-solutions] - installs and operates Intel® Chatbot Toolkit
+- [`toolkit-manager`][toolkit-manager] - installs and operates Intel® Chatbot Toolkit
 - [`inference-toolkit`][ai-inference] - the inference service used by Intel® Chatbot Toolkit.
 
 
 When implementing a feature or a fix, contributors should make changes in the repository that owns the functionality:
   - changes to Intel® Chatbot Toolkit functionality belong to this repository.
   - If the change requires adjustments in Intel® Inference Toolkit, which Intel® Chatbot Toolkit consumes, the corresponding changes must also be made in [`inference-toolkit`][ai-inference].
-  - If the change affects the integration layer provided by [`toolkit-manager`][ai-solutions], the corresponding changes must also be applied in that repository.
+  - If the change affects the integration layer provided by [`toolkit-manager`][toolkit-manager], the corresponding changes must also be applied in that repository.
 
 
 This may involve:
-- updating the component revision reference in configs/repos (required only in the parent repository,[`toolkit-manager`][ai-solutions])
+- updating the component revision reference in configs/repos (required only in the parent repository,[`toolkit-manager`][toolkit-manager])
 - adjusting solution or deployment configuration when required,
 - updating documentation,
 - updating tests and validation assets when applicable.
@@ -227,7 +227,7 @@ When a contribution spans multiple repositories:
 5. Merge the Toolkit Manager integration change only after the required component changes are available.
 
 
-A contribution is considered complete only when all affected repositories are updated and the change is fully integrated into the parent repository, [`toolkit-manager`][ai-solutions].
+A contribution is considered complete only when all affected repositories are updated and the change is fully integrated into the parent repository, [`toolkit-manager`][toolkit-manager].
 
 
 ## Pull request activity and review process
@@ -293,7 +293,7 @@ To avoid losing valuable contributions:
 
 In such cases, credit to the original author will be preserved.
 
-[ai-solutions]: https://github.com/intel/toolkit-manager
+[toolkit-manager]: https://github.com/intel/toolkit-manager
 [ai-inference]: https://github.com/intel/inference-toolkit
 [ai-erag-issues]: https://github.com/intel/chatbot-toolkit/issues
 [ai-erag-pulls]: https://github.com/intel/chatbot-toolkit/pulls

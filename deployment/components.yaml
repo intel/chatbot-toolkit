@@ -2,7 +2,7 @@
 # =============================================================================
 # erag-layer Component Registry
 # =============================================================================
-# Loaded by ai-solutions preflight in addition to its own
+# Loaded by Toolkit Manager preflight in addition to its own
 # configs/components.yaml. Declares the `erag` solution layer and acts as the
 # erag-layer sub-playbook for the rag extension.
 #

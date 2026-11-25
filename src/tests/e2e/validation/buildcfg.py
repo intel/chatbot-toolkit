@@ -36,7 +36,7 @@ def is_openshift():
 
     Asked once per session and read from discovery only, which every
     authenticated user may do, so a kubeconfig without cluster-scoped read
-    access works too. The build config cannot answer this: ai-solutions
+    access works too. The build config cannot answer this: Toolkit Manager
     resolves the platform at run time (playbooks/includes/preflight_platform.yaml)
     and never writes cluster_distribution to global_config.yaml.
     """

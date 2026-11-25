@@ -75,7 +75,7 @@ See [Mesh](../reference/mesh.md) for troubleshooting Istio issues.
 For comprehensive diagnostics, use the debug tool:
 
 ```bash
-cd /home/.../applications.ai.enterprise.ai-solutions/ext/enterprise.ai-erag/deployment
+cd <toolkit-manager>/ext/enterprise.ai-erag/deployment
 python tools/debug_tool.py --config-dir /path/to/env/<name>/ [--output-dir <dir>]
 ```
 

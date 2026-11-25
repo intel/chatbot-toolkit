@@ -3,7 +3,7 @@
 
 apiVersion: v2
 name: erag-chatqna-ui
-description: Helm chart for UI component of eRAG Chat QnA
+description: Helm chart for UI component of Intel® Chatbot Toolkit ChatQnA
 type: application
 version: 1.0.6
 appVersion: "3.0.0"

@@ -15,7 +15,7 @@
 #   KEYCLOAK_REALM_ADMIN_PASSWORD  – Realm admin password
 #
 # Optional environment variables (defaults shown):
-#   ERAG_DOMAIN_NAME             – eRAG domain           (default: solutions.ai)
+#   ERAG_DOMAIN_NAME             – Chatbot Toolkit domain (default: solutions.ai)
 #   HF_TOKEN                     – HuggingFace token, needed for gated models
 #   BENCHMARK_DURATION           – Duration per run      (default: 10m)
 #   UAT_FILE                     – Path for token storage (default: /tmp/uat.txt)
@@ -319,7 +319,7 @@ check_prerequisites() {
         log_error "model-manager CLI not found. Auto-detection looked for:"
         log_error "  ${SCRIPT_DIR}/../../../../../../../model-manager"
         log_error "  ${SCRIPT_DIR}/../../../../../../enterprise.ai-inference/model_manager/model-manager"
-        log_error "This script expects the enterprise.ai-solutions parent repo layout."
+        log_error "This script expects the Toolkit Manager repo layout."
         errors=$((errors + 1))
     else
         log_ok "model-manager: $MODEL_MANAGER"
@@ -938,7 +938,7 @@ switch_model() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# eRAG configuration helpers
+# Chatbot Toolkit configuration helpers
 # ─────────────────────────────────────────────────────────────────────────────
 set_top_n() {
     log_info "Configuring reranker top_n=$1 …"

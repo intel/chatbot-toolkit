@@ -42,7 +42,7 @@ echo "=== DocSum Benchmark Preflight Check ==="
 echo ""
 
 echo "1. Network connectivity"
-check_output "eRAG API reachable" curl -sk --max-time 10 "https://${ERAG_DOMAIN_NAME:-erag.com}/api/v1/health/ready"
+check_output "Chatbot Toolkit API reachable" curl -sk --max-time 10 "https://${ERAG_DOMAIN_NAME:-erag.com}/api/v1/health/ready"
 check_output "Keycloak reachable" curl -sk --max-time 10 "https://auth.${ERAG_DOMAIN_NAME:-erag.com}/realms/ChatbotToolkit/.well-known/openid-configuration"
 
 echo ""

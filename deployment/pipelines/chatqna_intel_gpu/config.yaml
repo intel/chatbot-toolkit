@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
 # =============================================================================
-# Pipeline defaults - fetched via: ai-solutions installer init rag --chatqna_intel_gpu
+# Pipeline defaults - fetched via: toolkit_manager.sh init erag --flavour chatqna_intel_gpu
 # =============================================================================
 # Thin flavour: the ChatQnA graph (pipeline_type: chatqna) served on an Intel GPU.
 # EXPERIMENTAL: Intel discrete GPU (Arc B-Series / Battlemage / XPU) support is

@@ -7,7 +7,7 @@
 [![Pipelines: ChatQnA · DocSum · AudioQnA](https://img.shields.io/badge/Pipelines-ChatQnA%20%C2%B7%20DocSum%20%C2%B7%20AudioQnA-purple)](docs/deploy/pipelines.md)
 [![Identity: Keycloak](https://img.shields.io/badge/Identity-Keycloak%20OIDC-orange)](https://www.keycloak.org)
 
-**Turn your enterprise documents into a governed, production-ready AI assistant on Intel® Xeon® CPUs. Toolkit Manager installs and operates this toolkit.**
+**Turn your documents into a governed, production-ready AI assistant on Intel® Xeon® CPUs. Toolkit Manager installs and operates this toolkit.**
 
 > Ships the Ansible roles, Helm charts, and composable pipeline definitions that deploy a full RAG application - document ingestion, vector search, reranking, guardrails, chat history, and a web UI - wired into the platform's identity, gateway, storage, and observability.
 
@@ -30,7 +30,7 @@ Pipelines are composed, not hardcoded. A flavour declares an ordered flow of ste
 
 > Want the full picture? See [Architecture](docs/reference/architecture.md) and [Pipelines](docs/deploy/pipelines.md).
 
-### What makes it enterprise-grade
+### What makes it production-ready
 
 - **Access control, not just an API key** - Keycloak OIDC single sign-on across the UI and Keycloak itself, a guardrail on every query by default, and opt-in role-based access control that scopes retrieval to the documents each user is cleared to see.
 - **Modular pipelines, not a monolith** - a flavour declares an ordered flow of steps, the composer renders it into a `GMConnector` resource, and the operator reconciles the microservices behind it. Changing retrieval strategy or adding output guardrails is a config edit, not a rewrite.
