@@ -15,6 +15,8 @@ made fail on purpose.
 """
 
 import allure
+import base64
+import json
 import logging
 import os
 import pytest
@@ -31,6 +33,8 @@ from tests.e2e.validation.constants import (
     BACKUP_PROFILE_NAME,
     BACKUP_VERSION_LABEL,
     DATAPREP_UPLOAD_DIR,
+    IDENTITY_DATABASE_CLUSTER,
+    IDENTITY_DATABASE_DEFINITION_SECRET,
     IDENTITY_DATABASE_NAMESPACE,
     VELERO_NAMESPACE,
 )
@@ -152,6 +156,33 @@ def test_post_backup_identity_database_volume_captured(k8s_helper):
         f"holding test data ({expected}). At least one was skipped — check that every namespace in "
         f"namespace_order uses a snapshot-capable StorageClass."
     )
+
+
+# No test-case id yet: assign one when this check is registered.
+def test_post_backup_identity_database_definition_saved(k8s_helper):
+    """
+    The shared database's Cluster resource belongs to the platform layer, so the
+    backup leaves it out while a restore deletes it. The profile's pre_backup hook
+    saves its definition in a Secret the backup does capture; without that Secret
+    a restore cannot bring the database back.
+    """
+    latest_profile_backup(k8s_helper)
+    secrets = {s.name: s for s in k8s_helper.list_secrets(namespace=IDENTITY_DATABASE_NAMESPACE)}
+    secret = secrets.get(IDENTITY_DATABASE_DEFINITION_SECRET)
+    assert secret is not None, (
+        f"Secret {IDENTITY_DATABASE_NAMESPACE}/{IDENTITY_DATABASE_DEFINITION_SECRET} is missing: the "
+        f"backup's pre_backup hook did not save the database definition."
+    )
+    encoded = secret.raw.get("data", {}).get("cluster.json", "")
+    definition = json.loads(base64.b64decode(encoded)) if encoded else {}
+    assert definition.get("kind") == "Cluster", (
+        f"Secret {IDENTITY_DATABASE_DEFINITION_SECRET} holds no Cluster definition."
+    )
+    assert definition.get("metadata", {}).get("name") == IDENTITY_DATABASE_CLUSTER, (
+        f"Secret {IDENTITY_DATABASE_DEFINITION_SECRET} names Cluster "
+        f"{definition.get('metadata', {}).get('name')}, not {IDENTITY_DATABASE_CLUSTER}."
+    )
+    assert definition.get("spec"), f"Secret {IDENTITY_DATABASE_DEFINITION_SECRET} holds a Cluster with no spec."
 
 
 @allure.testcase("DSPTV-T207")

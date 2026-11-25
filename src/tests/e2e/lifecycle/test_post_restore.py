@@ -33,6 +33,8 @@ from tests.e2e.validation.constants import (
     BACKED_UP_DATA_NAMESPACES,
     BACKUP_PROFILE_LABEL,
     BACKUP_PROFILE_NAME,
+    IDENTITY_DATABASE_CLUSTER,
+    IDENTITY_DATABASE_NAMESPACE,
     VELERO_NAMESPACE,
 )
 
@@ -108,6 +110,26 @@ def test_post_restore_restore_completed(k8s_helper):
                 f"Pod {namespace}/{pod.name} is {phase} after the restore. A store that will not "
                 f"start on its restored volume is the usual cause."
             )
+
+
+# No test-case id yet: assign one when this check is registered.
+def test_post_restore_identity_database_back(k8s_helper):
+    """
+    The restore deletes the shared database's Cluster resource to replay its
+    volume, and the backup does not hold it. The profile's first post_restore hook
+    recreates it; every instance must be ready on the restored volume, or every
+    solution that signs in through the shared identity service is down.
+    """
+    cluster = k8s_helper.get_postgresql_cluster(IDENTITY_DATABASE_CLUSTER, IDENTITY_DATABASE_NAMESPACE)
+    assert cluster is not None, (
+        f"Cluster {IDENTITY_DATABASE_NAMESPACE}/{IDENTITY_DATABASE_CLUSTER} is missing after the restore: "
+        f"the post_restore hook did not recreate it."
+    )
+    instances = cluster.raw.get("spec", {}).get("instances", 1)
+    ready = cluster.raw.get("status", {}).get("readyInstances", 0)
+    assert ready == instances, (
+        f"Cluster {IDENTITY_DATABASE_CLUSTER} has {ready} of {instances} instances ready after the restore."
+    )
 
 
 @allure.testcase("DSPTV-T208")
