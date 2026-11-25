@@ -2,11 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import csv
+import json
 import logging
 import math
 import shutil
 from pathlib import Path
 from typing import Any, Iterable, NamedTuple, Sequence
+
+from .commit_info import COMMIT_INFO_FIELDS
 
 logger = logging.getLogger(__name__)
 
@@ -14,19 +17,12 @@ DEFAULT_SUMMARIES_DIR = "./results"
 
 # Not bench_*.csv: parse.py globs that as per-request data.
 SUMMARY_FILE_NAME = "benchmark_summary_results.csv"
+RESULTS_FILE_NAME = "results.json"
 
 PER_CASE_DIR_NAME = "per_case_results"
 
-SUMMARY_COLUMNS: tuple[str, ...] = (
-    "requests",
-    "mean_ttft",
-    "p90_ttft",
-    "mean_tpot",
-    "p90_tpot",
-    "served_model",
-    "error",
-    "result_file",
-)
+SCHEMA_VERSION = 1
+PERCENTILES = (("p50", 0.5), ("p90", 0.9), ("p99", 0.99))
 
 _PRECISION = 6
 
@@ -40,6 +36,7 @@ class SummariesLayout(NamedTuple):
 
     root: Path
     summary_file: Path
+    results_file: Path
     per_case_dir: Path
 
 
@@ -65,12 +62,13 @@ def prepare_summaries_dir(root=DEFAULT_SUMMARIES_DIR) -> SummariesLayout:
         )
 
     summary_file = root / SUMMARY_FILE_NAME
+    results_file = root / RESULTS_FILE_NAME
     per_case_dir = root / PER_CASE_DIR_NAME
-    if summary_file.is_dir():
-        raise SummariesLayoutError(
-            f"{summary_file} is a directory; a sweep needs to write its summary "
-            "table there."
-        )
+    for output in (summary_file, results_file):
+        if output.is_dir():
+            raise SummariesLayoutError(
+                f"{output} is a directory; a sweep needs to write its summary there."
+            )
     if per_case_dir.is_symlink():
         raise SummariesLayoutError(
             f"{per_case_dir} is a symlink. It is emptied before every sweep, and "
@@ -85,9 +83,10 @@ def prepare_summaries_dir(root=DEFAULT_SUMMARIES_DIR) -> SummariesLayout:
 
     root.mkdir(parents=True, exist_ok=True)
 
-    if summary_file.exists():
-        summary_file.unlink()
-        logger.info("Discarded the previous summary %s.", summary_file)
+    for output in (summary_file, results_file):
+        if output.exists():
+            output.unlink()
+            logger.info("Discarded the previous summary %s.", output)
 
     if per_case_dir.is_dir():
         removed = _clear_directory(per_case_dir)
@@ -101,11 +100,12 @@ def prepare_summaries_dir(root=DEFAULT_SUMMARIES_DIR) -> SummariesLayout:
     layout = SummariesLayout(
         root=root.resolve(),
         summary_file=summary_file.resolve(),
+        results_file=results_file.resolve(),
         per_case_dir=per_case_dir.resolve(),
     )
     logger.info(
-        "Writing results to %s (summary: %s, per-case CSVs: %s/).",
-        layout.root, SUMMARY_FILE_NAME, PER_CASE_DIR_NAME,
+        "Writing results to %s (%s, %s, per-case CSVs: %s/).",
+        layout.root, RESULTS_FILE_NAME, SUMMARY_FILE_NAME, PER_CASE_DIR_NAME,
     )
     return layout
 
@@ -180,79 +180,134 @@ def _mean(values: Sequence[float]) -> float | None:
     return sum(values) / len(values) if values else None
 
 
-def _round(value: float | None) -> str:
-    return "" if value is None else f"{round(value, _PRECISION)}"
+def _round(value: float | None) -> float | None:
+    return None if value is None else round(value, _PRECISION)
 
 
-def summarize_requests(records: Iterable[RequestRecord]) -> dict[str, Any]:
-    """Aggregate request records into the KPI columns."""
+def _distribution(values: Sequence[float]) -> dict[str, float | None]:
+    stats = {"mean": _round(_mean(values))}
+    stats.update({name: _round(percentile(values, q)) for name, q in PERCENTILES})
+    return stats
+
+
+def summarize_requests(records: Iterable[RequestRecord], duration_s: float) -> dict[str, Any]:
+    """Aggregate request records into a run's ``results``; rates are per declared duration."""
     records = list(records)
-    ttfts = [record.ttft for record in records]
-    tpots = [record.tpot for record in records if record.tpot is not None]
+    output_total = sum(record.output_tokens for record in records)
     return {
-        "requests": len(records),
-        "mean_ttft": _mean(ttfts),
-        "p90_ttft": percentile(ttfts, 0.9),
-        "mean_tpot": _mean(tpots),
-        "p90_tpot": percentile(tpots, 0.9),
+        "requests": {"ok": len(records)},
+        "ttft_s": _distribution([record.ttft for record in records]),
+        "tpot_s": _distribution([record.tpot for record in records if record.tpot is not None]),
+        "e2e_s": _distribution([record.end_to_end for record in records]),
+        "input_tokens": {"mean": _round(_mean([record.input_tokens for record in records]))},
+        "output_tokens": {
+            "mean": _round(_mean([record.output_tokens for record in records])),
+            "total": output_total,
+        },
+        "throughput": {
+            "requests_per_s": _round(len(records) / duration_s) if duration_s > 0 else None,
+            "output_tokens_per_s": _round(output_total / duration_s) if duration_s > 0 else None,
+        },
     }
 
 
-class SweepSummary:
-    """Accumulates one row per run and rewrites the summary CSV after each."""
+def nest(dotted: dict[str, Any]) -> dict[str, Any]:
+    """Turn ``{"a.b": 1}`` into ``{"a": {"b": 1}}``, keeping key order."""
+    tree: dict[str, Any] = {}
+    for path, value in dotted.items():
+        *parents, leaf = path.split(".")
+        node = tree
+        for part in parents:
+            node = node.setdefault(part, {})
+        node[leaf] = value
+    return tree
 
-    def __init__(
-        self,
-        knob_paths: Sequence[str],
-        path=Path(DEFAULT_SUMMARIES_DIR) / SUMMARY_FILE_NAME,
-    ):
-        self.knob_paths = list(knob_paths)
-        self.path = Path(path)
-        self.rows: list[dict[str, Any]] = []
+
+def flatten(tree: dict[str, Any], prefix: str = "") -> dict[str, Any]:
+    """Turn nested dicts into dotted keys, keeping key order."""
+    flat: dict[str, Any] = {}
+    for key, value in tree.items():
+        path = f"{prefix}{key}"
+        if isinstance(value, dict):
+            flat.update(flatten(value, f"{path}."))
+        else:
+            flat[path] = value
+    return flat
+
+
+def run_record(
+    index: str,
+    started_at: str,
+    finished_at: str,
+    exit_code: int,
+    result_file: str,
+    deployment: dict[str, Any],
+    client: dict[str, Any],
+    results: dict[str, Any],
+) -> dict[str, Any]:
+    """One run's record; ``deployment``/``client`` take dotted knob paths."""
+    return {
+        "run": {
+            "index": index,
+            "started_at": started_at,
+            "finished_at": finished_at,
+            "exit_code": exit_code,
+            "result_file": result_file,
+        },
+        "settings": {
+            "deployment": nest(deployment),
+            "client": nest({path.removeprefix("client."): value for path, value in client.items()}),
+        },
+        "results": results,
+    }
+
+
+class SweepResults:
+    """Accumulates run records and rewrites results.json and the summary CSV after each."""
+
+    def __init__(self, layout: SummariesLayout, date: str, commit_info: dict[str, str]):
+        self.layout = layout
+        self.date = date
+        self.commit_info = commit_info
+        self.runs: list[dict[str, Any]] = []
         self.write()
 
-    def _pointer(self, result_file) -> str:
+    def pointer(self, result_file) -> str:
+        """``result_file`` relative to the summaries directory, so the directory can be moved."""
         path = Path(result_file)
         try:
-            return str(path.relative_to(self.path.parent))
+            return str(path.relative_to(self.layout.root))
         except ValueError:
             return str(result_file)
 
-    @property
-    def columns(self) -> list[str]:
-        return self.knob_paths + list(SUMMARY_COLUMNS)
+    def document(self) -> dict[str, Any]:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "date": self.date,
+            "commit_info": self.commit_info,
+            "runs": self.runs,
+        }
 
-    def add_run(
-        self,
-        knob_values: dict[str, Any],
-        result_file,
-        error: int = 0,
-        served_model: str | None = None,
-    ) -> dict[str, Any]:
-        """Summarize one finished run and return the recorded row."""
-        summary = summarize_requests(read_requests(result_file))
-        row: dict[str, Any] = {path: knob_values.get(path, "") for path in self.knob_paths}
-        row.update(summary)
-        row["served_model"] = served_model or ""
-        row["error"] = error
-        row["result_file"] = self._pointer(result_file)
-        self.rows.append(row)
+    def add_run(self, record: dict[str, Any]) -> dict[str, Any]:
+        self.runs.append(record)
         self.write()
-        return row
+        return record
+
+    def _csv_rows(self) -> list[dict[str, Any]]:
+        sweep = {
+            "date": self.date,
+            **{f"commit_info.{field}": self.commit_info.get(field) for field in COMMIT_INFO_FIELDS},
+        }
+        return [{**sweep, **flatten(record)} for record in self.runs]
 
     def write(self) -> Path:
-        with self.path.open("w", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=self.columns)
-            writer.writeheader()
-            for row in self.rows:
-                writer.writerow(
-                    {
-                        column: (
-                            _round(row[column])
-                            if column in ("mean_ttft", "p90_ttft", "mean_tpot", "p90_tpot")
-                            else row.get(column, "")
-                        )
-                        for column in self.columns
-                    }
-                )
-        return self.path
+        self.layout.results_file.write_text(json.dumps(self.document(), indent=2) + "\n")
+        rows = self._csv_rows()
+        columns = list(rows[0]) if rows else []
+        with self.layout.summary_file.open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=columns)
+            if columns:
+                writer.writeheader()
+            for row in rows:
+                writer.writerow({column: "" if row.get(column) is None else row[column] for column in columns})
+        return self.layout.results_file

@@ -5,6 +5,7 @@ import argparse
 import ast
 import csv
 import itertools
+import json
 import linecache
 import logging
 from contextlib import contextmanager
@@ -12,6 +13,7 @@ from pathlib import Path
 
 import allure
 import pytest
+import yaml
 
 from tests.e2e.benchmarks.chatqna.pysweep import pysweep_bench as psb
 from tests.e2e.benchmarks.chatqna.pysweep.base import (
@@ -36,6 +38,21 @@ CLIENT = {
     "input_tokens": 128,
     "warmup_requests": 1,
 }
+
+
+COMMIT = {
+    "sha": "0123456789abcdef0123456789abcdef01234567",
+    "datetime": "2026-11-25T18:02:44+01:00",
+    "author": "A. Author",
+    "description": "feat: something",
+    "branch": "kkurzacz/pysweep-core",
+}
+
+
+@pytest.fixture(autouse=True)
+def _committed_checkout(monkeypatch):
+    # CI checks out without git, so no test may depend on the real repository.
+    monkeypatch.setattr(psb, "read_commit_info", lambda: dict(COMMIT))
 
 
 def _sweep(**sections):
@@ -293,19 +310,28 @@ def test_sweep_writes_one_summary_row_per_run(monkeypatch, tmp_path):
     summary_file = tmp_path / "out" / results.SUMMARY_FILE_NAME
     rows = list(csv.DictReader(summary_file.open()))
     assert len(rows) == 4
-    assert [(r["llms.max_new_tokens"], r["client.concurrency"]) for r in rows] == [
-        ("128", "1"), ("128", "16"), ("256", "1"), ("256", "16"),
-    ]
-    assert {r["client.duration"] for r in rows} == {"3m"}
+    assert [
+        (r["settings.deployment.llms.max_new_tokens"], r["settings.client.concurrency"])
+        for r in rows
+    ] == [("128", "1"), ("128", "16"), ("256", "1"), ("256", "16")]
+    assert [r["run.index"] for r in rows] == ["1.1", "1.2", "2.1", "2.2"]
+    assert {r["settings.client.duration"] for r in rows} == {"3m"}
     # FakeBenchmark writes 128,128,0.8,6.9,,200 twice per run.
-    assert {r["requests"] for r in rows} == {"2"}
-    assert {r["mean_ttft"] for r in rows} == {"0.8"}
-    assert {r["mean_tpot"] for r in rows} == {str(round((6.9 - 0.8) / 127, 6))}
-    assert {r["served_model"] for r in rows} == {"served/model"}
+    assert {r["results.requests.ok"] for r in rows} == {"2"}
+    assert {r["results.ttft_s.mean"] for r in rows} == {"0.8"}
+    assert {r["results.tpot_s.mean"] for r in rows} == {str(round((6.9 - 0.8) / 127, 6))}
+    assert {r["settings.client.tokenizer"] for r in rows} == {"served/model"}
+    assert {r["commit_info.sha"] for r in rows} == {COMMIT["sha"]}
     # Relative to the summary, so the directory can be copied off the host intact.
-    assert all(not Path(r["result_file"]).is_absolute() for r in rows)
-    assert all((summary_file.parent / r["result_file"]).exists() for r in rows)
-    assert {Path(r["result_file"]).parent.name for r in rows} == {results.PER_CASE_DIR_NAME}
+    pointers = [r["run.result_file"] for r in rows]
+    assert all(not Path(p).is_absolute() for p in pointers)
+    assert all((summary_file.parent / p).exists() for p in pointers)
+    assert {Path(p).parent.name for p in pointers} == {results.PER_CASE_DIR_NAME}
+
+    document = json.loads((tmp_path / "out" / results.RESULTS_FILE_NAME).read_text())
+    assert document["commit_info"] == COMMIT
+    assert [run["run"]["index"] for run in document["runs"]] == ["1.1", "1.2", "2.1", "2.2"]
+    assert document["runs"][0]["settings"]["deployment"] == {"llms": {"max_new_tokens": 128}}
 
 
 @allure.feature("pysweep")
@@ -783,7 +809,46 @@ def test_summary_records_the_declared_path_not_the_resolved_one(monkeypatch, tmp
 
     summary = tmp_path / results.DEFAULT_SUMMARIES_DIR / results.SUMMARY_FILE_NAME
     rows = list(csv.DictReader(summary.read_text().splitlines()))
-    assert rows[0]["client.question_file"] == "../questions-short.csv"
+    assert rows[0]["settings.client.question_file"] == "../questions-short.csv"
+
+
+@allure.feature("pysweep")
+def test_preflight_returns_the_commit_the_results_are_attributed_to():
+    assert psb.preflight_check(load_config(_client())) == COMMIT
+
+
+@allure.feature("pysweep")
+def test_preflight_fails_without_commit_info(monkeypatch):
+    def unreadable():
+        raise psb.CommitInfoError("not a git repository")
+
+    monkeypatch.setattr(psb, "read_commit_info", unreadable)
+    with pytest.raises(psb.PreflightError, match="commit_info: not a git repository"):
+        psb.preflight_check(load_config(_client()))
+
+
+@allure.feature("pysweep")
+def test_each_run_logs_its_record_as_yaml(monkeypatch, tmp_path, caplog):
+    monkeypatch.chdir(tmp_path)
+    cfg = load_config(_client())
+    run_config = psb.load_run_config({})
+    monkeypatch.setattr(psb, "load_config", lambda _: cfg)
+    monkeypatch.setattr(psb, "load_run_config", lambda _: run_config)
+    monkeypatch.setattr(psb, "FingerprintClient", lambda transport: None)
+    monkeypatch.setattr(psb, "default_transport", lambda: None)
+    monkeypatch.setattr(psb, "apply_combination", lambda c, f: {})
+    monkeypatch.setattr(psb, "resolve_tokenizer", lambda: "served/model")
+    monkeypatch.setattr(psb, "provision_benchmark_target", _passthrough_provision)
+    _install_fake_benchmark(monkeypatch, FakeBenchmark())
+
+    with caplog.at_level(logging.INFO, logger=psb.logger.name):
+        assert psb.main(["--sweep", "ignored.yaml", "--summaries", "out"]) == 0
+
+    (message,) = [r.getMessage() for r in caplog.records if " record:\n" in r.getMessage()]
+    logged = yaml.safe_load(message.split(" record:\n", 1)[1])
+    document = json.loads((tmp_path / "out" / results.RESULTS_FILE_NAME).read_text())
+    assert logged == document["runs"][0]
+    assert list(logged) == ["run", "settings", "results"]
 
 
 @allure.feature("pysweep")
@@ -798,6 +863,7 @@ def test_preflight_runs_once_for_the_whole_sweep(monkeypatch, tmp_path):
 
     def counting_preflight(config):
         calls.append(len(fake.calls))
+        return dict(COMMIT)
 
     run_config = psb.load_run_config({})
     monkeypatch.setattr(psb, "preflight_check", counting_preflight)

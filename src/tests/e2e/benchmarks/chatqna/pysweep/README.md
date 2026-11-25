@@ -163,7 +163,7 @@ for each deployment combination:      # outer — costs a rollout
     tokenizer = observed served model  # -m, derived once per combination
     for each client combination:      # inner — costs one more load test
         run benchmark.py
-        append a row to benchmark_summary_results.csv  # knobs + TTFT/TPOT KPIs
+        log the run's record as YAML; add it to results.json and the summary CSV
 ```
 
 Within the deployment product, `deployment_combinations()` sorts K8s-plane knobs first so
@@ -229,7 +229,7 @@ pysweep provisions the things the raw `benchmark.py` makes you prepare by hand:
 | Results of each combination overwrote one another (same timestamped CSV) | Each run writes `per_case_results/bench_<knob>-<value>_..._<clientknob>-<value>.result.csv`. |
 | An unreachable endpoint still exited `0` with an empty CSV | A run that records **zero** result rows is reported as a failure (non-zero exit). |
 | Load parameters lived only in whatever shell command produced the CSV | Declared in `--sweep` and logged per run alongside the observed deployment state. |
-| Comparing runs meant `parse.py` over a directory of headerless CSVs, with the configuration recoverable only from filenames | One `benchmark_summary_results.csv`: a row per run, a column per declared knob (dotted paths), TTFT/TPOT mean and p90. |
+| Comparing runs meant `parse.py` over a directory of headerless CSVs, with the configuration recoverable only from filenames | One `results.json` with a record per run (settings, KPIs, the commit that produced it), and the same records as dotted-column rows in `benchmark_summary_results.csv`. |
 | `-m` had to be kept in step with the served model by hand, and defaulted to an embedding model's tokenizer if forgotten | Derived per combination from the model the LLM engine is observed to serve, so token counts always come from that model's tokenizer. |
 
 Supplying `-s` / `-b` (on the command line or as `client.server` /
@@ -244,69 +244,89 @@ logged instead.
 ### Where the results go (`--summaries`)
 
 Everything a sweep writes goes under one directory, `--summaries` (default
-`./results`, relative to the CWD like any other command-line path):
+`./results`, relative to the CWD):
 
 ```
 results/
-  benchmark_summary_results.csv    # the sweep's table: one row per run
+  results.json                     # the sweep document: commit, date, one record per run
+  benchmark_summary_results.csv    # the same records, one dotted-column row per run
   per_case_results/                # one per-request CSV per run
     bench_max_new_tokens-128_concurrency-1_input_tokens-128.result.csv
-    bench_max_new_tokens-128_concurrency-16_input_tokens-128.result.csv
     ...
 ```
 
-The directory is created if missing (parents included), and **the previous
-sweep's artifacts in it are deleted before this one starts**: the summary file is
-removed and `per_case_results/` is emptied. A sweep's outputs only mean anything
-as a set — the summary indexes the per-case CSVs, and a per-case CSV means nothing
-without the row saying what produced it — so merging two sweeps into one directory
-would leave stale CSVs that read exactly like results of the current run. Nothing
-else under the directory is touched, so pointing `--summaries` at a directory that
-also holds a copy of the sweep YAML or someone's plots loses none of it. The wipe
-happens after the config is validated and the preflight has passed, so a typo in
-the YAML or a missing question file does not cost you the previous results.
+The directory is created if missing. **The previous sweep's outputs in it are
+deleted before this one starts** (both summary files, and everything in
+`per_case_results/`), after the config is validated and the preflight has passed.
+Nothing else in the directory is touched. Both summary files are rewritten after
+every run, so an interrupted sweep still leaves valid files for the runs it
+finished.
 
-### The summary CSV
+### The results
 
-Each `bench_*.result.csv` is one row per *request* with no header and no record
-of the configuration, so a sweep also writes a single summary table
-(`benchmark_summary_results.csv`, `results.py`):
+`results.json`:
 
+```json
+{
+  "schema_version": 1,
+  "date": "2026-11-26T09:02:11Z",
+  "commit_info": {
+    "sha": "9022de7e…",
+    "datetime": "2026-11-25T18:02:44+01:00",
+    "author": "Kurzacz, Kamil",
+    "description": "refactor(benchmarks): …",
+    "branch": "kkurzacz/pysweep-core"
+  },
+  "runs": [ { "run": {…}, "settings": {…}, "results": {…} } ]
+}
 ```
-llms.max_new_tokens,client.concurrency,client.duration,...,requests,mean_ttft,p90_ttft,mean_tpot,p90_tpot,served_model,error,result_file
-128,1,10m,...,412,0.284192,0.41133,0.021975,0.02698,casperhansen/llama-3-8b-instruct-awq,0,per_case_results/bench_max_new_tokens-128_concurrency-1_input_tokens-128.result.csv
-128,16,10m,...,3907,1.10442,1.83206,0.0344,0.04102,casperhansen/llama-3-8b-instruct-awq,0,per_case_results/bench_max_new_tokens-128_concurrency-16_input_tokens-128.result.csv
+
+`date` is when the sweep started (UTC). `commit_info` is the committed `HEAD` of
+the checkout pysweep runs from; uncommitted changes are not recorded.
+
+Each record, also logged as YAML when its run finishes:
+
+```yaml
+run:
+    index: '1.2'                      # deployment combination . client combination
+    started_at: '2026-11-26T09:14:03Z'
+    finished_at: '2026-11-26T09:29:05Z'
+    exit_code: 0
+    result_file: per_case_results/bench_max_new_tokens-128_concurrency-16.result.csv
+settings:
+    deployment:                       # observed on the cluster after apply
+        llms:
+            max_new_tokens: 128
+    client:                           # declared, plus the derived tokenizer (-m)
+        concurrency: 16
+        duration: 15m
+        ...
+        tokenizer: casperhansen/llama-3-8b-instruct-awq
+results:
+    requests: {ok: 1893}
+    ttft_s: {mean: 1.45, p50: 1.38, p90: 2.31, p99: 3.02}
+    tpot_s: {mean: 0.069, p50: 0.068, p90: 0.081, p99: 0.094}
+    e2e_s: {mean: 5.82, p50: 5.71, p90: 7.4, p99: 9.12}
+    input_tokens: {mean: 128}
+    output_tokens: {mean: 61, total: 115473}
+    throughput: {requests_per_s: 2.1, output_tokens_per_s: 128.3}
 ```
 
-One row per run. The knob columns come first, named by the **dotted config path**
-the sweep YAML used (`client.input_tokens` for `client: input_tokens:`), so a
-column maps back to the config with no lookup table. *Every* declared knob gets a
-column, not only the varying ones — a summary that dropped the constants would not
-say what the numbers were measured under, and including them makes two sweeps'
-summaries concatenable. Deployment values are the **observed** read-backs; client
-values are the declared ones (there is nothing to observe — they are arguments to
-a process). `server` / `bearer_file` are excluded as connection plumbing.
-
-Then the KPIs, in seconds:
-
-| Column | Meaning |
+| Result | Meaning |
 |---|---|
-| `requests` | Successful requests the statistics are over. A p90 over four requests is a number, not a measurement — this is what licenses reading the rest. |
-| `mean_ttft`, `p90_ttft` | **Time to first token**: `first_chunk` as `benchmark.py` records it — request issued to first streamed chunk. Prefill plus all queueing ahead of it, so this is the KPI that moves with concurrency. |
-| `mean_tpot`, `p90_tpot` | **Time per output token**: `(end_to_end - ttft) / (output_tokens - 1)`, the mean inter-token gap during decode. |
-| `served_model`, `error`, `result_file` | The **tokenizer repo id** the tokens were counted with (resolved from the observed served model's catalog name), the run's exit code, and the pointer back to the per-request CSV — relative to the summary itself, so the whole directory can be copied off the benchmark host with its pointers intact. |
+| `requests.ok` | Successful requests the statistics are over (`benchmark.py` records only those, after warmup). |
+| `ttft_s` | Time to first token: request sent to first streamed chunk, so it includes the whole pipeline and any queueing. |
+| `tpot_s` | Time per output token: `(e2e - ttft) / (output_tokens - 1)`. The first token is excluded from both sides; `parse.py` divides by `output_tokens`. |
+| `e2e_s` | Request sent to the end of the stream. |
+| `input_tokens`, `output_tokens` | Counted client-side with the run's tokenizer; input is the question only, not the full prompt. |
+| `throughput` | Per declared `client.duration`. |
 
-TPOT excludes the first token from **both** the time and the token count, because
-its cost is TTFT. `parse.py`'s `next_token_lat` divides by `output_tokens`
-instead, which charges decode for a token it did not generate — under a percent at
-128 output tokens, material at 8. p90 is linearly interpolated (numpy/pandas'
-default method), so it agrees with `parse.py`'s figures.
+Percentiles are linearly interpolated (numpy's default), like `parse.py`.
 
-The file is rewritten after every run, so a sweep killed at hour three — or a
-model rollout that fails midway — still leaves a complete, valid table of what it
-got through. The per-request CSVs are untouched: anything the four KPIs do not
-answer (distribution shape, drift within a run, the tail past p90) is still there,
-and `result_file` is how you get to it.
+`benchmark_summary_results.csv` has one row per run: `date`, `commit_info.*`, then
+every field of the record as a dotted column (`run.index`,
+`settings.deployment.llms.max_new_tokens`, `settings.client.concurrency`,
+`results.ttft_s.p90`, …). Missing values are blank.
 
 ### Run config (`--config`)
 
@@ -364,6 +384,7 @@ In increasing cost order:
 | Check | What it asserts |
 |---|---|
 | `question_file_verify()` | Every declared `client.question_file` (the knob is sweepable, so a config may name several) resolves to a readable file. A stat per corpus. |
+| `commit_info_verify()` | The checkout pysweep runs from is a git repository with a commit on a branch (not a detached `HEAD`), so the results can name it. A synced copy needs a readable `.git`. |
 
 ## Requirements
 

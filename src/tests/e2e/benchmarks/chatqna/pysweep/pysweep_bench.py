@@ -10,11 +10,13 @@ import re
 import sys
 import tempfile
 from contextlib import ExitStack, contextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
 
 from tests.e2e.benchmarks.chatqna import benchmark
+from tests.e2e.benchmarks.chatqna.benchmark import duration_to_seconds
 from tests.e2e.benchmarks.chatqna.pysweep.base import (
     Plane,
     Property,
@@ -38,10 +40,14 @@ from tests.e2e.benchmarks.chatqna.pysweep.config import (
     load_run_config,
 )
 from tests.e2e.benchmarks.chatqna.pysweep import model_catalog
+from tests.e2e.benchmarks.chatqna.pysweep.commit_info import CommitInfoError, read_commit_info
 from tests.e2e.benchmarks.chatqna.pysweep.results import (
     DEFAULT_SUMMARIES_DIR,
-    SweepSummary,
+    SweepResults,
     prepare_summaries_dir,
+    read_requests,
+    run_record,
+    summarize_requests,
 )
 from tests.e2e.benchmarks.chatqna.pysweep.runtime_api import (
     FingerprintClient,
@@ -223,8 +229,23 @@ def question_file_verify(config: SweepConfig) -> None:
         logger.debug("Preflight: question_file '%s' -> %s", value, path)
 
 
-def preflight_check(config: SweepConfig) -> None:
+def commit_info_verify() -> dict[str, str]:
+    """Raise PreflightError unless the checked-out commit can be identified; return it."""
+    try:
+        info = read_commit_info()
+    except CommitInfoError as exc:
+        raise PreflightError(f"commit_info: {exc}") from exc
+    logger.info(
+        "Preflight: results are attributed to %s on %s (%s).",
+        info["sha"][:12], info["branch"], info["description"],
+    )
+    return info
+
+
+def preflight_check(config: SweepConfig) -> dict[str, str]:
+    """Run every preflight check; return the commit the results are attributed to."""
     question_file_verify(config)
+    return commit_info_verify()
 
 
 def chatqna_url() -> str:
@@ -308,11 +329,11 @@ def parse_args(argv=None):
         "--summaries",
         default=DEFAULT_SUMMARIES_DIR,
         help=(
-            "Directory a sweep writes into: benchmark_summary_results.csv (a row "
-            "per run, a column per declared knob, TTFT/TPOT mean/p90) and "
-            "per_case_results/ (one per-request CSV per run). Created if missing. "
-            "WARNING: the previous sweep's summary and per-case CSVs there are "
-            f"DELETED before this one starts (default: {DEFAULT_SUMMARIES_DIR})."
+            "Directory a sweep writes into: results.json (the sweep's run records), "
+            "benchmark_summary_results.csv (the same records, one dotted-column row "
+            "per run) and per_case_results/ (one per-request CSV per run). Created if "
+            "missing. WARNING: the previous sweep's outputs there are DELETED before "
+            f"this one starts (default: {DEFAULT_SUMMARIES_DIR})."
         ),
     )
     parser.add_argument(
@@ -383,6 +404,16 @@ def format_settings_yaml(values: dict, indent: int = LOG_YAML_INDENT) -> str:
     ).rstrip("\n")
 
 
+def format_record_yaml(record: dict, indent: int = LOG_YAML_INDENT) -> str:
+    return yaml.safe_dump(
+        record, indent=indent, sort_keys=False, default_flow_style=False
+    ).rstrip("\n")
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
 def run_client_combination(
     benchmark,
     bench_argv: list[str],
@@ -431,13 +462,13 @@ def main(argv=None):
     config = load_config(args.sweep)
     bench_argv = resolve_benchmark_argv(config, args.benchmark_args)
 
-    preflight_check(config)
+    commit_info = preflight_check(config)
 
     deployment_combinations = config.deployment_combinations()
     client_combinations = config.client_combinations()
     varying_paths = config.varying_paths()
     layout = prepare_summaries_dir(args.summaries)
-    summary = SweepSummary(config.knob_paths(), path=layout.summary_file)
+    sweep_results = SweepResults(layout, date=utc_now(), commit_info=commit_info)
 
     fingerprint_client = FingerprintClient(default_transport())
 
@@ -472,25 +503,36 @@ def main(argv=None):
                 # Test doubles may yield a plain list.
                 if isinstance(provisioned_argv, ProvisionedArgv):
                     provisioned_argv.refresh()
+                started_at = utc_now()
                 error, output_file = run_client_combination(
                     benchmark, provisioned_argv, combination, client_combination, label,
                     results_dir=layout.per_case_dir,
                     varying_paths=varying_paths, tokenizer=tokenizer,
                 )
+                finished_at = utc_now()
                 overall_error = overall_error or error
 
-                row = summary.add_run(
-                    knob_values={
-                        **snapshot,
-                        **{s.path: s.value for s in client_combination},
-                    },
-                    result_file=output_file,
-                    error=error,
-                    served_model=tokenizer,
+                client = {s.path: s.value for s in client_combination}
+                record = sweep_results.add_run(
+                    run_record(
+                        index=f"{index}.{client_index}",
+                        started_at=started_at,
+                        finished_at=finished_at,
+                        exit_code=error,
+                        result_file=sweep_results.pointer(output_file),
+                        deployment=snapshot,
+                        client={**client, "client.tokenizer": tokenizer},
+                        results=summarize_requests(
+                            read_requests(output_file),
+                            duration_to_seconds(str(client["client.duration"])),
+                        ),
+                    )
                 )
-                logger.info("%s summary:\n%s", label, format_settings_yaml(row))
+                logger.info("%s record:\n%s", label, format_record_yaml(record))
 
-    logger.info("Sweep summary (%d run(s)) written to %s", len(summary.rows), summary.write())
+    logger.info(
+        "Sweep results (%d run(s)) written to %s", len(sweep_results.runs), sweep_results.write()
+    )
     return overall_error
 
 

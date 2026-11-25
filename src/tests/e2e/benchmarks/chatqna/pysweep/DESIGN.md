@@ -357,15 +357,15 @@ sweep dimensions with no plane".
 
 **Summarizing is part of the flow, not a separate tool.** The runner is the only
 thing that knows which configuration produced which CSV — the per-request files
-carry neither, and their names carry only what varied — so it writes the row while
-it still holds both. That is also why the summary is rewritten after every run
+carry neither, and their names carry only what varied — so it writes the record
+while it still holds both, with the commit it ran from. That is also why the summary is rewritten after every run
 rather than at the end: a sweep is hours long, and a table of what finished is
 worth more than a complete one that a failed rollout prevents. Aggregation stays
 lossless-by-default: the per-request CSVs are untouched and every row points back
 to its own.
 
 **One output directory per sweep, cleared before the sweep starts.** `--summaries`
-(default `./results`) holds `benchmark_summary_results.csv` and a
+(default `./results`) holds `results.json`, `benchmark_summary_results.csv` and a
 `per_case_results/` subdirectory, and both are wiped of the previous sweep's
 artifacts first. The alternative — writing each run's CSV into the CWD and
 accumulating across sweeps, which is what `benchmark.py` alone does — makes the two
@@ -374,7 +374,7 @@ in the current summary is indistinguishable from a result of it, and a re-run
 shorter than its predecessor leaves rows pointing at files it never overwrote.
 Refusing to merge is a stronger guarantee than any naming scheme, because the
 failure it prevents is misattribution, not collision. The wipe is confined to the
-one file and the one subdirectory the harness owns, so the directory can hold other
+two files and the one subdirectory the harness owns, so the directory can hold other
 things; it happens after the config is validated and the preflight has passed, so
 a mistake that would have failed every run costs nothing. `result_file` is recorded relative to the summary
 so the directory survives being copied off the benchmark host.

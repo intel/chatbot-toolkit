@@ -44,9 +44,9 @@ is one more load test, and nothing on the cluster changes.
 There is no `tokenizer` key: `-m` is derived from the model the deployment
 serves, and declaring it is an error.
 
-Every run adds a row to `benchmark_summary_results.csv` in `--summaries`
-(default `./results`), with one column per declared knob; the previous sweep's
-results there are deleted first.
+Every run adds a record to `results.json` and a row to
+`benchmark_summary_results.csv` in `--summaries` (default `./results`); the
+previous sweep's results there are deleted first.
 
 ## `general.yaml`
 

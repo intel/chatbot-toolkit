@@ -2,23 +2,35 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import csv
+import json
 
 import allure
 import pytest
 
-from tests.e2e.benchmarks.chatqna.pysweep.config import load_config
 from tests.e2e.benchmarks.chatqna.pysweep.results import (
     PER_CASE_DIR_NAME,
-    SUMMARY_COLUMNS,
+    RESULTS_FILE_NAME,
+    SCHEMA_VERSION,
     SUMMARY_FILE_NAME,
     RequestRecord,
     SummariesLayoutError,
-    SweepSummary,
+    SweepResults,
+    flatten,
+    nest,
     percentile,
     prepare_summaries_dir,
     read_requests,
+    run_record,
     summarize_requests,
 )
+
+COMMIT = {
+    "sha": "0123456789abcdef0123456789abcdef01234567",
+    "datetime": "2026-11-25T18:02:44+01:00",
+    "author": "A. Author",
+    "description": "feat: something",
+    "branch": "kkurzacz/pysweep-core",
+}
 
 CLIENT = {
     "question_file": "questions-short.csv",
@@ -61,7 +73,7 @@ def test_percentile_interpolates_like_pandas():
 
 
 @allure.feature("pysweep")
-def test_kpis_are_computed_over_the_recorded_requests(tmp_path):
+def test_results_are_computed_over_the_recorded_requests(tmp_path):
     path = _result_file(
         tmp_path,
         [
@@ -69,12 +81,32 @@ def test_kpis_are_computed_over_the_recorded_requests(tmp_path):
             [128, 11, 2.0, 6.0, "", 200],
         ],
     )
-    summary = summarize_requests(read_requests(path))
-    assert summary["requests"] == 2
-    assert summary["mean_ttft"] == pytest.approx(1.5)
-    assert summary["p90_ttft"] == pytest.approx(1.9)
-    assert summary["mean_tpot"] == pytest.approx(0.3)
-    assert summary["p90_tpot"] == pytest.approx(0.38)
+    results = summarize_requests(read_requests(path), duration_s=10)
+    assert results["requests"] == {"ok": 2}
+    assert results["ttft_s"]["mean"] == pytest.approx(1.5)
+    assert results["ttft_s"]["p50"] == pytest.approx(1.5)
+    assert results["ttft_s"]["p90"] == pytest.approx(1.9)
+    assert results["tpot_s"]["mean"] == pytest.approx(0.3)
+    assert results["tpot_s"]["p90"] == pytest.approx(0.38)
+    assert results["e2e_s"]["mean"] == pytest.approx(4.5)
+    assert results["input_tokens"] == {"mean": 128}
+    assert results["output_tokens"] == {"mean": 11, "total": 22}
+    assert results["throughput"] == {"requests_per_s": 0.2, "output_tokens_per_s": 2.2}
+
+
+@allure.feature("pysweep")
+def test_results_keep_their_shape_when_nothing_was_recorded():
+    results = summarize_requests([], duration_s=10)
+    assert results["requests"] == {"ok": 0}
+    assert results["ttft_s"] == {"mean": None, "p50": None, "p90": None, "p99": None}
+    assert results["output_tokens"] == {"mean": None, "total": 0}
+    assert results["throughput"] == {"requests_per_s": 0.0, "output_tokens_per_s": 0.0}
+
+
+@allure.feature("pysweep")
+def test_throughput_is_undefined_without_a_duration():
+    results = summarize_requests([RequestRecord(128, 11, 1.0, 3.0, "", 200)], duration_s=0)
+    assert results["throughput"] == {"requests_per_s": None, "output_tokens_per_s": None}
 
 
 @allure.feature("pysweep")
@@ -92,110 +124,115 @@ def test_unsuccessful_and_implausible_rows_are_excluded(tmp_path):
     )
     records = read_requests(path)
     assert len(records) == 1
-    assert summarize_requests(records)["requests"] == 1
+    assert summarize_requests(records, duration_s=10)["requests"] == {"ok": 1}
 
 
 @allure.feature("pysweep")
-def test_a_run_that_recorded_nothing_still_gets_a_row(tmp_path):
-    summary = SweepSummary(["client.concurrency"], path=tmp_path / "s.csv")
-    row = summary.add_run({"client.concurrency": 128}, tmp_path / "missing.csv", error=1)
-    assert row["requests"] == 0
-    assert row["mean_ttft"] is None
-    written = list(csv.DictReader((tmp_path / "s.csv").open()))
-    assert written == [
-        {
-            "client.concurrency": "128",
-            "requests": "0",
-            "mean_ttft": "",
-            "p90_ttft": "",
-            "mean_tpot": "",
-            "p90_tpot": "",
-            "served_model": "",
-            "error": "1",
-            "result_file": "missing.csv",
-        }
-    ]
+def test_nest_and_flatten_are_inverse():
+    dotted = {"llms.max_new_tokens": 128, "retriever.k": 5, "top": 1}
+    assert nest(dotted) == {"llms": {"max_new_tokens": 128}, "retriever": {"k": 5}, "top": 1}
+    assert flatten(nest(dotted)) == dotted
 
 
-@allure.feature("pysweep")
-def test_result_file_is_recorded_relative_to_the_summary(tmp_path):
-    per_case = tmp_path / PER_CASE_DIR_NAME
-    per_case.mkdir()
-    result = _result_file(per_case, [[128, 11, 1.0, 3.0, "", 200]])
-    summary = SweepSummary(["client.concurrency"], path=tmp_path / SUMMARY_FILE_NAME)
-
-    row = summary.add_run({"client.concurrency": 4}, result)
-
-    assert row["result_file"] == f"{PER_CASE_DIR_NAME}/bench_x.result.csv"
-    assert (summary.path.parent / row["result_file"]).exists()
-
-
-@allure.feature("pysweep")
-def test_a_result_file_from_outside_the_directory_is_recorded_verbatim(tmp_path):
-    elsewhere = _result_file(tmp_path, [[128, 11, 1.0, 3.0, "", 200]])
-    root = tmp_path / "results"
-    root.mkdir()
-    summary = SweepSummary([], path=root / SUMMARY_FILE_NAME)
-
-    row = summary.add_run({}, elsewhere)
-
-    assert row["result_file"] == str(elsewhere)
-
-
-@allure.feature("pysweep")
-def test_summary_columns_are_the_declared_knobs_in_dot_notation(tmp_path):
-    """Single-valued knobs get columns too."""
-    cfg = load_config(
-        {
-            "client": {**CLIENT, "concurrency": [1, 16], "input_tokens": [128, 256]},
-            "llms": {"max_new_tokens": [128, 256]},
-        }
+def _record(index="1.1", result_file="per_case_results/r.csv", concurrency=4, results=None):
+    return run_record(
+        index=index,
+        started_at="2026-11-26T09:14:03Z",
+        finished_at="2026-11-26T09:29:05Z",
+        exit_code=0,
+        result_file=result_file,
+        deployment={"llms.max_new_tokens": 128},
+        client={"client.concurrency": concurrency, "client.tokenizer": "org/tok"},
+        results=results or summarize_requests([], duration_s=60),
     )
-    summary = SweepSummary(cfg.knob_paths(), path=tmp_path / "s.csv")
-    assert summary.columns == [
-        "llms.max_new_tokens",
-        "client.concurrency",
-        "client.duration",
-        "client.failures_allowed",
-        "client.input_tokens",
-        "client.question_file",
-        "client.warmup_requests",
-        "client.worker_startup_delay",
-        *SUMMARY_COLUMNS,
+
+
+@allure.feature("pysweep")
+def test_a_record_groups_settings_into_deployment_and_client():
+    record = _record()
+    assert list(record) == ["run", "settings", "results"]
+    assert record["run"] == {
+        "index": "1.1",
+        "started_at": "2026-11-26T09:14:03Z",
+        "finished_at": "2026-11-26T09:29:05Z",
+        "exit_code": 0,
+        "result_file": "per_case_results/r.csv",
+    }
+    assert record["settings"] == {
+        "deployment": {"llms": {"max_new_tokens": 128}},
+        "client": {"concurrency": 4, "tokenizer": "org/tok"},
+    }
+
+
+@pytest.fixture
+def layout(tmp_path):
+    return prepare_summaries_dir(tmp_path / "out")
+
+
+@allure.feature("pysweep")
+def test_results_json_exists_before_the_first_run_finishes(layout):
+    SweepResults(layout, date="2026-11-26T09:02:11Z", commit_info=COMMIT)
+    assert json.loads(layout.results_file.read_text()) == {
+        "schema_version": SCHEMA_VERSION,
+        "date": "2026-11-26T09:02:11Z",
+        "commit_info": COMMIT,
+        "runs": [],
+    }
+
+
+@allure.feature("pysweep")
+def test_results_json_holds_every_run_after_each_one(layout):
+    sweep = SweepResults(layout, date="2026-11-26T09:02:11Z", commit_info=COMMIT)
+    for index in (1, 2):
+        sweep.add_run(_record(index=f"1.{index}"))
+        document = json.loads(layout.results_file.read_text())
+        assert [run["run"]["index"] for run in document["runs"]] == [f"1.{i}" for i in range(1, index + 1)]
+
+
+@allure.feature("pysweep")
+def test_the_csv_has_one_dotted_row_per_run(layout):
+    sweep = SweepResults(layout, date="2026-11-26T09:02:11Z", commit_info=COMMIT)
+    sweep.add_run(_record(concurrency=1))
+    sweep.add_run(_record(index="1.2", concurrency=16))
+
+    rows = list(csv.DictReader(layout.summary_file.open()))
+    assert [row["settings.client.concurrency"] for row in rows] == ["1", "16"]
+    header = next(csv.reader(layout.summary_file.open()))
+    assert header[:7] == [
+        "date",
+        "commit_info.sha",
+        "commit_info.datetime",
+        "commit_info.author",
+        "commit_info.description",
+        "commit_info.branch",
+        "run.index",
     ]
+    assert "settings.deployment.llms.max_new_tokens" in header
+    assert "results.ttft_s.p90" in header
+    assert rows[0]["commit_info.branch"] == "kkurzacz/pysweep-core"
 
 
 @allure.feature("pysweep")
-def test_header_exists_before_the_first_run_finishes(tmp_path):
-    path = tmp_path / "sweep_summary.csv"
-    summary = SweepSummary(["client.concurrency"], path=path)
-    assert path.exists()
-    assert next(csv.reader(path.open())) == summary.columns
-    assert list(csv.DictReader(path.open())) == []
+def test_missing_values_render_blank_in_the_csv(layout):
+    sweep = SweepResults(layout, date="2026-11-26T09:02:11Z", commit_info=COMMIT)
+    sweep.add_run(_record())
+    (row,) = csv.DictReader(layout.summary_file.open())
+    assert row["results.ttft_s.mean"] == ""
+    assert row["results.requests.ok"] == "0"
 
 
 @allure.feature("pysweep")
-def test_summary_is_readable_after_every_run(tmp_path):
-    path = tmp_path / "sweep_summary.csv"
-    summary = SweepSummary(["client.concurrency"], path=path)
-    for index, concurrency in enumerate((1, 16), start=1):
-        result = _result_file(
-            tmp_path, [[128, 11, 1.0, 3.0, "", 200]], name=f"bench_{concurrency}.csv"
-        )
-        summary.add_run({"client.concurrency": concurrency}, result)
-        rows = list(csv.DictReader(path.open()))
-        assert len(rows) == index
-    assert [row["client.concurrency"] for row in rows] == ["1", "16"]
-    assert [row["mean_tpot"] for row in rows] == ["0.2", "0.2"]
+def test_result_file_pointer_is_relative_to_the_summaries_directory(layout):
+    sweep = SweepResults(layout, date="d", commit_info=COMMIT)
+    inside = layout.per_case_dir / "bench_x.result.csv"
+    assert sweep.pointer(inside) == f"{PER_CASE_DIR_NAME}/bench_x.result.csv"
 
 
 @allure.feature("pysweep")
-def test_unset_knobs_render_blank_rather_than_shifting_columns(tmp_path):
-    summary = SweepSummary(["llms.max_new_tokens", "client.concurrency"], path=tmp_path / "s.csv")
-    row = summary.add_run({"client.concurrency": 4}, tmp_path / "none.csv")
-    assert row["llms.max_new_tokens"] == ""
-    header = next(csv.reader((tmp_path / "s.csv").open()))
-    assert header[:2] == ["llms.max_new_tokens", "client.concurrency"]
+def test_a_result_file_from_outside_the_directory_is_recorded_verbatim(layout, tmp_path):
+    sweep = SweepResults(layout, date="d", commit_info=COMMIT)
+    elsewhere = tmp_path / "elsewhere.csv"
+    assert sweep.pointer(elsewhere) == str(elsewhere)
 
 
 @allure.feature("pysweep")
@@ -206,6 +243,7 @@ def test_the_output_layout_is_created_when_nothing_is_there(tmp_path):
     assert layout.root.is_dir()
     assert layout.per_case_dir.is_dir()
     assert layout.summary_file == layout.root / SUMMARY_FILE_NAME
+    assert layout.results_file == layout.root / RESULTS_FILE_NAME
     assert layout.per_case_dir == layout.root / PER_CASE_DIR_NAME
 
 
@@ -217,6 +255,7 @@ def test_the_paths_are_absolute(tmp_path, monkeypatch):
 
     assert layout.root.is_absolute()
     assert layout.summary_file.is_absolute()
+    assert layout.results_file.is_absolute()
     assert layout.per_case_dir.is_absolute()
 
 
@@ -226,6 +265,7 @@ def test_the_previous_sweep_is_discarded(tmp_path):
     per_case = root / PER_CASE_DIR_NAME
     per_case.mkdir(parents=True)
     (root / SUMMARY_FILE_NAME).write_text("stale header\n")
+    (root / RESULTS_FILE_NAME).write_text("{}\n")
     (per_case / "bench_old.result.csv").write_text("stale\n")
     (per_case / "nested").mkdir()
     (per_case / "nested" / "deeper.csv").write_text("stale\n")
@@ -233,6 +273,7 @@ def test_the_previous_sweep_is_discarded(tmp_path):
     layout = prepare_summaries_dir(root)
 
     assert not layout.summary_file.exists()
+    assert not layout.results_file.exists()
     assert list(layout.per_case_dir.iterdir()) == []
 
 
