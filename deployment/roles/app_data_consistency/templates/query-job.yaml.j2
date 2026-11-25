@@ -10,14 +10,6 @@
   container's command or args, so `kubectl get pod <pod> -o yaml` shows the
   script path and nothing else.
 #}
-{% set container_security_context %}
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
-{% endset %}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -29,10 +21,6 @@ metadata:
 data:
   query.sh: |
 {{ lookup('file', role_path + '/files/' + dcj_script) | indent(4, first=True) }}
-{% if _dcj_ambient %}
-  wait-for-ztunnel.sh: |
-{{ lookup('file', role_path + '/files/wait_for_ztunnel.sh') | indent(4, first=True) }}
-{% endif %}
 ---
 apiVersion: batch/v1
 kind: Job
@@ -55,7 +43,8 @@ spec:
         app.kubernetes.io/name: {{ data_consistency_job_label }}
         app.kubernetes.io/component: {{ dcj_label }}
     spec:
-      restartPolicy: Never
+      # Retry in the same pod: under ambient on OpenShift ztunnel captures it only once it runs.
+      restartPolicy: OnFailure
       securityContext:
         runAsNonRoot: true
 {% if _data_consistency_fixed_uids | bool %}
@@ -63,33 +52,16 @@ spec:
 {% endif %}
         seccompProfile:
           type: RuntimeDefault
-{% if _dcj_ambient %}
-      initContainers:
-        - name: wait-for-ztunnel
-          image: {{ data_consistency_ztunnel_wait_image }}
-          imagePullPolicy: IfNotPresent
-{{ container_security_context.rstrip('\n') }}
-          command: ["/bin/sh", "/scripts/wait-for-ztunnel.sh"]
-          env:
-            - name: ZTUNNEL_WAIT_SECONDS
-              value: "{{ data_consistency_ztunnel_wait_seconds }}"
-          resources:
-            requests:
-              cpu: "10m"
-              memory: "16Mi"
-            limits:
-              cpu: "100m"
-              memory: "32Mi"
-          volumeMounts:
-            - name: scripts
-              mountPath: /scripts
-              readOnly: true
-{% endif %}
       containers:
         - name: query
           image: {{ dcj_image }}
           imagePullPolicy: IfNotPresent
-{{ container_security_context.rstrip('\n') }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           command: ["{{ dcj_shell | default('/bin/sh') }}", "/scripts/query.sh"]
           env:
             - name: HOME
