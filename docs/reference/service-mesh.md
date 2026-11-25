@@ -140,7 +140,7 @@ For Istio installation, version, and cluster-wide configuration see the Toolkit 
 
 - [Namespace Security Labels](https://github.com/intel/toolkit-manager/blob/main/docs/reference/labels.md)
 - [Platform Architecture](https://github.com/intel/toolkit-manager/blob/main/docs/reference/architecture.md)
-- [Network Architecture](https://github.com/intel/toolkit-manager/blob/main/docs/deploy/networking.md)
+- [Network Architecture](https://github.com/intel/toolkit-manager/blob/main/docs/reference/networking.md)
 
 Istio troubleshooting guides:
 - https://istio.io/latest/docs/ambient/usage/troubleshoot-ztunnel/

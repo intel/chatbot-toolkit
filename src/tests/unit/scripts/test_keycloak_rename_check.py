@@ -9,7 +9,7 @@ Guard the refusal of an in-place upgrade from a release before the Chatbot Toolk
 deployment/upgrade_checks/keycloak_rename.yaml records a blocking verdict when the
 deployment record holds a version below 3.1.0: such a release created the Keycloak
 realm EnterpriseRAG, which this release does not rename. The resolve points to the
-reinstall section of docs/deploy/install_rag.md. A fresh install (no record) and a
+reinstall section of docs/deployment/install-rag.md. A fresh install (no record) and a
 record from a 3.1.0 build, including a dev or rc build, pass.
 
 The check runs on localhost with a fixture record. No cluster is used; the test is
@@ -66,7 +66,7 @@ def test_record_before_the_rename_blocks_with_the_reinstall(tmp_path, recorded):
     verdict = _check(tmp_path, {"erag": {"layer": "erag", "version": recorded, "status": "complete"}})
     assert verdict["verdict"] == "blocking"
     assert recorded in verdict["reason"]
-    assert "docs/deploy/install_rag.md" in verdict["resolve"]
+    assert "docs/deployment/install-rag.md" in verdict["resolve"]
     assert _SECTION in verdict["resolve"]
 
 
@@ -82,4 +82,4 @@ def test_fresh_install_or_a_record_after_the_rename_passes(tmp_path, records):
 
 
 def test_resolve_names_an_existing_section():
-    assert f"## {_SECTION}" in (_REPO / "docs" / "deploy" / "install_rag.md").read_text()
+    assert f"## {_SECTION}" in (_REPO / "docs" / "deployment" / "install-rag.md").read_text()

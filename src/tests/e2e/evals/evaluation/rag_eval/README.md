@@ -59,7 +59,7 @@ Export the `PYTHONPATH` environment variable pointing to the `src` folder in thi
 
 ### Launch Service of RAG System
 
-Please refer to this [guide](../../../../../../docs/deploy/install_rag.md) to launch the service of RAG system.
+Please refer to this [guide](../../../../../../docs/deployment/install-rag.md) to launch the service of RAG system.
 
 > [!WARNING]
 > The RAG service must be accessible locally. Ensure no network restrictions or proxies block local access.
@@ -83,7 +83,7 @@ _This step is required only for computing RAGAS metrics._
 
 To calculate RAGAS metrics, a separate LLM as a Judge service, a dedicated language model responsible for evaluating answer quality, is required. You can launch the service by using existing scripts provided elsewhere in the project.
 
-To start the VLLM model server, navigate to [src/comps/llms/impl/model_server/vllm](../../../../../../src/comps/llms/impl/model_server/vllm) and run the following commands:
+To start the VLLM model server, navigate to [src/comps/llms/impl/model_server/vllm](../../../../../comps/llms/impl/model_server/vllm) and run the following commands:
 
 ```bash
 cd ../../../../../../src/comps/llms/impl/model_server/vllm
@@ -146,7 +146,7 @@ You do not need to specify `--embedding_model_name` if the embedding server serv
 
 #### Runs standalone vLLM embedding model server (Option 2)
 
-To start the VLLM embedding model server, navigate to [src/comps/embeddings/impl/model_server/vllm](../../../../../../src/comps/embeddings/impl/model_server/vllm) and run the following commands:
+To start the VLLM embedding model server, navigate to [src/comps/embeddings/impl/model_server/vllm](../../../../../comps/embeddings/impl/model_server/vllm) and run the following commands:
 
 ```bash
 cd ../../../../../../src/comps/embeddings/impl/model_server/vllm

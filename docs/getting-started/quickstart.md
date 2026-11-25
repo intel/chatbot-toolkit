@@ -35,7 +35,7 @@ To stage the platform separately, for example to confirm model serving works bef
 ./es_auto_installer.sh install inference --env local
 ```
 
-For multi-node or bring-your-own-Kubernetes, see the [Platform Quickstart](https://github.com/intel/toolkit-manager/blob/main/docs/quickstart/quickstart.md).
+For multi-node or bring-your-own-Kubernetes, see the [Platform Quickstart](https://github.com/intel/toolkit-manager/blob/main/docs/getting-started/quickstart.md).
 
 ## Step 3 - Initialize the chatbot
 
@@ -54,7 +54,7 @@ Seeds `env/local/config.erag.yaml`. Default flavour is `chatqna`. Others:
 Available: `chatqna`, `docsum`, `audioqna`, `translation`, `pl_chatqna`.
 
 > [!NOTE]
-> The flavour is chosen at `init` time. Re-running `init erag --flavour <other>` on an existing environment is refused so your edits are not overwritten: use a fresh `--env`, or delete `env/<name>/config.erag.yaml` to reseed. To change the pipeline **after** installing, edit `pipeline_type` in `config.erag.yaml` and re-run `install erag` instead. See [Pipelines](../deploy/pipelines.md#switching-pipelines).
+> The flavour is chosen at `init` time. Re-running `init erag --flavour <other>` on an existing environment is refused so your edits are not overwritten: use a fresh `--env`, or delete `env/<name>/config.erag.yaml` to reseed. To change the pipeline **after** installing, edit `pipeline_type` in `config.erag.yaml` and re-run `install erag` instead. See [Pipelines](../deployment/pipelines.md#switching-pipelines).
 
 ## Step 4 - Configure (optional)
 
@@ -138,15 +138,15 @@ Then add the same line to your local `/etc/hosts`.
 kubectl -n keycloak get secret platform-bootstrap-admin -o jsonpath='{.data.value}' | base64 -d; echo
 ```
 
-The local `admin` signs in on the same login form; see [Telemetry](../operate/telemetry.md#login).
+The local `admin` signs in on the same login form; see [Telemetry](../configuration/telemetry.md#login).
 
 ## Next steps
 
-- [Install RAG Guide](../deploy/install_rag.md) - full deployment options and troubleshooting
-- [Pipeline Configuration](../deploy/pipelines.md) - switch pipelines and variants
-- [Configuration Reference](../customize/configuration.md) - model selection, multi-node, external endpoints
-- [Data Ingestion](../deploy/install_rag.md#data-ingestion-ui-and-telemetry) - add documents
-- [Teardown](../deploy/install_rag.md#remove-the-installation) - clean removal
+- [Install RAG Guide](../deployment/install-rag.md) - full deployment options and troubleshooting
+- [Pipeline Configuration](../deployment/pipelines.md) - switch pipelines and variants
+- [Configuration Reference](../configuration/configuration.md) - model selection, multi-node, external endpoints
+- [Data Ingestion](../deployment/install-rag.md#data-ingestion-ui-and-telemetry) - add documents
+- [Teardown](../deployment/install-rag.md#remove-the-installation) - clean removal
 
 ## Troubleshooting
 

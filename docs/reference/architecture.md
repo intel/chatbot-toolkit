@@ -79,7 +79,7 @@ Each step of a RAG answer is its own service, which is what lets you swap a rera
 20 FastAPI microservices in `src/comps/`, packaged as Docker images and deployed via Helm. That is 17 top-level services plus the three `guardrails` sub-services. `src/comps/cores/` and `src/comps/vectorstores/` are shared libraries the services import, not deployed services of their own.
 
 <div align="center">
-   <img alt="Intel® Chatbot Toolkit microservices map: every microservice in the stack grouped by role - ingestion and data preparation services feeding the vector database, retrieval and reranking services, guardrail services on the query and response paths, and the pipeline router connecting them - with Intel® Inference Toolkit shown beneath" src="../microservices_architecture.png" width="900">
+   <img alt="Intel® Chatbot Toolkit microservices map: every microservice in the stack grouped by role - ingestion and data preparation services feeding the vector database, retrieval and reranking services, guardrail services on the query and response paths, and the pipeline router connecting them - with Intel® Inference Toolkit shown beneath" src="../assets/microservices_architecture.png" width="900">
 </div>
 
 | Service | Purpose | Namespace (default) |
@@ -188,7 +188,7 @@ Enabled via `mcp_enabled: true` in `config.erag.yaml`. Requires `app_edp` and `a
 | `keycloak` | Platform | Keycloak |
 | `monitoring` | Platform | Prometheus, Grafana, Loki, Tempo |
 
-All RAG namespaces join the Istio ambient mesh via `istio.io/dataplane-mode: ambient` label. On OpenShift they join the cluster's Service Mesh 3 with sidecars instead ([Mesh](mesh.md#openshift-sidecars)).
+All RAG namespaces join the Istio ambient mesh via `istio.io/dataplane-mode: ambient` label. On OpenShift they join the cluster's Service Mesh 3 with sidecars instead ([Mesh](service-mesh.md#openshift-sidecars)).
 
 ## Istio Mesh Integration
 
@@ -196,7 +196,7 @@ The platform (`roles/istio/`) deploys Istio ambient mesh. Chatbot namespaces joi
 
 Current mTLS posture: `STRICT` via `PeerAuthentication` in each namespace. **Authorization policies are not currently deployed** - the deployment ships zero `AuthorizationPolicy` resources. Only mutual TLS is enforced; service-to-service authorization is not configured.
 
-See [Mesh](mesh.md) for how to add a new service to the mesh.
+See [Mesh](service-mesh.md) for how to add a new service to the mesh.
 
 ## Storage
 
@@ -205,7 +205,7 @@ See [Mesh](mesh.md) for how to add a new service to the mesh.
 - **PostgreSQL**: CNPG-managed volumes (8Gi per cluster by default)
 - **Model weights**: Intel® Inference Toolkit model-store PVC (shared with this toolkit)
 - **Backup and restore**: opt-in, Velero-based CSI volume snapshots of the namespaces above plus the
-  identity realm — see [Backup and Restore](../operate/backup.md)
+  identity realm — see [Backup and Restore](../deployment/backup-and-restore.md)
 
 ## Telemetry
 
@@ -218,7 +218,7 @@ Additionally, Intel® Inference Toolkit dashboards (`modelserving` tag) show vLL
 
 Logs flow to Loki via OpenTelemetry; traces go to Tempo. Access via `https://grafana.<base_domain_name>`.
 
-See [Telemetry](../operate/telemetry.md) for login and dashboard details.
+See [Telemetry](../configuration/telemetry.md) for login and dashboard details.
 
 ## Deployment Sequence
 
@@ -241,7 +241,7 @@ At `install erag`:
 
 ## Related
 
-- [Telemetry](../operate/telemetry.md) - Grafana dashboards, log queries
-- [Performance](../operate/performance.md) - Tuning model sizing, HPA, Redis vector index settings
-- [Docker Images](docker_images.md) - Published images and Dockerfiles
-- [Mesh](mesh.md) - Istio integration and mTLS posture
+- [Telemetry](../configuration/telemetry.md) - Grafana dashboards, log queries
+- [Performance](../configuration/performance.md) - Tuning model sizing, HPA, Redis vector index settings
+- [Docker Images](container-images.md) - Published images and Dockerfiles
+- [Mesh](service-mesh.md) - Istio integration and mTLS posture

@@ -7,7 +7,7 @@ through the platform's Velero-based backup mechanism. Opt-in and off by default.
 The platform provides the mechanism (Velero, CSI volume snapshots, the profile-driven engine). This
 toolkit declares what its own data is and drives that engine against it. See
 [Toolkit Manager](https://github.com/intel/toolkit-manager)'s
-`docs/customize/configuration.md` for the platform settings (`velero_enabled`,
+`docs/configuration/configuration.md` for the platform settings (`velero_enabled`,
 `storage_backend`).
 
 ## Enabling it
@@ -223,6 +223,6 @@ pass that check with `--force`: the run would create a second, empty Keycloak re
 
 ## Related docs
 
-[Configuration](../customize/configuration.md#backup-and-restore) (`backup_enabled` and the upgrade
-gate settings), the platform's `docs/customize/configuration.md` (`velero_enabled`,
-`storage_backend`), [Troubleshooting](troubleshooting.md) (issues unrelated to backup specifically).
+[Configuration](../configuration/configuration.md#backup-and-restore) (`backup_enabled` and the upgrade
+gate settings), the platform's `docs/configuration/configuration.md` (`velero_enabled`,
+`storage_backend`), [Troubleshooting](../faq-and-troubleshooting/troubleshooting.md) (issues unrelated to backup specifically).

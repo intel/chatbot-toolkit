@@ -59,14 +59,14 @@ storage             Keycloak       vLLM / OVMS   vector database, guardrails,
                     observability
 ```
 
-You choose what the application does by selecting a **flavour** at init time: conversational retrieval (`chatqna`, the default), document summarization (`docsum`), translation (`translation`), voice (`audioqna`), or Polish-language retrieval (`pl_chatqna`). Flavours and their variants are described in [Pipelines](../deploy/pipelines.md).
+You choose what the application does by selecting a **flavour** at init time: conversational retrieval (`chatqna`, the default), document summarization (`docsum`), translation (`translation`), voice (`audioqna`), or Polish-language retrieval (`pl_chatqna`). Flavours and their variants are described in [Pipelines](../deployment/pipelines.md).
 
 ## Start here
 
 | You want to | Go to |
 |---|---|
-| Check whether your hardware qualifies | [Prerequisites](../quickstart/prerequisites.md) |
-| Deploy it now | [Quick Start](../quickstart/quickstart.md) |
+| Check whether your hardware qualifies | [Prerequisites](../getting-started/prerequisites.md) |
+| Deploy it now | [Quick Start](../getting-started/quickstart.md) |
 | Understand the components before deploying | [Architecture](../reference/architecture.md) |
-| Know what a term means | [Glossary](../glossary.md) |
-| Skim common questions | [FAQ](../faq.md) |
+| Know what a term means | [Glossary](../reference/glossary.md) |
+| Skim common questions | [FAQ](../faq-and-troubleshooting/frequently-asked-questions.md) |

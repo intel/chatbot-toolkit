@@ -316,4 +316,4 @@ The Keycloak admin console is at `https://keycloak.<base_domain_name>` in `subdo
 | Topic | Link |
 |-------|------|
 | MCP gateway source code and service-level env vars | [`src/mcp_gateway/README.md`](../../src/mcp_gateway/README.md) |
-| Pipeline variants | [`../deploy/pipelines.md`](../deploy/pipelines.md) |
+| Pipeline variants | [`../deployment/pipelines.md`](../deployment/pipelines.md) |

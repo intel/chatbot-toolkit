@@ -3,10 +3,10 @@
 [← Docs Index](../README.md)
 
 <p align="center">
-    <img src="../images/vmware-logo.png" alt="VMware by Broadcom" width="500" />
+    <img src="../assets/vmware-logo.png" alt="VMware by Broadcom" width="500" />
 </p>
 
-This guide covers deploying Intel® Chatbot Toolkit onto virtual machines running on VMware vSphere: how many VMs to size, what the hypervisor has to expose for Intel AMX to be usable inside the guests, and the install steps that differ from a bare-metal deployment. The general install flow is unchanged, so read [Deploy Intel® Chatbot Toolkit](install_rag.md) alongside it.
+This guide covers deploying Intel® Chatbot Toolkit onto virtual machines running on VMware vSphere: how many VMs to size, what the hypervisor has to expose for Intel AMX to be usable inside the guests, and the install steps that differ from a bare-metal deployment. The general install flow is unchanged, so read [Deploy Intel® Chatbot Toolkit](install-rag.md) alongside it.
 
 ## Capacity Requirements
 
@@ -84,7 +84,7 @@ cd toolkit-manager
 
 ### 2. Deploy the Kubernetes cluster on vSphere
 
-Describe the VMs in `env/local/nodes.yaml` and `env/local/inventory/hosts.yaml`, then let the installer provision the cluster. See the Toolkit Manager [Multi-Node and BYO Cluster guide](https://github.com/intel/toolkit-manager/blob/main/docs/deploy/topologies.md).
+Describe the VMs in `env/local/nodes.yaml` and `env/local/inventory/hosts.yaml`, then let the installer provision the cluster. See the Toolkit Manager [Multi-Node and BYO Cluster guide](https://github.com/intel/toolkit-manager/blob/main/docs/deployment/multi-node.md).
 
 If vSphere already provides the cluster, set `existing_kubernetes` in `env/local/global_config.yaml` to its kubeconfig path instead.
 
@@ -94,11 +94,11 @@ If vSphere already provides the cluster, set `existing_kubernetes` in `env/local
 ./es_auto_installer.sh install erag
 ```
 
-This pulls in the `infrastructure`, `platform`, and `inference` installer targets first. Full walkthrough → [Deploy Intel® Chatbot Toolkit](install_rag.md).
+This pulls in the `infrastructure`, `platform`, and `inference` installer targets first. Full walkthrough → [Deploy Intel® Chatbot Toolkit](install-rag.md).
 
 ## Debugging Commands
 
-For comprehensive debugging guidance, see [Troubleshooting](../operate/troubleshooting.md).
+For comprehensive debugging guidance, see [Troubleshooting](../faq-and-troubleshooting/troubleshooting.md).
 
 | Command | What it does |
 |---|---|

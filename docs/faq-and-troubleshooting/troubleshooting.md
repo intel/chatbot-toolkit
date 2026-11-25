@@ -30,7 +30,7 @@ Common symptoms, causes, and fixes for Intel® Chatbot Toolkit deployments.
 |---------|--------------------|
 | GMConnector stuck not-Ready | Check GMC manager logs: `kubectl logs -n <pipeline-namespace> -l app.kubernetes.io/name=gmc-manager`. Verify all pipeline steps have matching Service and Deployment resources: `kubectl get svc,deploy -n <pipeline-namespace>`. |
 | Router service returns 503 | One or more pipeline steps are unhealthy. Check: `kubectl get pods -n <pipeline-namespace>`. Inspect logs of unhealthy pods. |
-| Request goes through but returns empty results | Vector DB mismatch. Verify retriever and ingestion are using the same `vector_algorithm` setting. See [Performance](performance.md#verifying-the-redis-vector-index). |
+| Request goes through but returns empty results | Vector DB mismatch. Verify retriever and ingestion are using the same `vector_algorithm` setting. See [Performance](../configuration/performance.md#verifying-the-redis-vector-index). |
 | Pipeline variant not applied | Variant is set via `pipeline_variant` in `config.erag.yaml`. Re-run `install erag` after changing it (GMConnector must be regenerated). |
 | NATS connection errors | NATS uses NKey auth. Verify the `nats-auth` secret exists in the pipeline namespace: `kubectl get secret -n <pipeline-namespace> nats-auth`. |
 
@@ -41,7 +41,7 @@ Common symptoms, causes, and fixes for Intel® Chatbot Toolkit deployments.
 | File upload fails with 500 error | Check EDP API logs: `kubectl logs -n edp -l app.kubernetes.io/name=edp`. Verify PostgreSQL is healthy: `kubectl get cluster -n edp`. |
 | Files stuck in processing state | Celery workers may be overloaded or unhealthy. Check: `kubectl get pods -n edp -l app.kubernetes.io/component=celery`. Scale workers: `kubectl scale deploy -n edp edp-celery --replicas=<N>`. |
 | "No space left on device" during ingestion | EDP blob storage (SeaweedFS / S3) is full. Increase PVC size or clean up old files. Check storage usage: `kubectl exec -n edp <edp-pod> -- df -h`. |
-| Vector DB index has two entries (queries return no results) | Retriever and ingestion are using different `vector_algorithm` settings. Fix: set both to the same value in `config.erag.yaml`, redeploy, and re-upload files. See [Performance](performance.md#verifying-the-redis-vector-index). |
+| Vector DB index has two entries (queries return no results) | Retriever and ingestion are using different `vector_algorithm` settings. Fix: set both to the same value in `config.erag.yaml`, redeploy, and re-upload files. See [Performance](../configuration/performance.md#verifying-the-redis-vector-index). |
 
 ## UI and Gateway Issues
 
@@ -58,7 +58,7 @@ Common symptoms, causes, and fixes for Intel® Chatbot Toolkit deployments.
 | Symptom | Likely cause / fix |
 |---------|--------------------|
 | Redis cluster pods crash-looping | Insufficient memory. Increase resource limits in `config.erag.yaml` under `vector_databases_stores.redis-cluster.resources`. |
-| MSSQL pod fails to start | EULA not accepted. Re-run `install erag` and answer `Y`, or set `MSSQL_ACCEPT_EULA=Y` in the installer's environment. See [Configuration › Microsoft SQL Server 2025](../customize/configuration.md#microsoft-sql-server-2025). |
+| MSSQL pod fails to start | EULA not accepted. Re-run `install erag` and answer `Y`, or set `MSSQL_ACCEPT_EULA=Y` in the installer's environment. See [Configuration › Microsoft SQL Server 2025](../configuration/configuration.md#microsoft-sql-server-2025). |
 | Queries return no results after algorithm change | Old index still exists. Re-upload all files to trigger re-indexing with the new algorithm. Verify only one index exists: `kubectl exec -it <redis-pod> -c redis -- redis-cli FT._LIST`. |
 
 ## Istio Mesh Issues
@@ -68,7 +68,7 @@ Common symptoms, causes, and fixes for Intel® Chatbot Toolkit deployments.
 | Service can't reach another service (connection timeout) | Not in the mesh, or Istio port 15008 blocked by NetworkPolicy. Verify pod has `ambient.istio.io/redirection: enabled` annotation. Check ztunnel logs: `kubectl logs -n istio-system -l app=ztunnel | grep <namespace>`. |
 | Ztunnel logs show "policy rejection" | `STRICT` mTLS enforced but source isn't presenting a cert. Verify source pod is in the mesh. If the source can't join the mesh, consider adding a port-level `PERMISSIVE` exception in `PeerAuthentication`. |
 
-See [Mesh](../reference/mesh.md) for troubleshooting Istio issues.
+See [Mesh](../reference/service-mesh.md) for troubleshooting Istio issues.
 
 ## Debug Tool
 
