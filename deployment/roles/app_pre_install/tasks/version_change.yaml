@@ -44,6 +44,8 @@
       ansible.builtin.include_role:
         name: app_data_consistency
         tasks_from: snapshot.yaml
+      vars:
+        data_consistency_snapshot_label: "pre"
 
     - name: "app_pre_install | Preserve the snapshot taken before the version change"
       ansible.builtin.set_fact:
@@ -57,12 +59,8 @@
         state: absent
       loop: "{{ query('ansible.builtin.fileglob', data_consistency_report_dir ~ '/pending-pre-snapshot-*.yaml') }}"
 
-    - name: "app_pre_install | Ensure the report directory exists"
-      ansible.builtin.file:
-        path: "{{ data_consistency_report_dir }}"
-        state: directory
-        mode: "0755"
-
+    # snapshot.yaml keeps the raw count under the label, and creates the directory;
+    # this copy is the one a resume reads, removed once the comparison passed.
     - name: "app_pre_install | Keep the snapshot until the version change is compared"
       ansible.builtin.copy:
         content: "{{ _upgrade_pre_snapshot | to_nice_yaml }}"

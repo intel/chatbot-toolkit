@@ -32,6 +32,11 @@ pytest.importorskip("ansible")
 _ROLES_DIR = Path(__file__).resolve().parents[4] / "deployment" / "roles"
 
 _STUB_SNAPSHOT = """
+- ansible.builtin.file:
+    path: "{{ data_consistency_report_dir }}"
+    state: directory
+    mode: "0755"
+  when: data_consistency_snapshot_label | default('') | length > 0
 - ansible.builtin.set_fact:
     _stub_snapshot_calls: "{{ (_stub_snapshot_calls | default(0) | int) + 1 }}"
 - ansible.builtin.set_fact:
