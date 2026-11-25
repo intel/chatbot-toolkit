@@ -27,11 +27,11 @@ extraNginxVars:
 
 extraUiConfigVars:
   keycloakDomainName: "keycloak.solutions.ai"
-  keycloakRealm: "EnterpriseRAG"
-  keycloakClientId: "EnterpriseRAG-oidc"
-  adminResourceRole: "ERAG-admin"
-  userResourceRole: "ERAG-user"
-  maintainerResourceRole: "ERAG-maintainer"
+  keycloakRealm: "ChatbotToolkit"
+  keycloakClientId: "ChatbotToolkit-oidc"
+  adminResourceRole: "CHATTOOL-admin"
+  userResourceRole: "CHATTOOL-user"
+  maintainerResourceRole: "CHATTOOL-maintainer"
   grafanaDomainName: "grafana.solutions.ai"
   keycloakAdminPanelDomainName: "keycloak.solutions.ai"
   s3DomainName: "s3.solutions.ai"

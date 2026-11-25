@@ -46,7 +46,7 @@ spec:
             - |
               set -euo pipefail
               KEYCLOAK_URL="{{ keycloak_internal_url }}"
-              REALM="{{ erag_keycloak_realm }}"
+              REALM="{{ chattool_keycloak_realm }}"
 
               # Wait for Keycloak to be reachable
               for i in $(seq 1 30); do

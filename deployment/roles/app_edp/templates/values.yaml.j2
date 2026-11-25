@@ -96,7 +96,7 @@ bucketNameRegexFilter: {{ lookup('env', 's3_bucket_name_regex_filter') or edp_s3
 presignedUrlCredentialsSystemFallback: {{ edp_presigned_url_credentials_system_fallback | bool | string | lower }}
 {% endif %}
 
-edpOidcConfigUrl: "http://keycloak-service.{{ keycloak_namespace | default('keycloak') }}.svc:8080{{ erag_keycloak_path_prefix }}/realms/{{ ui_keycloak_realm | default('EnterpriseRAG') }}/.well-known/openid-configuration"
+edpOidcConfigUrl: "http://keycloak-service.{{ keycloak_namespace | default('keycloak') }}.svc:8080{{ chattool_keycloak_path_prefix }}/realms/{{ ui_keycloak_realm | default('ChatbotToolkit') }}/.well-known/openid-configuration"
 
 # Use external Redis Operator cluster in same namespace
 redisHost: "edp-redis"
@@ -107,11 +107,11 @@ redisPassword: "{{ EDP_REDIS_PASSWORD }}"
 postgresDatabasePassword: {{ EDP_POSTGRESQL_PASSWORD }}
 postgresAdminPassword: {{ EDP_POSTGRESQL_ADMIN_PASSWORD }}
 
-{% if erag_keycloak_oidc_tenant_id | default('', true) | string | trim | length > 0 %}
-sharepointTenantId: {{ erag_keycloak_oidc_tenant_id | default('', true) | string | to_json }}
-sharepointClientId: {{ erag_keycloak_oidc_client_id | default('', true) | string | to_json }}
-sharepointClientSecret: {{ erag_keycloak_oidc_client_secret | default('', true) | string | to_json }}
-keycloakBrokerIdpAlias: {{ erag_keycloak_oidc_alias | default('', true) | string | to_json }}
+{% if chattool_keycloak_oidc_tenant_id | default('', true) | string | trim | length > 0 %}
+sharepointTenantId: {{ chattool_keycloak_oidc_tenant_id | default('', true) | string | to_json }}
+sharepointClientId: {{ chattool_keycloak_oidc_client_id | default('', true) | string | to_json }}
+sharepointClientSecret: {{ chattool_keycloak_oidc_client_secret | default('', true) | string | to_json }}
+keycloakBrokerIdpAlias: {{ chattool_keycloak_oidc_alias | default('', true) | string | to_json }}
 {% endif %}
 sharepointSyncLockTtlSeconds: "{{ edp_sp_sync_lock_ttl_seconds }}"
 
@@ -182,9 +182,9 @@ awsSqs:
 
 # --- APISIX route wiring (consumed by templates/apisix-routes.yaml in this chart) ---
 {% set _apisix_kc_ns = keycloak_namespace | default('keycloak') %}
-{% set _apisix_realm = (ui_keycloak_realm if (ui_keycloak_realm | default("") | length > 0) else erag_keycloak_realm | default("EnterpriseRAG")) %}
-{# erag_keycloak_path_prefix: Keycloak's http-relative-path in path mode, '' otherwise. #}
-{% set _apisix_kc_base = 'http://keycloak-service.' ~ _apisix_kc_ns ~ '.svc:8080' ~ erag_keycloak_path_prefix %}
+{% set _apisix_realm = (ui_keycloak_realm if (ui_keycloak_realm | default("") | length > 0) else chattool_keycloak_realm | default("ChatbotToolkit")) %}
+{# chattool_keycloak_path_prefix: Keycloak's http-relative-path in path mode, '' otherwise. #}
+{% set _apisix_kc_base = 'http://keycloak-service.' ~ _apisix_kc_ns ~ '.svc:8080' ~ chattool_keycloak_path_prefix %}
 apisix:
   enabled: {{ (apisix_enabled | default(false)) | bool | string | lower }}
   ingressClassName: apisix
@@ -193,7 +193,7 @@ apisix:
   resolveGranularity: "{{ 'service' if istio_enabled | default(false) | bool and istio_dataplane_mode | default('ambient') == 'sidecar' else 'endpoint' }}"
   auth:
     realm: "{{ _apisix_realm }}"
-    client_id: "{{ apisix_oidc_client_id | default('EnterpriseRAG-oidc-backend') }}"
+    client_id: "{{ apisix_oidc_client_id | default('ChatbotToolkit-oidc-backend') }}"
     resource_registration_endpoint: "{{ _apisix_kc_base }}/realms/{{ _apisix_realm }}/authz/protection/resource_set"
     token_endpoint: "{{ _apisix_kc_base }}/realms/{{ _apisix_realm }}/protocol/openid-connect/token"
 

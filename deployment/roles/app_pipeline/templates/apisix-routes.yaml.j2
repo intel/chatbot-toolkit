@@ -9,12 +9,12 @@ Two routes:
   - k8s-api-watcher-<ns>-route : /api/v1/<ns>/status     -> kube-apiserver (GMConnector status)
 #}
 {% set _kc_ns = keycloak_namespace | default('keycloak') %}
-{% set _realm = (ui_keycloak_realm if (ui_keycloak_realm | default('') | length > 0) else erag_keycloak_realm | default('EnterpriseRAG')) %}
-{# erag_keycloak_path_prefix: Keycloak's http-relative-path in path mode, '' otherwise. #}
-{% set _kc_base = 'http://keycloak-service.' ~ _kc_ns ~ '.svc:8080' ~ erag_keycloak_path_prefix %}
+{% set _realm = (ui_keycloak_realm if (ui_keycloak_realm | default('') | length > 0) else chattool_keycloak_realm | default('ChatbotToolkit')) %}
+{# chattool_keycloak_path_prefix: Keycloak's http-relative-path in path mode, '' otherwise. #}
+{% set _kc_base = 'http://keycloak-service.' ~ _kc_ns ~ '.svc:8080' ~ chattool_keycloak_path_prefix %}
 {% set _resource_registration_endpoint = _kc_base ~ '/realms/' ~ _realm ~ '/authz/protection/resource_set' %}
 {% set _token_endpoint = _kc_base ~ '/realms/' ~ _realm ~ '/protocol/openid-connect/token' %}
-{% set _client_id = apisix_oidc_client_id | default('EnterpriseRAG-oidc-backend') %}
+{% set _client_id = apisix_oidc_client_id | default('ChatbotToolkit-oidc-backend') %}
 {% set _route_name = pipeline_namespace %}
 ---
 apiVersion: apisix.apache.org/v2

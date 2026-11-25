@@ -13,11 +13,11 @@
 - name: "app_keycloak_config | Warn that SharePoint is inactive"
   ansible.builtin.debug:
     msg: >-
-      SharePoint integration will be inactive: set erag_keycloak_oidc_tenant_id
+      SharePoint integration will be inactive: set chattool_keycloak_oidc_tenant_id
       to enable SharePoint ingestion. Single Sign-On login is unaffected.
   when:
-    - erag_keycloak_oidc_endpoint | default('', true) | string | trim | length > 0
-    - erag_keycloak_oidc_tenant_id | default('', true) | string | trim | length == 0
+    - chattool_keycloak_oidc_endpoint | default('', true) | string | trim | length > 0
+    - chattool_keycloak_oidc_tenant_id | default('', true) | string | trim | length == 0
 
 - name: "app_keycloak_config | Verify Keycloak admin secret exists in {{ keycloak_namespace }}"
   kubernetes.core.k8s_info:

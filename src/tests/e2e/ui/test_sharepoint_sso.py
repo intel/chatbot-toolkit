@@ -21,7 +21,7 @@ Prerequisites:
 - SSO configured in Keycloak (keycloak.oidc.* in config.yaml)
 - SharePoint integration enabled (same OIDC config)
 - RBAC enabled (edp.rbac.enabled: true)
-- SSO credentials via env vars (KEYCLOAK_ERAG_SSO_*) -- set by infra pipeline
+- SSO credentials via env vars (KEYCLOAK_CHATTOOL_SSO_*) -- set by infra pipeline
 - Test sites provisioned:
   - erag-test-site-all   (accessible by all SSO roles)
   - erag-test-site-admin (accessible by admin SSO account only)
@@ -801,7 +801,7 @@ async def test_sso_maintainer_sees_admin_panel(sso_maintainer_helper):
     Verify SSO maintainer can access the admin panel.
 
     Maintainers have admin panel access via Azure AD group membership
-    (erag-maintainers). They should see the admin panel switch button
+    (chattool-maintainers). They should see the admin panel switch button
     and be able to navigate to the admin panel.
 
     Steps:

@@ -52,7 +52,7 @@
       ansible.builtin.set_fact:
         teardown_job_name: "keycloak-teardown-{{ ansible_date_time.epoch }}"
         init_container_image: "{{ registry }}/chatbot-toolkit-init-container:{{ tag | default(default_image_tag) }}"
-        keycloak_internal_url: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ erag_keycloak_path_prefix }}"
+        keycloak_internal_url: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ chattool_keycloak_path_prefix }}"
 
     - name: "app_keycloak_config | Ensure ServiceAccount exists for teardown Job"
       kubernetes.core.k8s:
@@ -124,7 +124,7 @@
     - { api: rbac.authorization.k8s.io/v1, kind: RoleBinding, name: keycloak-configurator }
     - { api: v1, kind: ConfigMap, name: keycloak-configurator-script }
     - { api: v1, kind: Secret, name: keycloak-configurator-sensitive }
-    - { api: v1, kind: Secret, name: erag-credentials }
+    - { api: v1, kind: Secret, name: chattool-credentials }
   loop_control:
     label: "{{ item.kind }}/{{ item.name }}"
   failed_when: false

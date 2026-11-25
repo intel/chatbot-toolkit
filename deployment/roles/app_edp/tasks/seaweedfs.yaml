@@ -17,9 +17,9 @@
 - name: "app_edp | Set SeaweedFS facts"
   ansible.builtin.set_fact:
     useBearerTokenAuth: "{{ edp_helm_values.useBearerTokenAuth | default(false) }}"
-    kcDomainName: "{{ erag_keycloak_domain_name }}"
-    keycloakRealm: "{{ ui_keycloak_realm | default('EnterpriseRAG') }}"
-    clientId: "{{ client_id | default('EnterpriseRAG-oidc-minio') }}"
+    kcDomainName: "{{ chattool_keycloak_domain_name }}"
+    keycloakRealm: "{{ ui_keycloak_realm | default('ChatbotToolkit') }}"
+    clientId: "{{ client_id | default('ChatbotToolkit-oidc-minio') }}"
     s3_host: "{{ edp_helm_values.s3ApiDomain | default((edp_helm_values.s3DomainPrefix | default('s3')) ~ '.' ~ (base_domain_name | default('solutions.ai'))) }}"
     admin_host: "{{ edp_helm_values.uiBrowserDomain | default((edp_helm_values.uiBrowserDomainPrefix | default('seaweedfs')) ~ '.' ~ (base_domain_name | default('solutions.ai'))) }}"
 
@@ -40,9 +40,9 @@
 
 - name: "app_edp | Set OIDC endpoints for SeaweedFS"
   vars:
-    keycloak_realm_url: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ erag_keycloak_path_prefix }}/realms/{{ keycloakRealm }}"
+    keycloak_realm_url: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ chattool_keycloak_path_prefix }}/realms/{{ keycloakRealm }}"
   ansible.builtin.set_fact:
-    oidc_issuer: "https://{{ erag_keycloak_domain_name }}{{ erag_keycloak_path_prefix }}/realms/{{ keycloakRealm }}"
+    oidc_issuer: "https://{{ chattool_keycloak_domain_name }}{{ chattool_keycloak_path_prefix }}/realms/{{ keycloakRealm }}"
     oidc_jwksUri: "{{ keycloak_realm_url }}/protocol/openid-connect/certs"
     oidc_userInfoUri: "{{ keycloak_realm_url }}/protocol/openid-connect/userinfo"
     sts: "{{ edp_helm_values.seaweedfs.iamKeycloak.sts | default('{}') }}"

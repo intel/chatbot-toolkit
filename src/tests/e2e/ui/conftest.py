@@ -98,8 +98,8 @@ VIDEO_DIR = ARTIFACT_BASE / "videos"
 def admin_credentials(keycloak_helper):
     """Admin user credentials from KeycloakHelper."""
     return {
-        "username": keycloak_helper.erag_admin_username,
-        "password": keycloak_helper.erag_admin_password,
+        "username": keycloak_helper.chattool_admin_username,
+        "password": keycloak_helper.chattool_admin_password,
         "user_type": "admin",
     }
 
@@ -107,7 +107,7 @@ def admin_credentials(keycloak_helper):
 @pytest.fixture(scope="session")
 def maintainer_credentials(keycloak_helper):
     """Maintainer user credentials, with required actions temporarily removed."""
-    username = keycloak_helper.erag_maintainer_username
+    username = keycloak_helper.chattool_maintainer_username
     if username:
         required_actions = keycloak_helper.read_current_required_actions(
             keycloak_helper.admin_access_token, username
@@ -118,7 +118,7 @@ def maintainer_credentials(keycloak_helper):
             )
     return {
         "username": username,
-        "password": keycloak_helper.erag_maintainer_password,
+        "password": keycloak_helper.chattool_maintainer_password,
         "user_type": "maintainer",
     }
 
@@ -126,7 +126,7 @@ def maintainer_credentials(keycloak_helper):
 @pytest.fixture(scope="session")
 def user_credentials(keycloak_helper):
     """Regular user credentials, with required actions temporarily removed."""
-    username = keycloak_helper.erag_user_username
+    username = keycloak_helper.chattool_user_username
     required_actions = keycloak_helper.read_current_required_actions(
         keycloak_helper.admin_access_token, username
     )
@@ -136,7 +136,7 @@ def user_credentials(keycloak_helper):
         )
     return {
         "username": username,
-        "password": keycloak_helper.erag_user_password,
+        "password": keycloak_helper.chattool_user_password,
         "user_type": "user",
     }
 
@@ -150,12 +150,12 @@ def user_credentials(keycloak_helper):
 # is merged into the tox environment, so these are available as regular
 # environment variables during CI runs.  For local development, export them
 # manually or provide fallback values.
-_SSO_ADMIN_EMAIL_VAR = "KEYCLOAK_ERAG_SSO_ADMIN_USERNAME"
-_SSO_ADMIN_PASSWORD_VAR = "KEYCLOAK_ERAG_SSO_ADMIN_PASSWORD"
-_SSO_USER_EMAIL_VAR = "KEYCLOAK_ERAG_SSO_USER_USERNAME"
-_SSO_USER_PASSWORD_VAR = "KEYCLOAK_ERAG_SSO_USER_PASSWORD"
-_SSO_MAINTAINER_EMAIL_VAR = "KEYCLOAK_ERAG_SSO_MAINTAINER_USERNAME"
-_SSO_MAINTAINER_PASSWORD_VAR = "KEYCLOAK_ERAG_SSO_MAINTAINER_PASSWORD"
+_SSO_ADMIN_EMAIL_VAR = "KEYCLOAK_CHATTOOL_SSO_ADMIN_USERNAME"
+_SSO_ADMIN_PASSWORD_VAR = "KEYCLOAK_CHATTOOL_SSO_ADMIN_PASSWORD"
+_SSO_USER_EMAIL_VAR = "KEYCLOAK_CHATTOOL_SSO_USER_USERNAME"
+_SSO_USER_PASSWORD_VAR = "KEYCLOAK_CHATTOOL_SSO_USER_PASSWORD"
+_SSO_MAINTAINER_EMAIL_VAR = "KEYCLOAK_CHATTOOL_SSO_MAINTAINER_USERNAME"
+_SSO_MAINTAINER_PASSWORD_VAR = "KEYCLOAK_CHATTOOL_SSO_MAINTAINER_PASSWORD"
 
 # Standard Keycloak OIDC broker login selectors.
 # Keycloak renders identity-provider links with id="social-{alias}".
@@ -163,7 +163,7 @@ _KC_SSO_DEFAULT_ALIAS = "enterprise-sso"
 
 
 def _kc_sso_alias() -> str:
-    return cfg.get("erag_keycloak_oidc_alias") or _KC_SSO_DEFAULT_ALIAS
+    return cfg.get("chattool_keycloak_oidc_alias") or _KC_SSO_DEFAULT_ALIAS
 
 # Microsoft Entra ID (Azure AD) login page selectors.
 _MSFT_EMAIL_INPUT = 'input[type="email"][name="loginfmt"]'
@@ -178,7 +178,7 @@ def sp_credentials():
     """SharePoint SSO credentials loaded from environment variables.
 
     The infra pipeline (``secrets_validation_template.yaml``) injects
-    ``KEYCLOAK_ERAG_SSO_*`` env vars into the tox process.  At minimum
+    ``KEYCLOAK_CHATTOOL_SSO_*`` env vars into the tox process.  At minimum
     the admin email + password must be present; otherwise SSO tests are
     skipped.
     """
@@ -392,7 +392,7 @@ async def sso_admin_helper(page, sso_admin_credentials):
     """ChatUIHelper authenticated via SSO as admin.
 
     Uses the Enterprise SSO (Azure AD) login flow instead of local Keycloak
-    credentials. The SSO admin account must be in the erag-admins group in
+    credentials. The SSO admin account must be in the chattool-admins group in
     Azure AD to receive admin permissions in ERAG.
     """
     base_url = cfg.get("base_domain_name")
@@ -411,7 +411,7 @@ async def sso_admin_helper(page, sso_admin_credentials):
 async def sso_user_helper(page, sso_user_credentials):
     """ChatUIHelper authenticated via SSO as regular user.
 
-    The SSO user account must be in the erag-users group in Azure AD.
+    The SSO user account must be in the chattool-users group in Azure AD.
     This user should have limited permissions (no admin panel access)
     and only see SharePoint sites they have access to when RBAC is enabled.
     """
@@ -431,7 +431,7 @@ async def sso_user_helper(page, sso_user_credentials):
 async def sso_maintainer_helper(page, sso_maintainer_credentials):
     """ChatUIHelper authenticated via SSO as maintainer.
 
-    The SSO maintainer account must be in the erag-maintainers group in
+    The SSO maintainer account must be in the chattool-maintainers group in
     Azure AD. Maintainers have admin panel access and can manage SharePoint
     sites, upload files, and trigger syncs — same as admin but with a
     distinct RBAC role.
@@ -449,8 +449,8 @@ async def sso_maintainer_helper(page, sso_maintainer_credentials):
 
 
 requires_sso = pytest.mark.skipif(
-    "not cfg.get('erag_keycloak_oidc_endpoint')",
-    reason="SSO is not configured: erag_keycloak_oidc_endpoint is not set in "
+    "not cfg.get('chattool_keycloak_oidc_endpoint')",
+    reason="SSO is not configured: chattool_keycloak_oidc_endpoint is not set in "
            "env/<name>/config.rag.yaml",
 )
 

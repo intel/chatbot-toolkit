@@ -26,7 +26,7 @@ Edit when:
 | Different models | `inference_models` |
 | Different vector DB | `vector_databases_vector_store` |
 | External S3 | `edp_storage_type` + `edp_s3_*` |
-| SSO/SharePoint | `erag_keycloak_oidc_*` |
+| SSO/SharePoint | `chattool_keycloak_oidc_*` |
 
 ## Pipeline selection
 
@@ -44,7 +44,7 @@ Variants: **base** (full), **retrieve-rerank** (no LLM, retrieval-only), **uploa
 
 | Component | Default | Purpose |
 |-----------|---------|---------|
-| `vector_databases_enabled` | `true` | Vector DB (Redis/MSSQL/pgvector) |
+| `vector_databases_enabled` | `true` | Vector DB (Redis/MSSQL/Milvus) |
 | `chat_history_enabled` | `true` | PostgreSQL chat history |
 | `edp_enabled` | `true` | Enhanced Data Preparation |
 | `hpa_enabled` | `true` | Horizontal Pod Autoscaling |
@@ -87,13 +87,13 @@ See [models.md](models.md).
 | Setting | Default | Options |
 |---------|---------|---------|
 | `vector_databases_namespace` | `vdb` | |
-| `vector_databases_vector_store` | `redis-cluster` | `redis-cluster` \| `mssql` \| `pgvector` |
+| `vector_databases_vector_store` | `redis-cluster` | `redis-cluster` \| `mssql` \| `milvus` |
 | `vector_databases_vector_datatype` | `FLOAT32` | |
 | `vector_databases_vector_dims` | `768` | Auto-detected; override if detection fails |
 
-Backends: **redis-cluster** (production, 1M+ vectors, HA, scalable), **mssql** (SQL Server; RBAC unsupported; EULA prompt on deploy), **pgvector** (PostgreSQL).
+Backends: **redis-cluster** (production, 1M+ vectors, HA, scalable), **mssql** (SQL Server; RBAC unsupported; EULA prompt on deploy), **milvus**.
 
-Storage defaults: redis-cluster 8Gi per node (set `vector_databases_stores.redis-cluster.persistence.size` in `config.erag.yaml`), mssql and pgvector 10Gi (`deployment/components/vector_databases/values.yaml`). Vector store needs more storage than file storage (text + embeddings).
+Storage defaults: redis-cluster 8Gi per node (set `vector_databases_stores.redis-cluster.persistence.size` in `config.erag.yaml`), mssql and milvus 10Gi (`deployment/components/vector_databases/values.yaml`). Vector store needs more storage than file storage (text + embeddings).
 
 The installer generates the database password and hands the connection details to the services in the `vector-database-config` secret, in the pipeline and EDP namespaces.
 
@@ -134,7 +134,7 @@ See [`src/comps/vectorstores/CONTRIBUTING.md`](../../src/comps/vectorstores/CONT
 |---------|---------|---------|
 | `edp_namespace` | `edp` | |
 | `edp_storage_type` | `seaweedfs` | `seaweedfs` \| `s3` \| `s3compatible` |
-| `edp_rbac_enabled` | `false` | Must be `false` for ONTAP S3, MSSQL |
+| `edp_rbac_enabled` | `false` | Enables retrieval RBAC for Redis or Milvus; must be `false` for ONTAP S3 and MSSQL |
 | `edp_scheduled_sync_enabled` | `false` | For S3-compatible sans SQS |
 
 Backends: **seaweedfs** (in-cluster), **s3** (AWS + SQS), **s3compatible** (ONTAP S3, external MinIO). See [object_store.md](object_store.md).
@@ -144,11 +144,11 @@ Backends: **seaweedfs** (in-cluster), **s3** (AWS + SQS), **s3compatible** (ONTA
 SSO and SharePoint share one Entra app registration:
 
 ```yaml
-erag_keycloak_oidc_endpoint: ""       # non-empty enables SSO
-erag_keycloak_oidc_alias: "enterprise-sso"
-erag_keycloak_oidc_client_id: ""
-erag_keycloak_oidc_client_secret: ""
-erag_keycloak_oidc_tenant_id: ""      # non-empty additionally enables SharePoint
+chattool_keycloak_oidc_endpoint: ""       # non-empty enables SSO
+chattool_keycloak_oidc_alias: "enterprise-sso"
+chattool_keycloak_oidc_client_id: ""
+chattool_keycloak_oidc_client_secret: ""
+chattool_keycloak_oidc_tenant_id: ""      # non-empty additionally enables SharePoint
 ```
 
 No `_enabled` flags. All empty = disabled. Partial config rejected. See: [sharepoint.md](sharepoint.md), [auth.md](auth.md).
@@ -242,11 +242,11 @@ inference_models:
 # vector_databases_vector_store: "redis-cluster"
 # vector_databases_vector_datatype: "FLOAT32"
 # vector_databases_vector_dims: 768
-# erag_keycloak_oidc_endpoint: ""
-# erag_keycloak_oidc_alias: "enterprise-sso"
-# erag_keycloak_oidc_client_id: ""
-# erag_keycloak_oidc_client_secret: ""
-# erag_keycloak_oidc_tenant_id: ""
+# chattool_keycloak_oidc_endpoint: ""
+# chattool_keycloak_oidc_alias: "enterprise-sso"
+# chattool_keycloak_oidc_client_id: ""
+# chattool_keycloak_oidc_client_secret: ""
+# chattool_keycloak_oidc_tenant_id: ""
 # mcp_namespace: "mcp-gateway"
 # mcp_keycloak_client_id: "mcp-client"
 # namespace_node_selector: {}
