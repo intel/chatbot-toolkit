@@ -79,13 +79,6 @@ class Result:
         self.code = 0
 
 def parse_args(argv=None):
-    """Parse the load-test options.
-
-    ``argv`` defaults to the process's arguments, so running this as a script is
-    unchanged. Passing a list is what lets an in-process caller (pysweep) drive
-    one load test per sweep combination without re-implementing the CLI or
-    shelling out.
-    """
     parser = argparse.ArgumentParser(description="Load testing tool.")
     parser.add_argument("-f", type=str, help="Question File Location")
     parser.add_argument("-s", type=str, default="https://solutions.ai/api/v1/chatqna", help="Server Address format")
@@ -189,13 +182,7 @@ def signal_handler(var, signal, frame):
     var[0] = var[0] + 1
 
 def run_benchmark(args, output_file=None):
-    """Run one load test and return ``(error, output_file)``.
-
-    Split out of ``main`` so a caller can run several load tests in one process
-    and know where each wrote its rows: ``main`` still exits on ``error``, but
-    pysweep needs the exit code *and* the CSV path per sweep combination, and it
-    passes ``output_file`` so results land under the combination's own name.
-    """
+    """Run one load test and return ``(error, output_file)``."""
     print(' \n'.join(f'{k}: {v}' for k, v in vars(args).items()))
 
     # Local import due to heavy library

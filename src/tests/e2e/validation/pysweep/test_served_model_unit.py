@@ -1,18 +1,6 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for :mod:`served_model`, the read-only served-model probe.
-
-The runner tokenizes with whatever this returns, so what is pinned is that it
-observes the running pods (not a ConfigMap), and that every inconsistent picture
-(replicas disagreeing, nothing serving the named model, a model still loading,
-an unreadable pod) is an error rather than a model name.
-
-``kr8s`` and ``LLMInferenceService`` are replaced module-locally. That the real
-objects have this shape is covered by ``test_served_model.py``, which needs a
-deployment.
-"""
-
 from types import SimpleNamespace
 
 import allure
@@ -42,11 +30,9 @@ class FakePod:
 
 
 class FakeCluster:
-    """The pipeline's LLM pods and the models being served."""
-
     def __init__(self, pods=None, served=None):
         self.pods = [FakePod("llm-usvc-a", MODEL)] if pods is None else list(pods)
-        # model name -> replica count; membership means "an LLMInferenceService exists".
+        # model name -> replicas; a key means an LLMInferenceService exists.
         self.served = {MODEL: 4} if served is None else dict(served)
         self.not_ready = set()
 
@@ -72,15 +58,11 @@ def cluster(monkeypatch):
 
 
 def install(monkeypatch, fake):
-    """Point the probe at ``fake`` instead of a cluster."""
     monkeypatch.setattr(served_model, "kr8s", SimpleNamespace(get=fake.get))
     monkeypatch.setattr(
         served_model, "LLMInferenceService", SimpleNamespace(get=fake.llmisvc_get)
     )
     return fake
-
-
-# -- read ---------------------------------------------------------------------
 
 
 @allure.feature("pysweep")
@@ -90,7 +72,6 @@ def test_read_returns_the_model_the_pods_actually_run(cluster):
 
 @allure.feature("pysweep")
 def test_read_execs_into_the_application_container(cluster):
-    """Not the init container: it has no ``LLM_MODEL_NAME`` and is gone by then."""
     ServedModel().read()
     (_, container), = cluster.pods[0].exec_calls
     assert container == served_model.LLM_USVC_CONTAINER
@@ -98,12 +79,6 @@ def test_read_execs_into_the_application_container(cluster):
 
 @allure.feature("pysweep")
 def test_read_reports_the_pods_model_even_when_another_is_served(monkeypatch):
-    """Serving a model is not the pipeline using it.
-
-    Two models can be Ready at once (e.g. mid-swap); only the one the replicas'
-    processes name is what the benchmark exercises, so that is the one to tokenize
-    with.
-    """
     fake = FakeCluster(served={MODEL: 4, OTHER: 4})
     install(monkeypatch, fake)
 
@@ -112,11 +87,6 @@ def test_read_reports_the_pods_model_even_when_another_is_served(monkeypatch):
 
 @allure.feature("pysweep")
 def test_read_ignores_terminating_pods(monkeypatch):
-    """A pod being replaced is not part of the observed configuration.
-
-    Counting it would make ``read`` report a disagreement for the whole grace
-    period after a restart that has otherwise already converged.
-    """
     fake = FakeCluster(
         pods=[FakePod("old", OTHER, terminating=True), FakePod("new", MODEL)],
         served={MODEL: 4, OTHER: 4},
@@ -128,7 +98,6 @@ def test_read_ignores_terminating_pods(monkeypatch):
 
 @allure.feature("pysweep")
 def test_read_raises_when_replicas_disagree(monkeypatch):
-    """Half the fleet on each model is not a configuration a benchmark may run against."""
     fake = FakeCluster(
         pods=[FakePod("a", MODEL), FakePod("b", OTHER)],
         served={MODEL: 4, OTHER: 4},
@@ -150,7 +119,6 @@ def test_read_raises_when_no_pods_are_running(monkeypatch):
 
 @allure.feature("pysweep")
 def test_read_raises_when_the_named_model_is_not_served(monkeypatch):
-    """A pipeline pointed at an absent model answers nothing; that is not 'configured'."""
     fake = FakeCluster(served={})
     install(monkeypatch, fake)
 
@@ -160,7 +128,6 @@ def test_read_raises_when_the_named_model_is_not_served(monkeypatch):
 
 @allure.feature("pysweep")
 def test_read_raises_when_the_model_is_served_but_not_ready(monkeypatch):
-    """Weights still loading is exactly the window a sweep must not benchmark in."""
     fake = FakeCluster()
     fake.not_ready = {MODEL}
     install(monkeypatch, fake)
@@ -180,7 +147,6 @@ def test_read_raises_on_an_empty_env_var(monkeypatch):
 
 @allure.feature("pysweep")
 def test_read_raises_when_exec_fails(monkeypatch):
-    """A starting container cannot be exec'd into; unreadable is not 'unchanged'."""
     fake = FakeCluster(pods=[FakePod("a", MODEL, exec_error=RuntimeError("container not running"))])
     install(monkeypatch, fake)
 

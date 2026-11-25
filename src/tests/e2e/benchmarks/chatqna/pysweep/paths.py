@@ -1,18 +1,5 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
-"""Where pysweep looks for the installed environment's files.
-
-The ai-solutions installer keeps this repo at ``<deploy-root>/ext/enterprise.ai-erag``
-and the environment it built at ``<deploy-root>/env/local``. So when pysweep runs from
-that checkout, the deploy root follows from this file's own location, whoever the
-installing user was. ``/root/ai-solutions`` (the default for a root install) is tried
-after it.
-
-Probing is done with :func:`is_file` / :func:`is_dir` rather than the ``Path``
-methods: on Python < 3.14 those raise ``PermissionError`` for a path under an
-unreadable directory such as ``/root``, which would turn "not here, try the next
-candidate" into a crash for any non-root user.
-"""
 
 from pathlib import Path
 
@@ -32,8 +19,8 @@ def deploy_roots() -> tuple[Path, ...]:
     return tuple(roots)
 
 
+# Path.is_file/is_dir raise PermissionError under /root on Python < 3.14.
 def is_file(path: Path) -> bool:
-    """``path.is_file()``, treating an unreadable location as absent."""
     try:
         return path.is_file()
     except OSError:
@@ -41,7 +28,6 @@ def is_file(path: Path) -> bool:
 
 
 def is_dir(path: Path) -> bool:
-    """``path.is_dir()``, treating an unreadable location as absent."""
     try:
         return path.is_dir()
     except OSError:

@@ -407,6 +407,9 @@ cd src
 tox -e pysweep_unit_tests
 ```
 
+It runs only the `*_unit.py` modules, with `--confcutdir` so pytest doesn't load
+`tests/e2e/conftest.py`, whose session fixtures need a deployment.
+
 Without tox (venv with the requirements installed, from the repo root):
 
 ```bash

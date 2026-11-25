@@ -8,7 +8,6 @@ from ..runtime_api import FingerprintClient
 
 logger = logging.getLogger(__name__)
 
-# The fingerprint component and parameter key this property drives.
 COMPONENT = "llm"
 PARAMETER = "max_new_tokens"
 
@@ -51,5 +50,4 @@ class MaxNewTokens(Property):
             [{"name": COMPONENT, "data": {PARAMETER: desired}}]
         )
 
-    # Runtime-API plane is ~synchronous: the value is live once change_arguments
-    # returns, so the inherited no-op wait_until_ready is correct.
+    # change_arguments is synchronous, so the inherited no-op wait_until_ready suffices.

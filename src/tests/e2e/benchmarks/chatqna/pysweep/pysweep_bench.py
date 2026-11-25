@@ -2,76 +2,6 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""pysweep benchmark runner.
-
-Ties the pieces together (DESIGN.md "Execution flow"):
-
-1. **Load & validate** a sweep config (``config.load_config`` — invalid YAML
-   fails here, before anything is applied), then **preflight** the preconditions
-   the schema cannot express (``preflight``) — the question corpora, once,
-   while stopping is still free.
-2. For each **deployment** combination in the cartesian ``product`` (outer loop):
-   a. **apply** every declared property's value (idempotent),
-   b. **wait_until_ready** on each,
-   c. **verify** via *observed* state (``is_satisfied(read())``) — a mismatch
-      aborts that combination rather than benchmarking the wrong config,
-   d. **snapshot** the observed values (so "what was tested" is recorded),
-   e. **resolve the tokenizer** from the observed served model, so token counts
-      come from the tokenizer of the model that actually produced them,
-   f. for each **client** combination (inner loop), **run the benchmark** by
-      reusing ``benchmark.run_benchmark`` unchanged, then
-   g. **summarize** that run into the sweep's summary CSV (``results.py``): one
-      row per run, a column per declared knob, and the TTFT/TPOT KPIs.
-
-The nesting is the point. A deployment knob costs a reconfiguration of the
-running pipeline, so it is established once and then held still while every
-load scenario runs against it. Client knobs (concurrency, input length, duration)
-change nothing on the cluster, so each additional value costs only another load
-test; they are the innermost dimension and need no apply, no convergence wait,
-and no read-back (see ``client_args.py``). One deployment combination therefore
-yields ``len(client_combinations)`` result CSVs, all directly comparable because
-they ran against a deployment that was verified once and never touched between
-them.
-
-Those per-run CSVs are per-*request* rows and carry no configuration, so a sweep
-also writes one **summary CSV** holding a row per run: every declared knob as a
-dotted-path column, then the mean and p90 of TTFT and TPOT. It is rewritten after
-each run, so a sweep killed partway still leaves a readable table of what it got
-through.
-
-Everything a sweep writes goes under one directory (``--summaries``, default
-``./results``)::
-
-    results/
-      benchmark_summary_results.csv    # the table: one row per run
-      per_case_results/                # one per-request CSV per run
-        bench_max_new_tokens-64_k-3_concurrency-1.result.csv
-        ...
-
-That directory is **cleared of the previous run's artifacts before the sweep
-starts** — see :func:`~.results.prepare_summaries_dir` for why a merge would be
-worse than a clean slate.
-
-Usage::
-
-    PYTHONPATH=src python -m tests.e2e.benchmarks.chatqna.pysweep.pysweep_bench \
-        --sweep sweep.yaml [--config general.yaml]
-
-``--sweep`` declares *what to vary* (the knobs and their values, including the
-required ``client:`` section); ``--config`` declares *how to run* (harness
-behaviour, e.g. whether benchmark.py's own logs are displayed) and is optional.
-Arguments after ``--`` are still forwarded to benchmark.py, but a flag the sweep
-config already owns is rejected rather than silently overriding a declared sweep
-dimension — the config is the single source of truth for load parameters.
-
-**Zero-prerequisite runs.** With no benchmark ``-s`` given, pysweep_bench drives
-the deployment's own ChatQNA endpoint — the same path ``benchmark.py`` defaults
-to, on the domain read from the installed environment's build config (see
-:func:`chatqna_url`). With no ``-b`` (bearer file) given it provisions one
-automatically, minting one real Keycloak token per worker. The only thing a
-caller must supply is ``--sweep``.
-"""
-
 import argparse
 import csv
 import linecache
@@ -121,17 +51,9 @@ from tests.e2e.benchmarks.chatqna.pysweep.served_model import ServedModel
 
 logger = logging.getLogger(__name__)
 
-# ChatQNA entrypoint: the same API path benchmark.py drives, so a sweep measures
-# what a plain benchmark.py run measures. Only the host differs, and it is not a
-# constant — see chatqna_url().
 CHATQNA_PATH = "/api/v1/chatqna"
 
-# Relative paths in a sweep config are resolved against THIS file's directory,
-# never the process's working directory. A sweep YAML is checked in next to the
-# harness, so a path in it means the same thing wherever the sweep is launched
-# from; resolving against the CWD would instead make the same config name a
-# different file per caller — and `benchmark.py`'s bare open() does exactly that,
-# which is the bug this anchor exists to close.
+# Relative sweep-config paths resolve against this directory, not the CWD.
 PYSWEEP_DIR = Path(__file__).resolve().parent
 
 
@@ -140,23 +62,11 @@ class SweepError(Exception):
 
 
 class PreflightError(SweepError):
-    """Raised when a precondition for running the sweep is not met.
-
-    Distinct from a bare :class:`SweepError` because it is raised *before*
-    anything is applied or benchmarked: nothing has to be undone, and the fix is
-    always in the caller's config or environment rather than in the cluster.
-    """
+    """Raised before anything is applied when a sweep precondition is not met."""
 
 
 def build_property(setting: PropertySetting, fingerprint_client: FingerprintClient) -> Property:
-    """Instantiate the ``Property`` bound to a config leaf with the resources it needs.
-
-    Properties differ in what they need to reach their plane. Runtime-API
-    properties take the fingerprint client; K8s-plane properties talk to the
-    cluster themselves (kr8s reads its own kubeconfig) and so take no argument.
-    Dispatch on the class's declared plane so adding a property of an existing
-    plane needs no change here.
-    """
+    """Instantiate the Property for a config leaf, dispatching on its plane."""
     if setting.property_cls.plane == Plane.RUNTIME_API:
         return setting.property_cls(fingerprint_client)
     if setting.property_cls.plane == Plane.K8S_SPEC:
@@ -170,12 +80,7 @@ def build_property(setting: PropertySetting, fingerprint_client: FingerprintClie
 def apply_combination(
     combination: Combination, fingerprint_client: FingerprintClient
 ) -> dict:
-    """Apply, converge, and verify one combination; return the observed snapshot.
-
-    Raises :class:`SweepError` if any property fails to converge to its desired
-    value, so a benchmark never runs against a configuration we could not
-    actually establish.
-    """
+    """Apply, converge and verify one combination; return the observed snapshot."""
     properties = [(setting, build_property(setting, fingerprint_client)) for setting in combination]
 
     for setting, prop in properties:
@@ -183,19 +88,14 @@ def apply_combination(
         try:
             prop.apply(setting.value)
         except (PropertyApplyError, NotImplementedError) as exc:
-            # The property could not establish the requested state (a value the
-            # deployment cannot run, a manifest it no longer recognises, or a
-            # knob that is not writable). That is a sweep problem, not a crash.
             raise SweepError(f"{setting.path}: {exc}") from exc
 
     for setting, prop in properties:
         try:
             prop.wait_until_ready(setting.value)
         except PropertyApplyError as exc:
-            # Applied but never took effect — never benchmark on that.
             raise SweepError(f"{setting.path}: {exc}") from exc
 
-    # Verify against OBSERVED state (DESIGN.md: the set/verify split).
     snapshot = {}
     for setting, prop in properties:
         observed = prop.read()
@@ -209,30 +109,10 @@ def apply_combination(
 
 
 def resolve_tokenizer() -> str:
-    """The tokenizer to count tokens with: the one of the *observed* served model.
-
-    ``benchmark.py``'s ``-m`` is not a sweep knob, so nobody declares it. It has
-    exactly one correct value — the served model's tokenizer — because it produces
-    the ``input_tokens`` / ``output_tokens`` columns and pads questions to
-    ``client.input_tokens``. Counted with any other model's tokenizer, those
-    numbers describe a tokenization the deployment never performed, and tokens/s
-    stops being comparable to anything.
-
-    Two steps, because the two names differ. What the deployment serves is a
-    *catalog* name (``llama3-8b-awq``, the value of ``LLM_MODEL_NAME`` and the name
-    of the ``LLMInferenceService``); ``AutoTokenizer.from_pretrained`` needs a
-    HuggingFace repo id. The model catalog holds both, so the observed name is
-    resolved through it (:func:`model_catalog.tokenizer_for`) rather than guessed.
-
-    Reads observed state rather than any declared value, for the same reason
-    properties do: a pipeline that half-switched models would otherwise be
-    tokenized as though it had not.
-    """
+    """Return the HF tokenizer of the observed served model."""
     try:
         served = ServedModel().read()
     except PropertyReadError as exc:
-        # Without it every token count would be on an unknown basis, so this
-        # is not something to fall back from silently.
         raise SweepError(
             f"Cannot determine the served model to tokenize with: {exc}. "
             f"The benchmark's -m must be the tokenizer of the model the "
@@ -247,19 +127,10 @@ def resolve_tokenizer() -> str:
 
 
 def _slug(value) -> str:
-    """Filesystem-safe fragment for a config value (used in result filenames).
-
-    Underscores are preserved so knob names stay readable (``max_new_tokens``).
-    """
     return re.sub(r"[^0-9A-Za-z_]+", "-", str(value)).strip("-")
 
 
 def _settings_slug(settings, only=None) -> str:
-    """Join ``<knob>-<value>`` fragments for the given settings.
-
-    ``only`` restricts the output to those dotted paths — see
-    :func:`result_file_name` for why a filename names only what varies.
-    """
     return "_".join(
         f"{_slug(s.path.rsplit('.', 1)[-1])}-{_slug(s.value)}"
         for s in settings
@@ -283,24 +154,7 @@ def result_file_name(
     only=None,
     fallback: str = "single",
 ) -> str:
-    """Result CSV *file name* for one (deployment, client) pair.
-
-    A bare name, not a path: where it goes is the caller's business (the
-    ``per_case_results`` subdirectory of ``--summaries``), and what it is called is
-    this function's.
-
-    Both slugs contribute, because both identify the run and either alone repeats
-    across the sweep — a name built from one would clobber the other's results.
-
-    ``only`` (the sweep's varying paths) is what keeps the name usable. Naming
-    every declared knob is tempting since the filename is the record of what
-    produced the numbers, but with every option declared an HF repo id and a
-    question-file path push it past the 255-byte filename limit. So the name
-    carries what *distinguishes*
-    this run, and the full configuration — deployment snapshot and load parameters
-    both — is logged per run instead. ``fallback`` names the degenerate case where
-    the sweep has a single combination and so nothing varies at all.
-    """
+    """Result CSV file name for one run; names only the varying knobs to stay under 255 bytes."""
     slug = "_".join(
         part
         for part in (
@@ -321,25 +175,11 @@ def count_result_rows(output_file) -> int:
         return sum(1 for _ in csv.reader(handle))
 
 
-# Loggers belonging to the Kubernetes client stack. kr8s talks to the API server
-# over httpx/httpcore and logs a line per call; with a port-forward under load
-# that is one '101 Switching Protocols' per benchmark request.
 KUBERNETES_CLIENT_LOGGERS = ("httpx", "httpcore", "kr8s", "websockets")
 
 
+# kr8s's port-forward task writes to closed sockets on teardown; asyncio logs harmless reset tracebacks.
 class _DropPortForwardTeardownNoise(logging.Filter):
-    """Drop kr8s's port-forward connection-reset tracebacks.
-
-    When the load test closes a connection (and again when the sweep tears the
-    forward down), kr8s's background asyncio task may still be writing to the
-    now-closed socket. The resulting ``ConnectionResetError`` is not awaited by
-    anyone, so asyncio's default handler dumps a multi-frame ExceptionGroup
-    traceback. It is a teardown race *inside kr8s* with no effect on the
-    benchmark — verified: every recorded request still returns 200 — but it
-    swamps the output. Only these reset/closed records are dropped; any other
-    asyncio error still surfaces.
-    """
-
     _NOISE = (
         "ConnectionResetError",
         "Connection lost",
@@ -355,13 +195,6 @@ class _DropPortForwardTeardownNoise(logging.Filter):
 
 
 def configure_kubernetes_client_logs(enabled: bool) -> None:
-    """Quiet the kr8s/httpx client loggers unless explicitly enabled.
-
-    Applied once at startup (not scoped to the benchmark) because the port-forward
-    spans the whole sweep. Raising the level rather than filtering keeps genuine
-    warnings and errors — only the per-call INFO chatter goes away. The asyncio
-    logger keeps its level (real errors matter) but loses kr8s's teardown resets.
-    """
     if enabled:
         return
     for name in KUBERNETES_CLIENT_LOGGERS:
@@ -370,29 +203,13 @@ def configure_kubernetes_client_logs(enabled: bool) -> None:
 
 
 def resolve_question_file(value: str) -> Path:
-    """Resolve a declared ``client.question_file`` to a concrete path.
-
-    Relative values are anchored at :data:`PYSWEEP_DIR` (this file's directory),
-    so ``../questions-short.csv`` names the corpus beside ``benchmark.py``
-    regardless of where the sweep was launched from. Absolute paths are returned
-    unchanged — an explicit absolute path is already unambiguous, and rewriting
-    it would be surprising.
-    """
+    """Resolve a client.question_file against PYSWEEP_DIR; absolute paths pass through."""
     path = Path(value)
     return path if path.is_absolute() else (PYSWEEP_DIR / path)
 
 
 def question_file_verify(config: SweepConfig) -> None:
-    """Check every declared ``client.question_file`` names a readable file.
-
-    ``question_file`` is sweepable, so a config may declare a list of corpora;
-    all of them are checked, since a bad path in the *last* one would otherwise
-    surface only after the earlier runs had already spent their load.
-
-    The schema cannot do this: it validates the value as a non-empty string
-    (``PathValue``), and whether that string resolves to a file is a fact about
-    the filesystem rather than about the config's shape.
-    """
+    """Raise PreflightError unless every declared client.question_file is a readable file."""
     for value in config.declared_question_files():
         path = resolve_question_file(value)
         if not path.is_file():
@@ -411,85 +228,35 @@ def preflight_check(config: SweepConfig) -> None:
 
 
 def chatqna_url() -> str:
-    """The deployed ChatQNA endpoint, with the domain read from the deployment.
-
-    The host is **derived, not declared**: it comes from ``base_domain_name`` in
-    the installed environment's build config — the same value, read from the same
-    files, that :class:`~.runtime_api.IngressTransport` and ``KeycloakHelper``
-    use. Hardcoding a domain here would let a sweep drive load at one cluster
-    while configuring another, and the minted token would not even be valid for
-    it. Point ``PYSWEEP_BUILD_CONFIG_DIR`` at a different ``env/<name>/`` to
-    benchmark a different deployment, exactly as for every other plane.
-    """
+    """Return the ChatQNA URL on the deployment's base_domain_name."""
     from tests.e2e.benchmarks.chatqna.pysweep.authentication import load_build_config
 
-    # load_build_config guarantees a non-empty base_domain_name or raises.
     return f"https://{load_build_config()['base_domain_name']}{CHATQNA_PATH}"
 
 
 class ProvisionedArgv(list):
-    """The benchmark argv, plus a way to re-mint the bearer file it points at.
-
-    A plain ``list`` for every existing use (comparison, slicing, ``+``).
-    :meth:`refresh` is a no-op unless pysweep minted the tokens itself.
-    """
+    """Benchmark argv with refresh() to re-mint the bearer file, if pysweep owns it."""
 
     def __init__(self, argv, refresh=None):
         super().__init__(argv)
         self._refresh = refresh
 
     def refresh(self) -> None:
-        """Re-mint the tokens, if pysweep owns the bearer file."""
         if self._refresh is not None:
             self._refresh()
 
 
 def write_bearer_file(path: str, helper, workers: int) -> None:
-    """Write ``workers`` freshly minted, distinct user tokens to ``path``, one per line.
-
-    One DISTINCT token per worker, matching generate_uat_to_file.sh, which the
-    shell benchmark calls with the concurrency for exactly this reason. Each
-    ``access_token`` read is a fresh password grant, so the strings differ. That
-    matters because APISIX's limit-count plugin on /api/v1/chatqna buckets by the
-    Authorization header *value*: one token repeated would put every worker in a
-    single 30-requests-per-60s bucket, capping the whole sweep near 0.5 req/s no
-    matter what concurrency it declares.
-    """
+    """Write one distinct token per worker; APISIX rate-limits per Authorization header value."""
     tokens = [helper.access_token for _ in range(workers)]
     Path(path).write_text("".join(token + "\n" for token in tokens))
-    # benchmark.py reads each worker's token with linecache, which caches the
-    # file; without this a run would be handed the previous run's tokens. Cleared
-    # outright: checkcache() goes by size and mtime, and a same-size file rewritten
-    # within one mtime tick would look unchanged.
+    # benchmark.py reads tokens via linecache; checkcache() misses same-size, same-mtime rewrites.
     linecache.clearcache()
 
 
 @contextmanager
 def provision_benchmark_target(benchmark_args: list[str], workers: int = 1):
-    """Ensure the benchmark has a reachable endpoint and a bearer file.
-
-    Yields a :class:`ProvisionedArgv`: the ``benchmark_args`` to actually use. If
-    the caller supplied no ``-s``, inject :func:`chatqna_url` (the deployment's
-    own ChatQNA endpoint, the same path ``benchmark.py`` defaults to). If the
-    caller supplied no ``-b``, write a bearer file holding ``workers``
-    freshly-minted Keycloak tokens, one per line, and let the caller re-mint them
-    before each load test with :meth:`ProvisionedArgv.refresh`.
-
-    Re-minting per run is what lets a sweep last longer than a token does: each
-    benchmark worker reads its token once, when the run starts, so a token only
-    has to outlive one run. For that to hold, the tokens are also lengthened to
-    :data:`~.authentication.SWEEP_TOKEN_LIFESPAN_S` for the sweep (the realm's
-    5-minute default is shorter than one run), and set back afterwards.
-
-    ``workers`` must be the *widest* concurrency the sweep will reach (see
-    :meth:`~.config.SweepConfig.max_concurrency`), because the file is shared by
-    every combination while ``benchmark.py`` indexes into it per worker.
-
-    "Supplied" covers both sources: a flag after ``--`` and a ``client.server`` /
-    ``client.bearer_file`` in the sweep config, since :func:`main` renders the
-    latter into these args before calling. A supplied ``-b`` is the caller's: it
-    is never re-minted, and the token lifespan is left alone.
-    """
+    """Yield the argv with -s and a minted bearer file (one token per worker) added unless supplied."""
     args = list(benchmark_args)
     refresh = None
 
@@ -503,8 +270,6 @@ def provision_benchmark_target(benchmark_args: list[str], workers: int = 1):
             tmp = stack.enter_context(
                 tempfile.NamedTemporaryFile("w", suffix=".uat", delete=True)
             )
-            # The target is the authenticated ERAG ingress, so mint real Keycloak
-            # user tokens.
             from tests.e2e.benchmarks.chatqna.pysweep.authentication import (
                 client_token_lifespan,
                 keycloak_helper,
@@ -550,9 +315,6 @@ def parse_args(argv=None):
             f"DELETED before this one starts (default: {DEFAULT_SUMMARIES_DIR})."
         ),
     )
-    # Everything after '--' is forwarded to the existing benchmark CLI. Load
-    # parameters belong in the sweep config's `client:` section; a flag here that
-    # the config already declares is an error, not an override.
     parser.add_argument(
         "benchmark_args",
         nargs=argparse.REMAINDER,
@@ -569,13 +331,7 @@ def parse_args(argv=None):
 
 
 def resolve_benchmark_argv(config: SweepConfig, benchmark_args: list[str]) -> list[str]:
-    """Merge the sweep config's whole-sweep client knobs with the caller's ``--`` args.
-
-    Raises :class:`SweepError` if a forwarded flag duplicates a client knob the
-    config declares. Silently letting one win would mean the command line and the
-    config disagree about what was tested, which is the failure mode this harness
-    exists to prevent — so it is refused before anything is applied.
-    """
+    """Merge the config's client knobs with the `--` args; raise SweepError on duplicated flags."""
     conflicts = conflicting_flags(benchmark_args, config.declared_client_names())
     derived = [flag for flag in conflicts if flag in DERIVED_FLAGS]
     if derived:
@@ -592,23 +348,11 @@ def resolve_benchmark_argv(config: SweepConfig, benchmark_args: list[str]) -> li
             f"command line (the sweep config is the source of truth for load "
             f"parameters), or remove the client knob to set it per-invocation."
         )
-    # Config-declared -s/-b first so provision_benchmark_target sees them as
-    # "supplied" and skips auto-provisioning for those.
     return config.client_provisioning_argv() + list(benchmark_args)
 
 
 def resolve_question_file_argv(argv: list[str]) -> list[str]:
-    """Rewrite the ``-f`` value in ``argv`` to its anchored absolute path.
-
-    Done at the argv boundary because ``benchmark.py`` opens the value with a
-    bare ``open()``, i.e. against the process's working directory. Handing it an
-    absolute path is what makes the anchor authoritative without modifying
-    ``benchmark.py``, whose other callers rely on its current behaviour.
-
-    Only the value pysweep rendered from the config is rewritten; the declared
-    string is what the summary CSV records, so provenance still shows what the
-    config asked for rather than a machine-specific absolute path.
-    """
+    """Rewrite the -f value to an absolute path; benchmark.py opens it relative to the CWD."""
     argv = list(argv)
     if QUESTION_FILE.flag in argv:
         index = argv.index(QUESTION_FILE.flag) + 1
@@ -616,27 +360,11 @@ def resolve_question_file_argv(argv: list[str]) -> list[str]:
     return argv
 
 
-#: Indentation of the logged YAML blocks. Four spaces, matching the sweep config
-#: files those blocks are meant to be read against.
 LOG_YAML_INDENT = 4
 
 
 def format_settings_yaml(values: dict, indent: int = LOG_YAML_INDENT) -> str:
-    """Render a ``{dotted_path: value}`` mapping as a YAML block, for logging.
-
-    A dict repr of a run's knobs is one unreadable line quoted by Python's rules;
-    the same values grouped back into their config sections read like the sweep
-    YAML they came from::
-
-        client:
-            question_file: ../questions-short.csv
-            concurrency: 16
-
-    Undotted keys (the summary row's KPIs) stay at the top level. Key order is the
-    caller's, not sorted, and values ``yaml.safe_dump`` cannot represent are
-    stringified rather than raised — a log line must not end a long sweep.
-    Returns ``""`` for an empty mapping, so a caller can say "(unchanged)".
-    """
+    """Render a {dotted_path: value} mapping as sectioned YAML for logging; "" if empty."""
     if not values:
         return ""
 
@@ -665,36 +393,16 @@ def run_client_combination(
     varying_paths=None,
     tokenizer: str | None = None,
 ) -> tuple[int, Path]:
-    """Run one load test: the innermost step of the sweep.
-
-    No apply, no convergence wait, no verification — the client knobs are
-    arguments to the process about to start, so establishing them *is* rendering
-    them into argv. Returns ``(error, output_file)``.
-
-    ``tokenizer`` is the one client argument nobody declares: it is the served
-    model, resolved once per deployment combination by :func:`resolve_tokenizer`
-    and passed in here rather than re-read per load test, since the deployment is
-    held still across this whole inner loop.
-
-    ``results_dir`` is where the per-request CSV goes — the ``per_case_results``
-    subdirectory of ``--summaries``. It is joined here, and absolute, because
-    ``benchmark.py`` opens its output file with a bare ``open()``: a relative name
-    would land against the process's working directory instead.
-    """
+    """Run one load test; return (error, output_file)."""
     client_args = BenchmarkClientArgs.from_settings(client_combination)
     argv = resolve_question_file_argv(bench_argv + client_args.to_argv())
     if tokenizer is not None:
         argv += [TOKENIZER.flag, tokenizer]
-    # The tokenizer stays out of the YAML block: it is derived from the served
-    # model, and 'client.tokenizer' is a ConfigError, so a block containing it
-    # would not be pasteable into a sweep config.
     logger.info(
         "%s load parameters (tokenizer: %s):\n%s",
         label, tokenizer, format_settings_yaml(client_args.snapshot()),
     )
 
-    # Reuse benchmark.py unchanged: parse its args, then run one load test into a
-    # CSV named for both combinations so results are never clobbered.
     bench_args = benchmark.parse_args(argv)
     output_file = Path(results_dir) / result_file_name(
         combination, client_combination, only=varying_paths
@@ -703,8 +411,6 @@ def run_client_combination(
 
     rows = count_result_rows(output_file)
     if rows == 0:
-        # A load test that recorded nothing is a failed run, not a pass:
-        # surface it instead of exiting 0 with an empty CSV.
         logger.error(
             "%s produced NO result rows in %s "
             "(endpoint unreachable, all requests failed, or duration too short).",
@@ -719,7 +425,6 @@ def main(argv=None):
     args = parse_args(argv)
     logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
-    # Run config is optional; its defaults are the previous behaviour.
     run_config = load_run_config(args.config) if args.config else load_run_config({})
     configure_kubernetes_client_logs(run_config.display_kubernetes_client_logs)
 
@@ -730,14 +435,8 @@ def main(argv=None):
 
     deployment_combinations = config.deployment_combinations()
     client_combinations = config.client_combinations()
-    # Result files are named by what varies; the rest is constant and logged.
     varying_paths = config.varying_paths()
-    # Last thing before the sweep proper, and the first destructive one: the
-    # output directory is cleared here rather than at startup, so a bad config or a
-    # failed preflight does not cost the previous sweep's results.
     layout = prepare_summaries_dir(args.summaries)
-    # ...and everything declared, varying or not, becomes a column of the summary,
-    # which is the artifact that has to stand on its own once the sweep is over.
     summary = SweepSummary(config.knob_paths(), path=layout.summary_file)
 
     fingerprint_client = FingerprintClient(default_transport())
@@ -748,9 +447,6 @@ def main(argv=None):
         len(deployment_combinations), len(client_combinations), total,
     )
     overall_error = 0
-    # Provision the endpoint/bearer once for the whole sweep; the tokens in it are
-    # re-minted before each load test (see provision_benchmark_target). Sized to
-    # the widest concurrency, since one bearer file has to serve every combination.
     with provision_benchmark_target(bench_argv, config.max_concurrency()) as provisioned_argv:
         for index, combination in enumerate(deployment_combinations, start=1):
             desired = {s.path: s.value for s in combination}
@@ -759,15 +455,11 @@ def main(argv=None):
                 index, len(deployment_combinations), desired or "(unchanged)",
             )
 
-            # Applied and verified ONCE, then held still for every client
-            # combination below — which is what makes those results comparable.
             snapshot = apply_combination(combination, fingerprint_client)
             logger.info(
                 "Observed configuration under test:\n%s", format_settings_yaml(snapshot)
             )
 
-            # Resolved here, not per load test: the deployment is held still for
-            # the whole inner loop, so the served model cannot change within it.
             tokenizer = resolve_tokenizer()
             logger.info("Counting tokens with the served model's tokenizer: %s", tokenizer)
 
@@ -777,8 +469,7 @@ def main(argv=None):
                     f"(deployment {index}/{len(deployment_combinations)}, "
                     f"client {client_index}/{len(client_combinations)})"
                 )
-                # Fresh tokens per run, so none expires during a long sweep. Test
-                # doubles may yield a plain list, which has nothing to refresh.
+                # Test doubles may yield a plain list.
                 if isinstance(provisioned_argv, ProvisionedArgv):
                     provisioned_argv.refresh()
                 error, output_file = run_client_combination(
@@ -788,9 +479,6 @@ def main(argv=None):
                 )
                 overall_error = overall_error or error
 
-                # Observed values for the deployment half, declared ones for the
-                # client half — the same asymmetry as the per-run log line, for
-                # the same reason (see BenchmarkClientArgs.snapshot).
                 row = summary.add_run(
                     knob_values={
                         **snapshot,
@@ -800,8 +488,6 @@ def main(argv=None):
                     error=error,
                     served_model=tokenizer,
                 )
-                # The summary row's KPI keys are undotted, so they stay top-level
-                # under the knob sections rather than nesting.
                 logger.info("%s summary:\n%s", label, format_settings_yaml(row))
 
     logger.info("Sweep summary (%d run(s)) written to %s", len(summary.rows), summary.write())

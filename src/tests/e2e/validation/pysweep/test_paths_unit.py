@@ -1,18 +1,6 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for where pysweep looks for the installed environment.
-
-Two regressions are pinned:
-
-* **The deploy root follows the checkout.** The installer keeps this repo at
-  ``<deploy-root>/ext/enterprise.ai-erag``, so the environment is found next to it
-  for whichever user installed it, not only under ``/root/ai-solutions``.
-* **An unreadable candidate is skipped, not fatal.** On Python < 3.14
-  ``Path.is_dir()`` raises ``PermissionError`` for a path under ``/root``; probing
-  that fallback as a non-root user used to crash the sweep before it started.
-"""
-
 from pathlib import Path
 
 import allure
@@ -28,7 +16,6 @@ from tests.e2e.benchmarks.chatqna.pysweep.authentication import (
 
 @allure.feature("pysweep")
 def test_repo_root_is_the_checkout():
-    """``REPO_ROOT`` must still point at the repo after any move of the package."""
     assert (paths.REPO_ROOT / "src" / "tests" / "e2e").is_dir()
     assert (paths.REPO_ROOT / "deployment").is_dir()
 
@@ -42,7 +29,6 @@ def test_deploy_root_is_derived_from_an_installer_layout(monkeypatch, tmp_path):
 
 @allure.feature("pysweep")
 def test_a_plain_checkout_only_falls_back_to_root(monkeypatch, tmp_path):
-    """Outside ``ext/`` the checkout's parent is not a deploy root; don't guess one."""
     monkeypatch.setattr(paths, "REPO_ROOT", tmp_path / "PycharmProjects" / "ai-erag")
     assert paths.deploy_roots() == (paths.ROOT_DEPLOY_ROOT,)
 
@@ -85,7 +71,6 @@ def test_no_build_config_dir_anywhere_is_an_error(monkeypatch):
 
 @allure.feature("pysweep")
 def test_build_config_files_match_the_e2e_suite():
-    """pysweep must load the same env files ``tests/e2e/conftest.py`` does."""
     conftest = (paths.REPO_ROOT / "src" / "tests" / "e2e" / "conftest.py").read_text()
     for filename in BUILD_CONFIG_FILES:
         assert f'"{filename}"' in conftest, filename

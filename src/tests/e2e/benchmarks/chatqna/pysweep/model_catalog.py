@@ -1,42 +1,6 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""The model-manager catalog: deployment names, and the HF repo behind each.
-
-``model-manager`` deploys models from a YAML catalog (``models.yaml``) in which
-every entry has a short **deployment name** and the **HuggingFace repo id** its
-weights come from::
-
-    models:
-      - name: llama3-8b-awq
-        model_id: casperhansen/llama-3-8b-instruct-awq
-        category: llm
-
-Both halves matter to pysweep, for different reasons.
-
-**The name is what the deployment serves.** It is what ends up in
-``--served-model-name``, and therefore what ``LLM_MODEL_NAME`` holds and what the
-served model answers to on the gateway — so it is what :mod:`.served_model` reads.
-
-**The repo id is what the benchmark's tokenizer needs.** ``benchmark.py -m``
-counts tokens with ``transformers.AutoTokenizer``, which resolves a HF repo, not
-a deployment name. The value is therefore *derived*, never configured: the runner
-reads the observed model name off the deployment and looks its repo id up here
-(see :func:`~.pysweep_bench.resolve_tokenizer`). Deriving it is the point —
-a hand-set tokenizer that disagreed with the served model would silently mis-count
-every input and output length in the results.
-
-**Which catalog file.** The one the deployment actually used, which is not
-necessarily the one in this repo: ``deployment/models.yaml`` here is the shipped
-default, while an installed environment has its own copies under ``env/<name>/``
-and they do drift. The RAG pipeline's models come from ``models-rag.yaml`` there;
-``models.yaml`` is the inference platform's catalog, which shares only some names
-and sizes them differently. The resolution order below therefore prefers explicit
-configuration (``PYSWEEP_MODEL_CATALOG``) and then ``MM_CONFIG`` — the same
-variable the ``model-manager`` wrapper exports — so pysweep reads the catalog
-whose names the cluster was actually built from.
-"""
-
 import logging
 import os
 from pathlib import Path
@@ -47,15 +11,9 @@ from .paths import REPO_ROOT, deploy_roots, is_file
 
 logger = logging.getLogger(__name__)
 
-# Environment variables consulted for the catalog path, in order. MM_CONFIG is
-# what the ai-solutions ./model-manager wrapper exports for the real CLI, so
-# honouring it makes pysweep read the same catalog the deployment used without
-# anyone having to configure pysweep separately.
+# MM_CONFIG is what the ai-solutions ./model-manager wrapper exports.
 CATALOG_ENV_VARS = ("PYSWEEP_MODEL_CATALOG", "MM_CONFIG")
 
-# Catalog paths tried when nothing is configured. The installed environment's
-# copies come first, the RAG catalog before the platform one, then this repo's
-# shipped default.
 CATALOG_FALLBACKS = (
     *(
         str(root / "env" / "local" / name)
@@ -71,12 +29,6 @@ class CatalogError(Exception):
 
 
 def catalog_path() -> Path:
-    """Return the catalog file to read, or raise :class:`CatalogError`.
-
-    Raising when nothing is found is deliberate: the alternative is an empty
-    catalog, which would make every model name "unknown" and turn a
-    configuration problem into a confusing per-model failure later on.
-    """
     for var in CATALOG_ENV_VARS:
         configured = os.getenv(var)
         if configured:
@@ -100,12 +52,7 @@ def catalog_path() -> Path:
 
 
 def load_catalog(path: str | Path | None = None) -> dict[str, dict]:
-    """Return ``{name: entry}`` for every model in the catalog.
-
-    Entries are returned verbatim, so callers can read whichever field they need
-    (``model_id``, ``category``, ``cpu``…) without this module having to know
-    about each one.
-    """
+    """Return ``{name: entry}`` for every model in the catalog."""
     resolved = Path(path) if path is not None else catalog_path()
     try:
         raw = yaml.safe_load(resolved.read_text())
@@ -139,17 +86,12 @@ def load_catalog(path: str | Path | None = None) -> dict[str, dict]:
 
 
 def known_models(path: str | Path | None = None) -> list[str]:
-    """Every deployment name the catalog offers, sorted — the valid ``llms.model`` values."""
+    """Sorted catalog names: the valid ``llms.model`` values."""
     return sorted(load_catalog(path))
 
 
 def model_entry(name: str, path: str | Path | None = None) -> dict:
-    """Return one model's catalog entry, or raise naming what *is* available.
-
-    Listing the alternatives matters here because the failure this catches is
-    almost always a name typo or a repo id used where a name belongs, and both
-    are obvious the moment the real names are on screen.
-    """
+    """Return one model's catalog entry, or raise listing the available names."""
     catalog = load_catalog(path)
     if name not in catalog:
         raise CatalogError(
@@ -161,13 +103,7 @@ def model_entry(name: str, path: str | Path | None = None) -> dict:
 
 
 def tokenizer_for(name: str, path: str | Path | None = None) -> str:
-    """Return the HF repo id whose tokenizer matches the model deployed as ``name``.
-
-    Raises :class:`CatalogError` if the entry has no ``model_id``: a model served
-    from a repo pysweep cannot name is one whose token counts it cannot compute,
-    and reporting throughput per token off the wrong tokenizer is worse than not
-    reporting it.
-    """
+    """Return the HF repo id whose tokenizer matches the model deployed as ``name``."""
     entry = model_entry(name, path)
     model_id = entry.get("model_id")
     if not model_id:

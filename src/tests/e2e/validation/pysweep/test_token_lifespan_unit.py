@@ -1,14 +1,6 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for the sweep-long access-token lifespan override.
-
-Pinned: the override is per client (nothing else in the realm changes), the
-client's previous value comes back afterwards, including after a failed sweep, and
-a client with no override goes back to inheriting the realm setting.
-No Keycloak is involved: ``requests`` is replaced with an in-memory client store.
-"""
-
 import allure
 import pytest
 
@@ -38,8 +30,6 @@ class _Response:
 
 
 class _FakeKeycloak:
-    """Just enough of the admin API: list clients by clientId, GET/PUT one client."""
-
     def __init__(self, attributes=None, exists=True):
         self.client = {"id": "uuid-1", "clientId": VITE_KEYCLOAK_CLIENT_ID,
                        "attributes": dict(attributes or {})}
@@ -85,7 +75,6 @@ def keycloak(monkeypatch):
 
 @allure.feature("pysweep")
 def test_the_sweep_value_is_arbitrary_but_outlasts_a_long_run():
-    """Only has to cover one run; 15m runs are the longest used so far."""
     assert authentication.SWEEP_TOKEN_LIFESPAN_S == 3600
 
 

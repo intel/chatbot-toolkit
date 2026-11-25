@@ -1,35 +1,6 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""Client for the ChatQNA ``system_fingerprint`` runtime API (Runtime API plane).
-
-Wraps the two endpoints the runtime-plane properties use:
-
-- ``POST change_arguments`` — the **setter**. A list of
-  ``{"name": <component>, "data": {...}}`` entries.
-- ``GET config?params_key=<component>`` — the **reader**. Returns that one
-  component's live arguments under ``values``.
-
-The reader is per-component, which is why every property names the component it
-drives: asking for ``retriever`` gets the retriever's arguments and nothing else,
-so a property can never accidentally read a same-named key belonging to another
-component.
-
-**Scope.** Writes carry a ``pipeline``/``tenant`` pair, because the microservice
-stores arguments per scope and the ChatQNA router reads the ``chatqna``/``_global``
-one — a write with no scope lands somewhere the pipeline under test does not
-read. Reads take the same pair for symmetry.
-
-Two transports are supported (DESIGN.md "Reaching pod APIs"):
-
-- :class:`PortForwardTransport` (default) — forwards to ``fingerprint-svc`` via
-  ``kr8s``. Needs no token, because authentication is enforced at the ingress
-  gateway and this path is pod-local. That makes it the robust choice for a
-  multi-hour sweep: nothing to expire.
-- :class:`IngressTransport` — the ERAG domain, authenticated with a Keycloak
-  access token. Used when the cluster is only reachable through its ingress.
-"""
-
 import logging
 import os
 import secrets
@@ -52,15 +23,12 @@ FINGERPRINT_SERVICE = "fingerprint-svc"
 FINGERPRINT_PORT = 6012
 API_PREFIX = "/v1/system_fingerprint"
 
-# The scope the ChatQNA router reads its component arguments from. '_global' is
-# the shared tenant; see FingerprintApiHelper.set_chatqa_component_parameters,
-# which fixes the same pair for the e2e suite's ChatQNA tests.
+# The scope the ChatQNA router reads component arguments from.
 PIPELINE = "chatqna"
 TENANT = "_global"
 
 
 def find_unused_port(start: int = 10000, end: int = 60000) -> int:
-    """Return a currently-free local TCP port in ``[start, end)``."""
     while True:
         port = secrets.randbelow(end - start) + start
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -69,11 +37,6 @@ def find_unused_port(start: int = 10000, end: int = 60000) -> int:
 
 
 def wait_until_listening(port: int, timeout: float = 10.0) -> None:
-    """Block until a local port accepts connections.
-
-    ``PortForward.start()`` returns before the tunnel is actually listening, so
-    probe the socket to avoid a connection-refused race.
-    """
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -85,18 +48,12 @@ def wait_until_listening(port: int, timeout: float = 10.0) -> None:
 
 @contextmanager
 def object_port_forward(obj, remote_port: int):
-    """Port-forward ``remote_port`` on any kr8s object; yield the local port.
-
-    Works for a ``Service`` (load-balanced across its endpoints) or a ``Pod``
-    (one specific replica). The forward is scoped to the context and torn down
-    afterwards. This is the single code path for reaching in-cluster HTTP APIs
-    pod-locally — shared by the fingerprint transport and the benchmark's ChatQNA
-    endpoint.
-    """
+    """Port-forward remote_port on a kr8s Service or Pod; yield the local port."""
     local_port = find_unused_port()
     pf = kr8s.portforward.PortForward(obj, remote_port=remote_port, local_port=local_port)
     pf.start()
     try:
+        # PortForward.start() returns before the tunnel is listening.
         wait_until_listening(local_port)
         yield local_port
     finally:
@@ -105,20 +62,13 @@ def object_port_forward(obj, remote_port: int):
 
 @contextmanager
 def service_port_forward(namespace: str, service: str, remote_port: int):
-    """Port-forward ``service:remote_port`` via kr8s; yield the local port."""
     svc = kr8s.objects.Service.get(service, namespace=namespace)
     with object_port_forward(svc, remote_port) as local_port:
         yield local_port
 
 
 class IngressTransport:
-    """Reach the fingerprint API over the ERAG ingress with a Keycloak token.
-
-    The token is fetched per session rather than cached, because a sweep runs for
-    hours and a cached one would expire mid-product. ``keycloak_helper`` is the
-    maintained helper (see :mod:`.authentication`), whose ``access_token``
-    property already re-mints on each read.
-    """
+    """Reach the fingerprint API over the ERAG ingress with a Keycloak token."""
 
     def __init__(self, keycloak_helper, domain: str | None = None):
         self.keycloak_helper = keycloak_helper
@@ -140,11 +90,7 @@ class IngressTransport:
 
 
 class PortForwardTransport:
-    """Reach the fingerprint API by port-forwarding to the service via kr8s.
-
-    The forward is scoped to the ``session()`` context and torn down afterwards,
-    so a sweep holds no tunnel open between property reads.
-    """
+    """Reach the fingerprint API by port-forwarding to the service via kr8s."""
 
     def __init__(
         self,
@@ -164,16 +110,7 @@ class PortForwardTransport:
 
 
 class HelperFingerprintClient:
-    """Adapter exposing the pysweep client interface over the suite helper.
-
-    When pysweep runs as part of the e2e validation suite the maintained
-    :class:`tests.e2e.helpers.fingerprint_api_helper.FingerprintApiHelper`
-    already knows how to reach the fingerprint API over ingress (with the suite's
-    Keycloak auth). Reusing it keeps the e2e property tests exercising the same
-    transport the rest of the suite does, rather than a pysweep-only one. This
-    adapter just re-expresses it as the ``change_arguments`` / ``read_values``
-    interface the property classes expect.
-    """
+    """FingerprintClient interface over the suite's FingerprintApiHelper."""
 
     def __init__(self, fingerprint_api_helper):
         self._helper = fingerprint_api_helper
@@ -195,11 +132,7 @@ class HelperFingerprintClient:
 
 
 class FingerprintClient:
-    """Thin client over ``/v1/system_fingerprint/{change_arguments,config}``.
-
-    Delegates connectivity to a transport so the same logic works whether the
-    API is reached over ingress or a port-forward.
-    """
+    """Client for /v1/system_fingerprint/{change_arguments,config}."""
 
     def __init__(self, transport, pipeline: str = PIPELINE, tenant: str = TENANT):
         self.transport = transport
@@ -238,11 +171,7 @@ class FingerprintClient:
 
 
 def default_transport(keycloak_helper=None):
-    """Pick a transport from the environment.
-
-    ``PYSWEEP_FINGERPRINT_TRANSPORT=portforward`` (default) forwards to the
-    service; ``=ingress`` uses the ERAG domain and requires a Keycloak helper.
-    """
+    """Pick a transport from PYSWEEP_FINGERPRINT_TRANSPORT: portforward (default) or ingress."""
     mode = os.getenv("PYSWEEP_FINGERPRINT_TRANSPORT", "portforward").lower()
     if mode == "ingress":
         if keycloak_helper is None:
