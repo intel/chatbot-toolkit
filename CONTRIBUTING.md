@@ -22,8 +22,8 @@ We welcome community contributions to Intel® Chatbot Toolkit.
 ## How to contribute
 
 You can:
-- log a bug, feedback, enhancement proposal, or idea with an [issue][ai-erag-issues]
-- submit your changes with a [pull request][ai-erag-pulls]
+- log a bug, feedback, enhancement proposal, or idea with an [issue][chatbot-toolkit-issues]
+- submit your changes with a [pull request][chatbot-toolkit-pulls]
 
 ## License and conduct
 
@@ -295,5 +295,5 @@ In such cases, credit to the original author will be preserved.
 
 [toolkit-manager]: https://github.com/intel/toolkit-manager
 [inference-toolkit]: https://github.com/intel/inference-toolkit
-[ai-erag-issues]: https://github.com/intel/chatbot-toolkit/issues
-[ai-erag-pulls]: https://github.com/intel/chatbot-toolkit/pulls
+[chatbot-toolkit-issues]: https://github.com/intel/chatbot-toolkit/issues
+[chatbot-toolkit-pulls]: https://github.com/intel/chatbot-toolkit/pulls
