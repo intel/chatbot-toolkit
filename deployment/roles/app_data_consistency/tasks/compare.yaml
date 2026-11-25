@@ -10,64 +10,32 @@
     _dc_stores: {}
     _dc_violations: []
 
-- name: "app_data_consistency | Compare — VDB"
-  ansible.builtin.set_fact:
-    _dc_stores: "{{ _dc_stores | combine({'vdb': {'pre': pre, 'post': post, 'delta': (post | int) - (pre | int), 'verdict': verdict}}) }}"
-    _dc_violations: "{{ _dc_violations + ([('vdb: decreased from ' ~ pre ~ ' to ' ~ post)] if verdict == 'violation' else []) }}"
-  vars:
-    pre: "{{ (_upgrade_pre_snapshot.get('vdb', {}).get('count', 0)) | int }}"
-    post: "{{ (_upgrade_post_snapshot.get('vdb', {}).get('count', 0)) | int }}"
-    pre_status: "{{ _upgrade_pre_snapshot.get('vdb', {}).get('status', 'skipped') }}"
-    post_status: "{{ _upgrade_post_snapshot.get('vdb', {}).get('status', 'skipped') }}"
-    verdict: "{{ 'skipped' if (pre_status == 'skipped' or post_status == 'skipped') else 'lost' if post_status == 'failed' else ('baseline' if (pre | int == 0 and post | int == 0) else ('violation' if (post | int < pre | int) else 'pass')) }}"
-  when: "'vdb' in _upgrade_post_snapshot"
-
-- name: "app_data_consistency | Compare — Chat History"
-  ansible.builtin.set_fact:
-    _dc_stores: "{{ _dc_stores | combine({'chat_history': {'pre': pre, 'post': post, 'delta': (post | int) - (pre | int), 'verdict': verdict}}) }}"
-    _dc_violations: "{{ _dc_violations + ([('chat_history: decreased from ' ~ pre ~ ' to ' ~ post)] if verdict == 'violation' else []) }}"
-  vars:
-    pre: "{{ (_upgrade_pre_snapshot.get('chat_history', {}).get('count', 0)) | int }}"
-    post: "{{ (_upgrade_post_snapshot.get('chat_history', {}).get('count', 0)) | int }}"
-    pre_status: "{{ _upgrade_pre_snapshot.get('chat_history', {}).get('status', 'skipped') }}"
-    post_status: "{{ _upgrade_post_snapshot.get('chat_history', {}).get('status', 'skipped') }}"
-    verdict: "{{ 'skipped' if (pre_status == 'skipped' or post_status == 'skipped') else 'lost' if post_status == 'failed' else ('baseline' if (pre | int == 0 and post | int == 0) else ('violation' if (post | int < pre | int) else 'pass')) }}"
-  when: "'chat_history' in _upgrade_post_snapshot"
-
-- name: "app_data_consistency | Compare — EDP"
-  ansible.builtin.set_fact:
-    _dc_stores: "{{ _dc_stores | combine({'edp': {'pre': pre, 'post': post, 'delta': (post | int) - (pre | int), 'verdict': verdict}}) }}"
-    _dc_violations: "{{ _dc_violations + ([('edp: decreased from ' ~ pre ~ ' to ' ~ post)] if verdict == 'violation' else []) }}"
-  vars:
-    pre: "{{ (_upgrade_pre_snapshot.get('edp', {}).get('count', 0)) | int }}"
-    post: "{{ (_upgrade_post_snapshot.get('edp', {}).get('count', 0)) | int }}"
-    pre_status: "{{ _upgrade_pre_snapshot.get('edp', {}).get('status', 'skipped') }}"
-    post_status: "{{ _upgrade_post_snapshot.get('edp', {}).get('status', 'skipped') }}"
-    verdict: "{{ 'skipped' if (pre_status == 'skipped' or post_status == 'skipped') else 'lost' if post_status == 'failed' else ('baseline' if (pre | int == 0 and post | int == 0) else ('violation' if (post | int < pre | int) else 'pass')) }}"
-  when: "'edp' in _upgrade_post_snapshot"
-
-- name: "app_data_consistency | Compare — Keycloak"
-  ansible.builtin.set_fact:
-    _dc_stores: "{{ _dc_stores | combine({'keycloak': {'pre': pre, 'post': post, 'delta': (post | int) - (pre | int), 'verdict': verdict}}) }}"
-    _dc_violations: "{{ _dc_violations + ([('keycloak: decreased from ' ~ pre ~ ' to ' ~ post)] if verdict == 'violation' else []) }}"
-  vars:
-    pre: "{{ (_upgrade_pre_snapshot.get('keycloak', {}).get('count', 0)) | int }}"
-    post: "{{ (_upgrade_post_snapshot.get('keycloak', {}).get('count', 0)) | int }}"
-    pre_status: "{{ _upgrade_pre_snapshot.get('keycloak', {}).get('status', 'skipped') }}"
-    post_status: "{{ _upgrade_post_snapshot.get('keycloak', {}).get('status', 'skipped') }}"
-    verdict: "{{ 'skipped' if (pre_status == 'skipped' or post_status == 'skipped') else 'lost' if post_status == 'failed' else ('baseline' if (pre | int == 0 and post | int == 0) else ('violation' if (post | int < pre | int) else 'pass')) }}"
-  when: "'keycloak' in _upgrade_post_snapshot"
-
 # snapshot.yaml stops the run when a store cannot be counted before the upgrade, so
 # only the count after it can have failed. That store is treated as lost.
-- name: "app_data_consistency | Compare — stores not counted after the upgrade"
+- name: "app_data_consistency | Compare — each store counted after the upgrade"
   ansible.builtin.set_fact:
+    _dc_stores: >-
+      {{ _dc_stores | combine({item: {
+           'pre': pre | int,
+           'post': (none if verdict == 'lost' else post | int),
+           'delta': (none if verdict == 'lost' else (post | int) - (pre | int)),
+           'verdict': verdict}}) }}
     _dc_violations: >-
-      {{ _dc_violations + [item.key ~ ': counted ' ~ item.value.pre ~ ' before the upgrade but not after it: '
-                           ~ _upgrade_post_snapshot[item.key].reason | default('')] }}
-  loop: "{{ _dc_stores | dict2items | selectattr('value.verdict', 'equalto', 'lost') | list }}"
-  loop_control:
-    label: "{{ item.key }}"
+      {{ _dc_violations
+         + ([item ~ ': decreased from ' ~ pre ~ ' to ' ~ post] if verdict == 'violation' else [])
+         + ([item ~ ': counted ' ~ pre ~ ' before the upgrade but not after it: '
+             ~ _upgrade_post_snapshot[item].reason] if verdict == 'lost' else []) }}
+  vars:
+    pre: "{{ _upgrade_pre_snapshot.get(item, {}).get('count', 0) | int }}"
+    post: "{{ (_upgrade_post_snapshot[item].count or 0) | int }}"
+    pre_status: "{{ _upgrade_pre_snapshot.get(item, {}).get('status', 'skipped') }}"
+    post_status: "{{ _upgrade_post_snapshot[item].status }}"
+    verdict: >-
+      {{ 'skipped' if (pre_status == 'skipped' or post_status == 'skipped')
+         else ('lost' if post_status == 'failed'
+         else ('baseline' if (pre | int == 0 and post | int == 0)
+         else ('violation' if (post | int < pre | int) else 'pass'))) }}
+  loop: "{{ ['vdb', 'chat_history', 'edp', 'keycloak'] | select('in', _upgrade_post_snapshot) | list }}"
 
 - name: "app_data_consistency | Compare — assemble result"
   ansible.builtin.set_fact:

@@ -58,7 +58,7 @@
 - name: "app_post_install | Upgrade — block on data consistency violations"
   ansible.builtin.fail:
     msg: |
-      Data consistency check failed — data decreased across the upgrade:
+      Data consistency check failed — data decreased, or could not be counted, after the upgrade:
       {{ _upgrade_consistency_result.violations | join('; ') }}
       Report: {{ _data_consistency_report_path | default(env_dir ~ '/reports') }}
       Override with -e data_consistency_no_fail=true (or -e force_install_mode=true).

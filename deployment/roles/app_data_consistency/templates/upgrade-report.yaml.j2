@@ -12,7 +12,7 @@ metadata:
 pre_snapshot:
 {% for store, data in _upgrade_pre_snapshot.items() %}
   {{ store }}:
-    count: {{ data.count }}
+    count: {{ data.count | to_json }}
     status: "{{ data.status }}"
     method: "{{ data.method }}"
 {% if data.reason is defined %}
@@ -23,7 +23,7 @@ pre_snapshot:
 post_snapshot:
 {% for store, data in _upgrade_post_snapshot.items() %}
   {{ store }}:
-    count: {{ data.count }}
+    count: {{ data.count | to_json }}
     status: "{{ data.status }}"
     method: "{{ data.method }}"
 {% if data.reason is defined %}
@@ -37,15 +37,15 @@ consistency:
   stores:
 {% for store, data in _upgrade_consistency_result.stores.items() %}
     {{ store }}:
-      pre: {{ data.pre }}
-      post: {{ data.post }}
-      delta: {{ data.delta }}
+      pre: {{ data.pre | to_json }}
+      post: {{ data.post | to_json }}
+      delta: {{ data.delta | to_json }}
       verdict: "{{ data.verdict }}"
 {% endfor %}
 {% if _upgrade_consistency_result.violations | length > 0 %}
   violations:
 {% for v in _upgrade_consistency_result.violations %}
-    - "{{ v }}"
+    - {{ v | to_json }}
 {% endfor %}
 {% else %}
   violations: []

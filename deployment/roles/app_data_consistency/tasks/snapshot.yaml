@@ -329,7 +329,7 @@
     msg: >-
       [DATA SNAPSHOT] {{ _snapshot_timestamp }}:
       {% for store, data in _data_snapshot.items() %}
-      {{ store }}={{ data.count }} ({{ data.status }}){{ ', ' if not loop.last else '' }}
+      {{ store }}={{ 'n/a' if data.count is none else data.count }} ({{ data.status }}){{ ', ' if not loop.last else '' }}
       {% endfor %}
 
 # The caller asks for the raw snapshot to be kept by setting a label; the file
