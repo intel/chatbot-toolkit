@@ -21,7 +21,7 @@ apisix_helm_default_values_file: "{{ deployment_dir }}/components/apisix/values.
 apisix_crds_field_manager: "erag-app-apisix"
 
 # --- OIDC integration ---
-apisix_oidc_client_id: "EnterpriseRAG-oidc-backend"
+apisix_oidc_client_id: "ChatbotToolkit-oidc-backend"
 
 # --- API route without the UI ---
 apisix_api_route_name: "apisix-api"

@@ -5,6 +5,20 @@
   ansible.builtin.include_tasks:
     file: solution_config.yaml
 
+- name: "app_pre_install | Reject pre-rebrand erag_keycloak_* settings"
+  vars:
+    legacy_keys: "{{ query('ansible.builtin.varnames', '^erag_keycloak_') }}"
+  ansible.builtin.assert:
+    that:
+      - legacy_keys | length == 0
+    fail_msg: >-
+      {{ legacy_keys | join(', ') }}
+      {{ 'is' if legacy_keys | length == 1 else 'are' }}
+      no longer read. Rename each erag_keycloak_* key in your config to
+      chattool_keycloak_* (same suffix), e.g. erag_keycloak_oidc_endpoint ->
+      chattool_keycloak_oidc_endpoint.
+    quiet: true
+
 # Treats undefined, "" and 0 alike as "not set". Single reference to the var, so
 # there is no short-circuit ordering to get right, and | string keeps | length
 # from raising on an int.
@@ -82,7 +96,7 @@
 
       Domain Configuration:
         • UI: {{ base_domain_name | default('undefined') }}
-        • Keycloak: {{ erag_keycloak_domain_name }}{{ erag_keycloak_path_prefix }}
+        • Keycloak: {{ chattool_keycloak_domain_name }}{{ chattool_keycloak_path_prefix }}
         • Telemetry: {{ telemetry_domain_name | default('undefined') }}
       {% if edp_enabled | default(false) | bool %}
         • EDP Storage: {{ edp_storage_type | default('seaweedfs') }}

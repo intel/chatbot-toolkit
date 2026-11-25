@@ -43,12 +43,12 @@ echo ""
 
 echo "1. Network connectivity"
 check_output "eRAG API reachable" curl -sk --max-time 10 "https://${ERAG_DOMAIN_NAME:-erag.com}/api/v1/health/ready"
-check_output "Keycloak reachable" curl -sk --max-time 10 "https://auth.${ERAG_DOMAIN_NAME:-erag.com}/realms/EnterpriseRAG/.well-known/openid-configuration"
+check_output "Keycloak reachable" curl -sk --max-time 10 "https://auth.${ERAG_DOMAIN_NAME:-erag.com}/realms/ChatbotToolkit/.well-known/openid-configuration"
 
 echo ""
 echo "2. Credentials"
-if [[ -n "${KEYCLOAK_ERAG_ADMIN_PASSWORD:-}" ]]; then
-    echo "  [OK] KEYCLOAK_ERAG_ADMIN_PASSWORD set"
+if [[ -n "${KEYCLOAK_CHATTOOL_ADMIN_PASSWORD:-}" ]]; then
+    echo "  [OK] KEYCLOAK_CHATTOOL_ADMIN_PASSWORD set"
     PASS=$((PASS + 1))
 else
     CREDS_FILE="${SCRIPT_DIR}/../../../../../deployment/ansible-logs/default_credentials.txt"
@@ -56,7 +56,7 @@ else
         echo "  [OK] Credentials file found at ${CREDS_FILE}"
         PASS=$((PASS + 1))
     else
-        echo "  [FAIL] No KEYCLOAK_ERAG_ADMIN_PASSWORD and no credentials file"
+        echo "  [FAIL] No KEYCLOAK_CHATTOOL_ADMIN_PASSWORD and no credentials file"
         FAIL=$((FAIL + 1))
     fi
 fi

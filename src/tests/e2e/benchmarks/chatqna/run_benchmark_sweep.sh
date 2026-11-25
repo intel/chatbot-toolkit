@@ -11,7 +11,7 @@
 # check. Use when the vector DB already holds enough vectors from a prior run.
 #
 # Required environment variables (set before running):
-#   KEYCLOAK_ERAG_ADMIN_PASSWORD   – UI admin password
+#   KEYCLOAK_CHATTOOL_ADMIN_PASSWORD   – UI admin password
 #   KEYCLOAK_REALM_ADMIN_PASSWORD  – Realm admin password
 #
 # Optional environment variables (defaults shown):
@@ -231,20 +231,20 @@ check_prerequisites() {
     local errors=0
 
     # Required env vars — Keycloak credentials for the RAG user and the realm
-    # admin. The source of truth is the erag-credentials / keycloak-admin-secret
+    # admin. The source of truth is the chattool-credentials / keycloak-admin-secret
     # in the keycloak namespace, NOT ansible-logs/default_credentials.txt (which
     # goes stale on re-install).
     local creds_set=1
-    for var in KEYCLOAK_ERAG_ADMIN_USERNAME KEYCLOAK_ERAG_ADMIN_PASSWORD \
+    for var in KEYCLOAK_CHATTOOL_ADMIN_USERNAME KEYCLOAK_CHATTOOL_ADMIN_PASSWORD \
                KEYCLOAK_REALM_ADMIN_USERNAME KEYCLOAK_REALM_ADMIN_PASSWORD; do
         if [[ -z "${!var:-}" ]]; then
             log_error "Required env var '$var' is not set."
             log_error "  Export it from the keycloak namespace secret:"
             case "$var" in
-                KEYCLOAK_ERAG_ADMIN_USERNAME)
-                    log_error "    export KEYCLOAK_ERAG_ADMIN_USERNAME=\$(kubectl get secret -n keycloak erag-credentials -o jsonpath='{.data.KEYCLOAK_ERAG_ADMIN_USERNAME}' | base64 -d)" ;;
-                KEYCLOAK_ERAG_ADMIN_PASSWORD)
-                    log_error "    export KEYCLOAK_ERAG_ADMIN_PASSWORD=\$(kubectl get secret -n keycloak erag-credentials -o jsonpath='{.data.KEYCLOAK_ERAG_ADMIN_PASSWORD}' | base64 -d)" ;;
+                KEYCLOAK_CHATTOOL_ADMIN_USERNAME)
+                    log_error "    export KEYCLOAK_CHATTOOL_ADMIN_USERNAME=\$(kubectl get secret -n keycloak chattool-credentials -o jsonpath='{.data.KEYCLOAK_CHATTOOL_ADMIN_USERNAME}' | base64 -d)" ;;
+                KEYCLOAK_CHATTOOL_ADMIN_PASSWORD)
+                    log_error "    export KEYCLOAK_CHATTOOL_ADMIN_PASSWORD=\$(kubectl get secret -n keycloak chattool-credentials -o jsonpath='{.data.KEYCLOAK_CHATTOOL_ADMIN_PASSWORD}' | base64 -d)" ;;
                 KEYCLOAK_REALM_ADMIN_USERNAME)
                     log_error "    export KEYCLOAK_REALM_ADMIN_USERNAME=\$(kubectl get secret -n keycloak keycloak-admin-secret -o jsonpath='{.data.username}' | base64 -d)" ;;
                 KEYCLOAK_REALM_ADMIN_PASSWORD)
@@ -389,7 +389,7 @@ check_prerequisites() {
     # 40 minutes switching models only to discover the token endpoint rejects
     # us. Reuses generate_uat_to_file.sh so this test is the exact code path
     # the sweep runs later (including the admin-side requiredActions reset
-    # against the erag-admin user) — if it passes here, it will pass there.
+    # against the chattool-admin user) — if it passes here, it will pass there.
     # Only runs when all four env vars are present; the presence check above
     # produces a clearer error otherwise.
     if [[ $creds_set -eq 1 ]]; then
@@ -403,11 +403,11 @@ check_prerequisites() {
             log_error "  Re-read credentials from the cluster secrets, then re-run:"
             log_error "    export KEYCLOAK_REALM_ADMIN_USERNAME=\$(kubectl get secret -n keycloak keycloak-admin-secret -o jsonpath='{.data.username}' | base64 -d)"
             log_error "    export KEYCLOAK_REALM_ADMIN_PASSWORD=\$(kubectl get secret -n keycloak keycloak-admin-secret -o jsonpath='{.data.password}' | base64 -d)"
-            log_error "    export KEYCLOAK_ERAG_ADMIN_USERNAME=\$(kubectl get secret -n keycloak erag-credentials -o jsonpath='{.data.KEYCLOAK_ERAG_ADMIN_USERNAME}' | base64 -d)"
-            log_error "    export KEYCLOAK_ERAG_ADMIN_PASSWORD=\$(kubectl get secret -n keycloak erag-credentials -o jsonpath='{.data.KEYCLOAK_ERAG_ADMIN_PASSWORD}' | base64 -d)"
+            log_error "    export KEYCLOAK_CHATTOOL_ADMIN_USERNAME=\$(kubectl get secret -n keycloak chattool-credentials -o jsonpath='{.data.KEYCLOAK_CHATTOOL_ADMIN_USERNAME}' | base64 -d)"
+            log_error "    export KEYCLOAK_CHATTOOL_ADMIN_PASSWORD=\$(kubectl get secret -n keycloak chattool-credentials -o jsonpath='{.data.KEYCLOAK_CHATTOOL_ADMIN_PASSWORD}' | base64 -d)"
             errors=$((errors + 1))
         else
-            log_ok "Keycloak credential validation passed (realm=${KEYCLOAK_REALM_ADMIN_USERNAME}, user=${KEYCLOAK_ERAG_ADMIN_USERNAME})."
+            log_ok "Keycloak credential validation passed (realm=${KEYCLOAK_REALM_ADMIN_USERNAME}, user=${KEYCLOAK_CHATTOOL_ADMIN_USERNAME})."
         fi
     fi
 

@@ -30,9 +30,9 @@ Agents obtain their own Keycloak access token with the `client_credentials` gran
 
 When `mcp_enabled` is true, the Keycloak configurator Job creates a ready-to-use service-account client. Its ID comes from `mcp_keycloak_client_id` and defaults to `mcp-client`. The client is confidential, with `serviceAccountsEnabled: true` and standard, implicit, and browser flows disabled, so `client_credentials` is the only usable grant. Its service account gets:
 
-- `ERAG-maintainer` on `EnterpriseRAG-oidc-backend` (EDP access; every MCP tool calls EDP routes that require maintainer)
-- `erag-admin-group` on `EnterpriseRAG-oidc-minio` (S3 read/write for `ingest_file`)
-- A `minio_roles` client-role mapper, so the `EnterpriseRAG-oidc-minio` roles land in the token SeaweedFS checks when `edp_rbac_enabled` is true
+- `CHATTOOL-maintainer` on `ChatbotToolkit-oidc-backend` (EDP access; every MCP tool calls EDP routes that require maintainer)
+- `chattool-admin-group` on `ChatbotToolkit-oidc-minio` (S3 read/write for `ingest_file`)
+- A `minio_roles` client-role mapper, so the `ChatbotToolkit-oidc-minio` roles land in the token SeaweedFS checks when `edp_rbac_enabled` is true
 - An audience mapper adding `mcp-gateway`, the audience the gateway requires
 - `access.token.lifespan` of 900s, so agent tokens stay short-lived without changing the realm default
 
@@ -40,8 +40,8 @@ The credentials are stored in two places:
 
 ```bash
 # Kubernetes Secret (source of truth)
-kubectl get secret -n keycloak erag-credentials -o jsonpath='{.data.MCP_CLIENT_ID}' | base64 -d
-kubectl get secret -n keycloak erag-credentials -o jsonpath='{.data.MCP_CLIENT_SECRET}' | base64 -d
+kubectl get secret -n keycloak chattool-credentials -o jsonpath='{.data.MCP_CLIENT_ID}' | base64 -d
+kubectl get secret -n keycloak chattool-credentials -o jsonpath='{.data.MCP_CLIENT_SECRET}' | base64 -d
 
 # Credentials file written by app_keycloak_config
 grep MCP_CLIENT env/<name>/logs/rag/default_credentials.txt
@@ -59,7 +59,7 @@ An agent first exchanges its own client credentials for an access token at Keycl
 
 ```bash
 # 1. Get a token (valid 900s for installer-created agent clients)
-TOKEN=$(curl -s "https://keycloak.<base_domain_name>/realms/EnterpriseRAG/protocol/openid-connect/token" \
+TOKEN=$(curl -s "https://keycloak.<base_domain_name>/realms/ChatbotToolkit/protocol/openid-connect/token" \
   -d grant_type=client_credentials \
   -d client_id=mcp-client \
   -d client_secret="<value from default_credentials.txt>" | jq -r .access_token)
@@ -68,7 +68,7 @@ TOKEN=$(curl -s "https://keycloak.<base_domain_name>/realms/EnterpriseRAG/protoc
 curl -N "https://<base_domain_name>/api/v1/mcp/sse" -H "Authorization: Bearer $TOKEN"
 ```
 
-In `path` routing mode, the token URL is `https://<base_domain_name>/keycloak/realms/EnterpriseRAG/protocol/openid-connect/token`.
+In `path` routing mode, the token URL is `https://<base_domain_name>/keycloak/realms/ChatbotToolkit/protocol/openid-connect/token`.
 
 The first SSE frame is an `event: endpoint` frame carrying the session-scoped message URL. The MCP client then performs the `initialize` handshake and can call `tools/list`.
 
@@ -105,7 +105,7 @@ MCP_URL = f"https://{BASE_DOMAIN}/api/v1/mcp/sse"
 CLIENT_ID = os.environ["MCP_CLIENT_ID"]          # "mcp-client", or your production client
 CLIENT_SECRET = os.environ["MCP_CLIENT_SECRET"]
 
-TOKEN_URL = f"https://keycloak.{BASE_DOMAIN}/realms/EnterpriseRAG/protocol/openid-connect/token"
+TOKEN_URL = f"https://keycloak.{BASE_DOMAIN}/realms/ChatbotToolkit/protocol/openid-connect/token"
 
 _token = {"value": None, "expires_at": 0.0}
 
@@ -285,31 +285,31 @@ Known limitations of this variant in the current release:
 
 ## Creating a production agent client in Keycloak
 
-`mcp-client` is for development and testing. For production integrations, create a dedicated client per agent so credentials can be rotated or revoked independently. Each production client needs three things: `ERAG-maintainer` (or `ERAG-admin`) on `EnterpriseRAG-oidc-backend` for backend access, `erag-admin-group` on `EnterpriseRAG-oidc-minio` for S3 file operations, and a `minio_roles` claim mapper.
+`mcp-client` is for development and testing. For production integrations, create a dedicated client per agent so credentials can be rotated or revoked independently. Each production client needs three things: `CHATTOOL-maintainer` (or `CHATTOOL-admin`) on `ChatbotToolkit-oidc-backend` for backend access, `chattool-admin-group` on `ChatbotToolkit-oidc-minio` for S3 file operations, and a `minio_roles` claim mapper.
 
 The Keycloak admin console is at `https://keycloak.<base_domain_name>` in `subdomain` routing mode, or `https://<base_domain_name>/keycloak` in `path` routing mode.
 
 ### Using the Keycloak admin console
 
-1. Log in to the Keycloak admin console and select the `EnterpriseRAG` realm
+1. Log in to the Keycloak admin console and select the `ChatbotToolkit` realm
 2. Navigate to **Clients** → **Create client**
 3. Set a **Client ID** (e.g. `my-agent`)
 4. Enable **Client authentication** (disables public client mode)
 5. Disable **Standard flow** and **Direct access grants**
 6. Enable **Service accounts roles** → **Save**
 7. Open the **Credentials** tab and copy the client secret
-8. Open the **Service accounts roles** tab → **Assign role** → select `ERAG-maintainer` (or `ERAG-admin`) on `EnterpriseRAG-oidc-backend`. EDP reads roles from that client only, and `ERAG-user` alone is refused every tool that reaches EDP
-9. To enable `ingest_url` and `ingest_file`: go to **Clients → EnterpriseRAG-oidc-minio → Service account roles** for `service-account-my-agent` → assign `erag-admin-group`
-10. Add a **Client scope mapper**: **Clients → my-agent → Client scopes → Add mapper → By configuration → User Client Role** → set Token Claim Name to `minio_roles`, Client ID to `EnterpriseRAG-oidc-minio`
+8. Open the **Service accounts roles** tab → **Assign role** → select `CHATTOOL-maintainer` (or `CHATTOOL-admin`) on `ChatbotToolkit-oidc-backend`. EDP reads roles from that client only, and `CHATTOOL-user` alone is refused every tool that reaches EDP
+9. To enable `ingest_url` and `ingest_file`: go to **Clients → ChatbotToolkit-oidc-minio → Service account roles** for `service-account-my-agent` → assign `chattool-admin-group`
+10. Add a **Client scope mapper**: **Clients → my-agent → Client scopes → Add mapper → By configuration → User Client Role** → set Token Claim Name to `minio_roles`, Client ID to `ChatbotToolkit-oidc-minio`
 
 ## Security notes
 
 - **Do not use `mcp-client` in production.** Create a dedicated client per agent so credentials can be rotated or revoked independently, and so audit trails attribute activity to one agent.
-- **`mcp-client` is privileged on object storage.** Its service account carries `erag-admin-group` on `EnterpriseRAG-oidc-minio`, which maps to S3 read/write. Treat its secret as an object-store credential.
+- **`mcp-client` is privileged on object storage.** Its service account carries `chattool-admin-group` on `ChatbotToolkit-oidc-minio`, which maps to S3 read/write. Treat its secret as an object-store credential.
 - **Revoke a compromised agent** by disabling or deleting its Keycloak client. Other agents are unaffected.
 - **The MCP data path is authenticated at the edge and again in the service.** The route `SecurityPolicy` validates signature, issuer, audience, and expiry; the service re-verifies against the realm JWKS. Only `/api/v1/mcp/health` and the protected-resource metadata document are unauthenticated.
 - **Session UUIDs are not credentials.** They travel in the query string and therefore reach access logs. Each session is bound to the identity that opened it, so a tool call presenting someone else's session gets 403.
-- **Production agent clients must have `erag-admin-group` on `EnterpriseRAG-oidc-minio`** and a `minio_roles` claim mapper for `ingest_url` and `ingest_file` to work.
+- **Production agent clients must have `chattool-admin-group` on `ChatbotToolkit-oidc-minio`** and a `minio_roles` claim mapper for `ingest_url` and `ingest_file` to work.
 
 ## Related docs
 

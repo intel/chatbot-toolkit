@@ -10,10 +10,10 @@ set -e
 
 # Configuration from environment variables
 KEYCLOAK_URL="${KEYCLOAK_URL:-http://keycloak-service:8080}"
-KEYCLOAK_REALM="${KEYCLOAK_REALM:-EnterpriseRAG}"
+KEYCLOAK_REALM="${KEYCLOAK_REALM:-ChatbotToolkit}"
 KEYCLOAK_ADMIN_USER="${KEYCLOAK_ADMIN_USER:-admin}"
 KEYCLOAK_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD}"
-CLIENT_NAME="${CLIENT_NAME:-EnterpriseRAG-oidc-backend}"
+CLIENT_NAME="${CLIENT_NAME:-ChatbotToolkit-oidc-backend}"
 SECRET_NAME="${SECRET_NAME:-keycloak-client-secret}"
 SECRET_NAMESPACE="${SECRET_NAMESPACE:-auth}"
 SECRET_KEY="${SECRET_KEY:-client-secret}"

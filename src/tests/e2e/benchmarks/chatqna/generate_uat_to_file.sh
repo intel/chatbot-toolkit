@@ -11,8 +11,8 @@ generate_uat_to_file()
 		return 1
 	fi
 
-	VITE_KEYCLOAK_REALM="EnterpriseRAG"
-	VITE_KEYCLOAK_CLIENT_ID="EnterpriseRAG-oidc"
+	VITE_KEYCLOAK_REALM="ChatbotToolkit"
+	VITE_KEYCLOAK_CLIENT_ID="ChatbotToolkit-oidc"
 	if [[ "${ERAG_ROUTING_MODE:-subdomain}" == "path" ]]; then
 		VITE_KEYCLOAK_URL="https://${ERAG_DOMAIN_NAME:-solutions.ai}${KEYCLOAK_PATH:-/keycloak}"
 	else
@@ -24,16 +24,16 @@ generate_uat_to_file()
 		return 1
 	fi
 
-	if [[ -z "${KEYCLOAK_ERAG_ADMIN_PASSWORD}" ]]; then
-		echo "missing KEYCLOAK_ERAG_ADMIN_PASSWORD env variable"
+	if [[ -z "${KEYCLOAK_CHATTOOL_ADMIN_PASSWORD}" ]]; then
+		echo "missing KEYCLOAK_CHATTOOL_ADMIN_PASSWORD env variable"
 		return 1
 	fi
 
 	realm_user="${KEYCLOAK_REALM_ADMIN_USERNAME:-admin}"
 	realm_pass="${KEYCLOAK_REALM_ADMIN_PASSWORD}"
 
-	ui_user=${KEYCLOAK_ERAG_ADMIN_USERNAME:-erag-admin}
-	ui_pass=${KEYCLOAK_ERAG_ADMIN_PASSWORD}
+	ui_user=${KEYCLOAK_CHATTOOL_ADMIN_USERNAME:-chattool-admin}
+	ui_pass=${KEYCLOAK_CHATTOOL_ADMIN_PASSWORD}
 
 	ADMIN_ACCESS_TOKEN=$(curl -ksL -X POST "${VITE_KEYCLOAK_URL}/realms/master/protocol/openid-connect/token" \
 		-H "Content-Type: application/x-www-form-urlencoded" \

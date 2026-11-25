@@ -57,19 +57,19 @@ fingerprint_postgres_secret_key: "password"
 
 # --- Cross-role shared defaults - Owned by other roles; declared here so this role is standalone-runnable. ---
 apisix_enabled: true            # app_apisix — gates route apply + router wait
-apisix_oidc_client_id: "EnterpriseRAG-oidc-backend"  # app_apisix
+apisix_oidc_client_id: "ChatbotToolkit-oidc-backend"  # app_apisix
 audio_enabled: false            # app_audio
 audio_namespace: "audio"        # app_audio
 chat_history_enabled: false        # app_chat_history
 fingerprint_namespace: "fingerprint"  # app_fingerprint
 nats_namespace: "nats"             # app_nats
 keycloak_namespace: "keycloak"     # core/keycloak
-erag_keycloak_realm: "EnterpriseRAG"     # app_keycloak_config
+chattool_keycloak_realm: "ChatbotToolkit"     # app_keycloak_config
 vector_databases_enabled: false                    # app_vector_databases
 ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"  # app_ui
-erag_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
-erag_keycloak_path_prefix: "{{ erag_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
-ui_keycloak_realm: "EnterpriseRAG"      # app_ui
+chattool_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
+chattool_keycloak_path_prefix: "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
+ui_keycloak_realm: "ChatbotToolkit"      # app_ui
 vector_databases_vector_store: "redis-cluster"     # app_vector_databases
 vector_databases_vector_datatype: "FLOAT32"        # app_vector_databases
 vector_databases_vector_dims: 768                  # app_vector_databases

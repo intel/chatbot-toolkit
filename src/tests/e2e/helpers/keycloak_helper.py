@@ -34,16 +34,16 @@ class KeycloakHelper:
     def __init__(self, credentials_file, k8s_helper):
         credentials = self.get_credentials(credentials_file)
         self.erag_auth_domain = keycloak_base_url()
-        self.erag_admin_username = credentials["KEYCLOAK_ERAG_ADMIN_USERNAME"]
-        self.erag_admin_password = credentials["KEYCLOAK_ERAG_ADMIN_PASSWORD"]
-        self.erag_user_username = credentials["KEYCLOAK_ERAG_USER_USERNAME"]
-        self.erag_user_password = credentials["KEYCLOAK_ERAG_USER_PASSWORD"]
-        self.erag_maintainer_username = credentials.get("KEYCLOAK_ERAG_MAINTAINER_USERNAME", "")
-        self.erag_maintainer_password = credentials.get("KEYCLOAK_ERAG_MAINTAINER_PASSWORD", "")
-        self.erag_sso_admin_username = os.getenv("KEYCLOAK_ERAG_SSO_ADMIN_USERNAME", "")
-        self.erag_sso_admin_password = os.getenv("KEYCLOAK_ERAG_SSO_ADMIN_PASSWORD", "")
-        self.erag_sso_user_username = os.getenv("KEYCLOAK_ERAG_SSO_USER_USERNAME", "")
-        self.erag_sso_user_password = os.getenv("KEYCLOAK_ERAG_SSO_USER_PASSWORD", "")
+        self.chattool_admin_username = credentials["KEYCLOAK_CHATTOOL_ADMIN_USERNAME"]
+        self.chattool_admin_password = credentials["KEYCLOAK_CHATTOOL_ADMIN_PASSWORD"]
+        self.chattool_user_username = credentials["KEYCLOAK_CHATTOOL_USER_USERNAME"]
+        self.chattool_user_password = credentials["KEYCLOAK_CHATTOOL_USER_PASSWORD"]
+        self.chattool_maintainer_username = credentials.get("KEYCLOAK_CHATTOOL_MAINTAINER_USERNAME", "")
+        self.chattool_maintainer_password = credentials.get("KEYCLOAK_CHATTOOL_MAINTAINER_PASSWORD", "")
+        self.chattool_sso_admin_username = os.getenv("KEYCLOAK_CHATTOOL_SSO_ADMIN_USERNAME", "")
+        self.chattool_sso_admin_password = os.getenv("KEYCLOAK_CHATTOOL_SSO_ADMIN_PASSWORD", "")
+        self.chattool_sso_user_username = os.getenv("KEYCLOAK_CHATTOOL_SSO_USER_USERNAME", "")
+        self.chattool_sso_user_password = os.getenv("KEYCLOAK_CHATTOOL_SSO_USER_PASSWORD", "")
         self.k8s_helper = k8s_helper
         self._access_token = None
         self._admin_access_token = None
@@ -65,7 +65,7 @@ class KeycloakHelper:
 
     def get_access_token(self, as_user=False):
         """
-        Get the access token for the erag-admin user.
+        Get the access token for the chattool-admin user.
         User's required actions need to be temporarily removed in order to obtain the token.
         """
         if as_user == "sso" or as_user == "sso_admin":
@@ -73,12 +73,12 @@ class KeycloakHelper:
         if as_user == "sso_user":
             return self.get_sso_access_token("sso_user")
         if as_user == "maintainer":
-            return self.get_user_access_token(self.erag_maintainer_username, self.erag_maintainer_password)
+            return self.get_user_access_token(self.chattool_maintainer_username, self.chattool_maintainer_password)
         if as_user:
             # For user tokens, don't cache to avoid complexity
-            return self.get_user_access_token(self.erag_user_username, self.erag_user_password)
+            return self.get_user_access_token(self.chattool_user_username, self.chattool_user_password)
 
-        return self.get_user_access_token(self.erag_admin_username, self.erag_admin_password)
+        return self.get_user_access_token(self.chattool_admin_username, self.chattool_admin_password)
 
     def _follow_form_redirects(self, session, resp, max_hops=10):
         """
@@ -243,13 +243,13 @@ class KeycloakHelper:
         if sso_role == "sso_admin":
             if self._sso_admin_bootstrapped:
                 return
-            username = self.erag_sso_admin_username
-            password = self.erag_sso_admin_password
+            username = self.chattool_sso_admin_username
+            password = self.chattool_sso_admin_password
         elif sso_role == "sso_user":
             if self._sso_user_bootstrapped:
                 return
-            username = self.erag_sso_user_username
-            password = self.erag_sso_user_password
+            username = self.chattool_sso_user_username
+            password = self.chattool_sso_user_password
         else:
             raise ValueError(f"Unknown SSO role: {sso_role}")
 
@@ -282,11 +282,11 @@ class KeycloakHelper:
         if sso_role == "sso_admin":
             if not self._sso_admin_bootstrapped:
                 self.bootstrap_sso_user("sso_admin")
-            return self._perform_sso_login(self.erag_sso_admin_username, self.erag_sso_admin_password)
+            return self._perform_sso_login(self.chattool_sso_admin_username, self.chattool_sso_admin_password)
         elif sso_role == "sso_user":
             if not self._sso_user_bootstrapped:
                 self.bootstrap_sso_user("sso_user")
-            return self._perform_sso_login(self.erag_sso_user_username, self.erag_sso_user_password)
+            return self._perform_sso_login(self.chattool_sso_user_username, self.chattool_sso_user_password)
         else:
             raise ValueError(f"Unknown SSO role: {sso_role}")
 
@@ -301,11 +301,11 @@ class KeycloakHelper:
         6. Handle any Keycloak broker pages (first-broker-login, profile update, etc.)
         7. Exchange the auth code for a Keycloak access token
         """
-        tenant_id = cfg.get("erag_keycloak_oidc_tenant_id")
-        idp_alias = cfg.get("erag_keycloak_oidc_alias") or "enterprise-sso"
+        tenant_id = cfg.get("chattool_keycloak_oidc_tenant_id")
+        idp_alias = cfg.get("chattool_keycloak_oidc_alias") or "enterprise-sso"
 
         if not tenant_id:
-            raise RuntimeError("OIDC configuration (erag_keycloak_oidc_tenant_id) is required for SSO authentication")
+            raise RuntimeError("OIDC configuration (chattool_keycloak_oidc_tenant_id) is required for SSO authentication")
 
         redirect_uri = f"https://{cfg.get('base_domain_name')}"
         keycloak_auth_url = (
@@ -550,11 +550,11 @@ class KeycloakHelper:
         return credentials
 
     def get_admin_access_token(self):
-        """Get the access token for the admin user. It is needed in order to obtain erag-admin user_id"""
+        """Get the access token for the admin user. It is needed in order to obtain chattool-admin user_id"""
         return self._obtain_access_token("master", "admin", self._admin_pass, "admin-cli")
 
     def get_user_access_token(self, username, password):
-        """Get the access token for the erag-admin user"""
+        """Get the access token for the chattool-admin user"""
         return self._obtain_access_token(VITE_KEYCLOAK_REALM,
                                          username,
                                          password,
@@ -629,7 +629,7 @@ class KeycloakHelper:
         self._set_required_actions(required_actions, admin_token, user_id)
 
     def _get_user_id(self, admin_access_token, username):
-        """Get user_id of erag-admin user"""
+        """Get user_id of chattool-admin user"""
         logger.debug(f"Obtaining user_id for user '{username}'")
         url = f"{self.erag_auth_domain}/admin/realms/{VITE_KEYCLOAK_REALM}/users?username={username}"
         headers = {

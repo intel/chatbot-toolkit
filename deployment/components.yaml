@@ -49,7 +49,7 @@ components:
     depends_on: [app_pre_install]
     # Created by the configurator Job (kubectl apply).
     ownership_declared:
-      - {kind: Secret, name: erag-credentials}
+      - {kind: Secret, name: chattool-credentials}
 
   # --- Edge / API surface ---
   - name: app_apisix

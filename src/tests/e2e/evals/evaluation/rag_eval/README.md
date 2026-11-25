@@ -216,7 +216,7 @@ python eval_multihop.py --help
 | **Argument**              | **Default Value**                                 | **Description**                                                                                                                      |
 | ------------------------- |---------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|
 | `--output_dir`            | `./output`                                        | Directory to save evaluation results                                                                                                 |
-| `--auth_file`             | `env/local/logs/rag/default_credentials.txt`      | Path to credentials file with `KEYCLOAK_ERAG_ADMIN_USERNAME` and `KEYCLOAK_ERAG_ADMIN_PASSWORD`                                      |
+| `--auth_file`             | `env/local/logs/rag/default_credentials.txt`      | Path to credentials file with `KEYCLOAK_CHATTOOL_ADMIN_USERNAME` and `KEYCLOAK_CHATTOOL_ADMIN_PASSWORD`                                      |
 | `--cluster_config_file`   | `env/local`                                       | Path to directory containing `global_config.yaml`, `config.erag.yaml`, and `config.inference.yaml`                                   |
 | `--dataset_path`          | `multihop_dataset/MultiHopRAG.json`               | Path to the evaluation dataset                                                                                                       |
 | `--docs_path`             | `multihop_dataset/corpus.json`                    | Path to the documents for retrieval                                                                                                  |
@@ -352,7 +352,7 @@ This section outlines how to run MultiHop evaluation of the RAG pipeline using [
     > [!WARNING]
     > **Proxy Configuration Issue**: If you encounter an authentication error like:
     > ```
-    > Exception: Failed to get access token for user 'erag-admin'. Response: {"error":"invalid_grant","error_description":"Invalid user credentials"}
+    > Exception: Failed to get access token for user 'chattool-admin'. Response: {"error":"invalid_grant","error_description":"Invalid user credentials"}
     > ```
     > This typically means your `no_proxy` environment variable is not configured correctly. Ensure it includes all required domains:
     > ```bash
