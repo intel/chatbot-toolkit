@@ -22,8 +22,8 @@ environment gotchas.
 | `config.py` | Pydantic-validated configs: `load_config()` / `SweepConfig` (+ the `deployment_combinations()` and `client_combinations()` cartesian `product` expansions) and `load_run_config()` / `RunConfig`. |
 | `client_args.py` | Adapter mirroring `benchmark.py`'s CLI options as sweep knobs. Not properties — no plane, nothing to apply or read back; see below. |
 | `pysweep_bench.py` | Sweep runner: load config → apply/converge/verify each deployment combination → run one load test per client combination, reusing `benchmark.py`. |
-| `examples/sweep.yaml` | An example sweep config (`--sweep`): what to vary. |
-| `examples/config.yaml` | An example run config (`--config`): how to run. |
+| `configs/sweep.yaml` | Sweep config (`--sweep`): what to vary. Keys are described in [`configs/README.md`](./configs/README.md). |
+| `configs/general.yaml` | Run config (`--config`): how to run. |
 | `authentication.py` | `KubernetesAccess` (side-effect-free RBAC preflight via `SelfSubjectAccessReview`), `load_build_config()` (the installed environment's config), `keycloak_helper()` (the maintained `KeycloakHelper`, for user tokens) and `client_token_lifespan()` (a sweep-long access-token lifespan for the UI client, restored afterwards). |
 | `runtime_api.py` | `system_fingerprint` client. `HelperFingerprintClient` adapts the suite's `FingerprintApiHelper`; `PortForwardTransport` / `IngressTransport` cover deployments the helper can't reach. |
 | `properties/max_tokens.py` | First property: `MaxNewTokens` (LLM `max_new_tokens`, Runtime-API plane). |
@@ -192,8 +192,8 @@ There are two separate configs:
 
 | Flag | File | Declares |
 |---|---|---|
-| `--sweep` (required) | `examples/sweep.yaml` | **What to vary** — the knobs and their values; expands into combinations. |
-| `--config` (optional) | `examples/config.yaml` | **How to run** — harness behaviour; never expands into combinations. |
+| `--sweep` (required) | `configs/sweep.yaml` | **What to vary** — the knobs and their values; expands into combinations. |
+| `--config` (optional) | `configs/general.yaml` | **How to run** — harness behaviour; never expands into combinations. |
 
 `--summaries` (optional, default `./results`) is the **directory** a sweep writes
 into — see "Where the results go" below. It is cleared of the previous sweep's
@@ -204,8 +204,8 @@ parameters are declared in it, so nothing after `--` is necessary:
 
 ```bash
 PYTHONPATH=src python -m tests.e2e.benchmarks.chatqna.pysweep.pysweep_bench \
-    --sweep src/tests/e2e/benchmarks/chatqna/pysweep/examples/sweep.yaml \
-    --config src/tests/e2e/benchmarks/chatqna/pysweep/examples/config.yaml
+    --sweep src/tests/e2e/benchmarks/chatqna/pysweep/configs/sweep.yaml \
+    --config src/tests/e2e/benchmarks/chatqna/pysweep/configs/general.yaml
 ```
 
 Run it from anywhere — the repo root above, or any other directory. Paths *inside*
@@ -311,20 +311,8 @@ and `result_file` is how you get to it.
 ### Run config (`--config`)
 
 Validated by `config.load_run_config()`, with the same strictness as the sweep
-config — an unknown key or wrong type raises `ConfigError`. Omitting `--config`
-uses the defaults.
-
-```yaml
-display_kubernetes_client_logs: false   # default: false
-```
-
-- **`display_kubernetes_client_logs`** — whether the kr8s/httpx Kubernetes
-  client's own output is shown. The port-forward carrying the load test produces
-  two kinds of noise: one `101 Switching Protocols` line *per benchmark request*
-  (a websocket per forwarded connection), and a multi-frame
-  `ConnectionResetError` traceback on teardown (a race inside kr8s — the
-  requests themselves still return 200). Both are hidden by default; genuine
-  warnings and errors still surface. Set `true` to debug cluster connectivity.
+config. Omitting `--config` uses the defaults; the keys are listed in
+[`configs/README.md`](./configs/README.md).
 
 `benchmark.py`'s own output (its per-worker log lines and parsed-args dump) is
 always shown — it is the benchmark's primary output and pysweep does not filter
@@ -401,7 +389,8 @@ tox -e e2e -- -k pysweep
 `-k pysweep` selects just the pysweep tests; drop it to run the whole suite. The
 shared conftest's two options both default to a co-located deployment
 (`--build-config-dir`, default `../../../../env/local`, from which it reads
-`config.yaml` — it also drives the `fingerprint.enabled` skip — and
+`global_config.yaml`, `config.erag.yaml` and `config.inference.yaml` — they also
+drive the `fingerprint.enabled` skip — and
 `--credentials-file`), so on the deployment host no flags are needed. Elsewhere:
 
 ```bash

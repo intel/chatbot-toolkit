@@ -1,0 +1,14 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+llms:
+  max_new_tokens: [128, 256]
+
+client:
+  question_file: ../questions-short.csv
+  concurrency: [1, 16, 128]
+  duration: 5m
+  worker_startup_delay: 0s
+  failures_allowed: 200
+  input_tokens: [128, 256]
+  warmup_requests: 1

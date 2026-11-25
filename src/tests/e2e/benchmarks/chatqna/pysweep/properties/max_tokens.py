@@ -1,18 +1,6 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""``MaxNewTokens`` — the LLM ``max_new_tokens`` knob (Runtime API plane).
-
-Set with:
-
-    POST /v1/system_fingerprint/change_arguments
-        [{"name": "llm", "data": {"max_new_tokens": <N>}}]
-
-and read back from ``GET config?params_key=llm`` (the ``values`` object). This is
-the simplest property and the reference implementation of the
-:class:`~pysweep.base.Property` interface for the runtime-API plane.
-"""
-
 import logging
 
 from ..base import Plane, Property, PropertyReadError
@@ -34,14 +22,7 @@ class MaxNewTokens(Property):
         self.client = client
 
     def read(self) -> int:
-        """Return the observed ``max_new_tokens`` from the live fingerprint API.
-
-        Raises :class:`PropertyReadError` if the parameter is absent from the
-        response or is not an integer. A missing value is not an acceptable
-        state: it means we cannot know what configuration is live, so it fails
-        loudly rather than degrading to a value that silently never satisfies a
-        desired one.
-        """
+        """Return the observed ``max_new_tokens`` from the live fingerprint API."""
         values = self.client.read_values(COMPONENT)
         if PARAMETER not in values:
             raise PropertyReadError(

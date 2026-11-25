@@ -515,7 +515,7 @@ def test_result_file_name_stays_within_the_filesystem_limit():
     # And the shipped example, whatever it declares, must also be nameable.
     example = (
         Path(__file__).resolve().parents[3]
-        / "e2e/benchmarks/chatqna/pysweep/examples/sweep.yaml"
+        / "e2e/benchmarks/chatqna/pysweep/configs/sweep.yaml"
     )
     shipped = load_config(example)
     for combo in shipped.deployment_combinations():
@@ -870,7 +870,7 @@ def test_preflight_accepts_the_shipped_example_config(monkeypatch):
 
     That is, every path the example declares really resolves.
     """
-    example = psb.PYSWEEP_DIR / "examples" / "sweep.yaml"
+    example = psb.PYSWEEP_DIR / "configs" / "sweep.yaml"
     psb.preflight_check(load_config(example))
 
 

@@ -55,7 +55,7 @@ worse than a clean slate.
 Usage::
 
     PYTHONPATH=src python -m tests.e2e.benchmarks.chatqna.pysweep.pysweep_bench \
-        --sweep sweep.yaml [--config config.yaml]
+        --sweep sweep.yaml [--config general.yaml]
 
 ``--sweep`` declares *what to vary* (the knobs and their values, including the
 required ``client:`` section); ``--config`` declares *how to run* (harness
@@ -533,11 +533,11 @@ def parse_args(argv=None):
     parser.add_argument(
         "--sweep",
         required=True,
-        help="Path to the sweep config YAML (what to vary; see examples/sweep.yaml).",
+        help="Path to the sweep config YAML (what to vary; see configs/sweep.yaml).",
     )
     parser.add_argument(
         "--config",
-        help="Path to the pysweep run config YAML (how to run; see examples/config.yaml).",
+        help="Path to the pysweep run config YAML (how to run; see configs/general.yaml).",
     )
     parser.add_argument(
         "--summaries",

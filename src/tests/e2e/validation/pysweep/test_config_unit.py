@@ -399,10 +399,10 @@ def test_varying_paths_reports_only_multi_valued_knobs():
 
 @allure.feature("pysweep")
 def test_shipped_example_sweep_config_is_valid():
-    """The committed examples/sweep.yaml must load (docs stay honest)."""
+    """The committed configs/sweep.yaml must load (docs stay honest)."""
     example = (
         Path(__file__).resolve().parents[3]
-        / "e2e/benchmarks/chatqna/pysweep/examples/sweep.yaml"
+        / "e2e/benchmarks/chatqna/pysweep/configs/sweep.yaml"
     )
     cfg = load_config(example)
     assert cfg.deployment_combinations()
@@ -440,9 +440,9 @@ def test_run_config_rejects_non_boolean():
 
 @allure.feature("pysweep")
 def test_shipped_example_run_config_is_valid():
-    """The committed examples/config.yaml must load (docs stay honest)."""
+    """The committed configs/general.yaml must load (docs stay honest)."""
     example = (
         Path(__file__).resolve().parents[3]
-        / "e2e/benchmarks/chatqna/pysweep/examples/config.yaml"
+        / "e2e/benchmarks/chatqna/pysweep/configs/general.yaml"
     )
     assert load_run_config(example).display_kubernetes_client_logs is False
