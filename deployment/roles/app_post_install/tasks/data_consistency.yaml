@@ -1,0 +1,98 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# After the health check, because counting rows in a database that has not
+# finished starting either fails or returns a number nobody can interpret, and
+# before the work directory is removed, because the query Job manifests are
+# rendered into it. Reporting can never fail the install: a rescue turns any
+# problem here into a warning, so a good deployment is not reported as a bad one
+# on account of a count.
+#
+# Not on a version change: the comparison below counts the stores instead, and
+# running both would count every store a third time.
+- name: "app_post_install | Report what each data store holds"
+  when:
+    - not (erag_version_change | default(false) | bool)
+    - data_consistency_install_report | bool
+  block:
+    - name: "app_post_install | Collect the data snapshot"
+      ansible.builtin.include_role:
+        name: app_data_consistency
+        tasks_from: snapshot.yaml
+
+    - name: "app_post_install | Write the data report"
+      ansible.builtin.include_role:
+        name: app_data_consistency
+        tasks_from: report.yaml
+      vars:
+        data_consistency_report_kind: "snapshot"
+  rescue:
+    - name: "app_post_install | Data report could not be produced"
+      ansible.builtin.debug:
+        msg: >-
+          [DATA CONSISTENCY] The install is unaffected, but no data report was
+          written: {{ ansible_failed_result.msg | default('see the task above') }}
+
+- name: "app_post_install | Compare the data stores across the version change"
+  when: erag_version_change | default(false) | bool
+  block:
+    - name: "app_post_install | Collect the data snapshot after the version change"
+      ansible.builtin.include_role:
+        name: app_data_consistency
+        tasks_from: snapshot.yaml
+      vars:
+        data_consistency_snapshot_label: "current"
+
+    - name: "app_post_install | Preserve the snapshot taken after the version change"
+      ansible.builtin.set_fact:
+        _upgrade_post_snapshot: "{{ _data_snapshot }}"
+
+    - name: "app_post_install | Compare the snapshots before and after the version change"
+      ansible.builtin.include_role:
+        name: app_data_consistency
+        tasks_from: compare.yaml
+
+    - name: "app_post_install | Write the upgrade report"
+      ansible.builtin.include_role:
+        name: app_data_consistency
+        tasks_from: report.yaml
+      vars:
+        data_consistency_report_kind: "upgrade"
+
+# Before the gate below, so a refused run is not also the run that leaves the
+# directory behind.
+- name: "app_post_install | Remove RAG temporary work directory"
+  ansible.builtin.file:
+    path: "{{ rag_tmp_dir }}"
+    state: absent
+
+- name: "app_post_install | Act on data lost across the version change"
+  when:
+    - erag_version_change | default(false) | bool
+    - _upgrade_consistency_result.verdict | default('') == 'fail'
+    - not (data_consistency_no_fail | bool)
+  block:
+    - name: "app_post_install | Block on data consistency violations"
+      ansible.builtin.fail:
+        msg: |
+          Data consistency check failed — data decreased, or could not be counted, across the version change:
+          {{ _upgrade_consistency_result.violations | join('; ') }}
+          Report: {{ _data_consistency_report_path | default(env_dir ~ '/reports') }}
+          Override with -e data_consistency_no_fail=true, or run the install with --force.
+      when: not (_upgrade_force | default(false) | bool)
+
+    # The installer's upgrade report, written after this role, lists the checks
+    # --force bypassed in this fact, so a bypass of this one is reported the same way.
+    # Not guarded: without the fact the bypass would go unrecorded, so the run fails.
+    - name: "app_post_install | Report the bypassed data consistency check as forced"
+      ansible.builtin.set_fact:
+        _upgrade_gate: >-
+          {{ _upgrade_gate | combine({'forcedChecks': _upgrade_gate.forcedChecks | default([]) + ['erag/data_consistency']}) }}
+      when: _upgrade_force | default(false) | bool
+
+# Reached only when the gate let the run through, so a refused run keeps it for its resume.
+- name: "app_post_install | Drop the snapshot kept for this version change"
+  ansible.builtin.file:
+    path: "{{ erag_pending_pre_snapshot }}"
+    state: absent
+  when: erag_pending_pre_snapshot is defined

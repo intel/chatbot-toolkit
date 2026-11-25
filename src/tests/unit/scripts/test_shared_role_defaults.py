@@ -34,6 +34,7 @@ CANONICAL = {
         " else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"
     ),
     "chattool_keycloak_default_path_prefix": "{{ keycloak_path | default('/keycloak') }}",
+    "data_consistency_report_dir": "{{ env_dir }}/reports",
     "chattool_keycloak_path_prefix": (
         "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"
     ),

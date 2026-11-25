@@ -1,8 +1,6 @@
 ---
-# solution_version and default_image_tag live in version.yaml; loaded once per run.
 - name: "app_pre_install | Load version metadata"
   ansible.builtin.include_tasks: load_version.yaml
-  when: default_tag_override is not defined
 
 - name: "app_pre_install | Apply the default image tag when none is configured"
   ansible.builtin.set_fact:

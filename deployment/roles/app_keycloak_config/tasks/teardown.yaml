@@ -46,7 +46,6 @@
       ansible.builtin.include_role:
         name: app_pre_install
         tasks_from: load_version.yaml
-      when: default_image_tag is not defined
 
     - name: "app_keycloak_config | Set teardown variables"
       ansible.builtin.set_fact:

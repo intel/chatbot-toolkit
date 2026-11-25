@@ -1,0 +1,70 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# Counts the data stores before a run that changes the erag version, for
+# app_post_install to compare against. A resume of an interrupted upgrade or
+# downgrade still changes the version.
+- name: "app_pre_install | Note the run class and record of erag"
+  ansible.builtin.set_fact:
+    erag_run_class: "{{ (_layer_class | default({})).get('erag') }}"
+    erag_record: "{{ (_layer_records | default({})).get('erag') or {} }}"
+
+- name: "app_pre_install | Note whether this run changes the erag version"
+  ansible.builtin.set_fact:
+    erag_version_change: >-
+      {{ erag_run_class in ['upgrade', 'downgrade']
+         or (erag_run_class == 'resume' and erag_record.version | default(none) is not none
+             and erag_record.version != erag_record.targetVersion | default(none)) }}
+
+# The snapshot before a version change is kept under the versions it is between
+# until app_post_install has compared against it. A resume of an interrupted run
+# compares against that one: the stores may have changed since. With none, the
+# interrupted run stopped before counting, so nothing of erag changed yet.
+- name: "app_pre_install | Name the snapshot kept for this version change"
+  ansible.builtin.set_fact:
+    erag_pending_pre_snapshot: >-
+      {{ data_consistency_report_dir }}/pending-pre-snapshot-{{ erag_record.version }}-to-{{ _layer_release.erag }}.yaml
+  when: erag_version_change | bool
+
+- name: "app_pre_install | Reuse the snapshot the interrupted run kept"
+  ansible.builtin.set_fact:
+    _upgrade_pre_snapshot: "{{ lookup('ansible.builtin.file', erag_pending_pre_snapshot) | from_yaml }}"
+    erag_pre_snapshot_reused: true
+  when:
+    - erag_version_change | bool
+    - erag_run_class == 'resume'
+    - erag_pending_pre_snapshot is file
+
+- name: "app_pre_install | Collect the data snapshot before the version change"
+  when:
+    - erag_version_change | bool
+    - not (erag_pre_snapshot_reused | default(false) | bool)
+  block:
+    - name: "app_pre_install | Count the data stores before anything changes"
+      ansible.builtin.include_role:
+        name: app_data_consistency
+        tasks_from: snapshot.yaml
+
+    - name: "app_pre_install | Preserve the snapshot taken before the version change"
+      ansible.builtin.set_fact:
+        _upgrade_pre_snapshot: "{{ _data_snapshot }}"
+
+    # A run that counts afresh is not a resume, so a snapshot an earlier refused or
+    # interrupted version change kept is never compared against again.
+    - name: "app_pre_install | Drop the snapshots kept for earlier version changes"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop: "{{ query('ansible.builtin.fileglob', data_consistency_report_dir ~ '/pending-pre-snapshot-*.yaml') }}"
+
+    - name: "app_pre_install | Ensure the report directory exists"
+      ansible.builtin.file:
+        path: "{{ data_consistency_report_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: "app_pre_install | Keep the snapshot until the version change is compared"
+      ansible.builtin.copy:
+        content: "{{ _upgrade_pre_snapshot | to_nice_yaml }}"
+        dest: "{{ erag_pending_pre_snapshot }}"
+        mode: "0644"

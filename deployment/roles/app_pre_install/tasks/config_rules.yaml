@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 ---
-# Config-only rules: no cluster, no network call.
+# The pre-run check runs these before the cluster is touched: no cluster or network calls.
 
 - name: "app_pre_install | Add image tag / solution version mismatch issue"
   vars:

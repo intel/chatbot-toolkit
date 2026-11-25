@@ -48,8 +48,8 @@ too, not only the ones this layer created. Arguments after `--` go to `ansible-p
 bypasses it for install. The helper runs the installer's `playbooks/backup.yaml` with the
 environment's configuration, inventory and kubeconfig, as `toolkit_manager.sh` would.
 
-This layer's own `deployment/backup.yaml` playbook still exists, for the 3.0.0 workflow; new
-environments should use the commands above.
+This layer's own `deployment/backup.yaml` playbook is still supported, for environments that run
+the 3.0.0 workflow; new environments should use the commands above.
 
 Run this from a workstation, not from a pod. `kubernetes.core` prefers an in-cluster
 service-account token over `KUBECONFIG` whenever one exists, so invoking the engine from inside the

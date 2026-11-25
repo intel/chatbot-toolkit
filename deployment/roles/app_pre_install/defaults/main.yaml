@@ -52,6 +52,7 @@ keycloak_namespace: "keycloak"                       # app_keycloak_config
 keycloak_admin_secret_name: "keycloak-admin-secret"  # app_keycloak_config
 keycloak_statefulset_pod: "keycloak-0"               # keycloak, platform layer
 chattool_keycloak_realm: "ChatbotToolkit"                 # app_keycloak_config
+data_consistency_report_dir: "{{ env_dir }}/reports"  # app_data_consistency
 
 # Owned by nothing else: the Redis secret the vector store's chart creates, the
 # container to exec into, and the stores the snapshot knows how to count.
