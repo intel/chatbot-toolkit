@@ -3,8 +3,8 @@
 
 # Modular pipelines - reference guide
 
-This directory holds the **modular pipeline definitions** for Intel AI for Enterprise
-RAG. A pipeline describes a GenAI Microservices Connector (GMC) service graph as a set
+This directory holds the **modular pipeline definitions** for Intel® Chatbot
+Toolkit. A pipeline describes a GenAI Microservices Connector (GMC) service graph as a set
 of small, composable files. At install time the composer
 (`../scripts/compose_pipeline.py`) assembles those files into a single `GMConnector`
 custom resource plus a matching Helm resources overlay, and the `app_pipeline` role
@@ -262,8 +262,12 @@ Two shared steps are parameterized from `pipeline.yaml` rather than hardcoded:
     uses it must define `endpoints.llm.resources` with `replicas`, `requests`, and
     `limits`. If the block is missing, the composer fails closed with an actionable
     message (via the `required` Jinja filter) rather than a cryptic attribute error.
-- `prompt-template.yaml.j2` - format context and query for the LLM (identical across
-  ChatQnA and translation).
+- `prompt-template.yaml.j2` - format context and query for the LLM. Per-pipeline deltas
+  come from `endpoints.prompt_template` in `pipeline.yaml`:
+  - `inject_params` - emit `paramsKey`/`paramsKind` so the router injects the stored
+    `prompt_template` parameters (default `true`). Translation sets `false`, so the
+    router keeps the template that language detection sends instead of overwriting it
+    with the stored ChatQnA one.
 
 ## Variants (`variants/<name>/`)
 

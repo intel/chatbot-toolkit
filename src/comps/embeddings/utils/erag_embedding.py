@@ -53,7 +53,6 @@ class EragEmbedding:
         
         self.SUPPORTED_INTEGRATIONS = {
             "vllm": self._import_vllm,
-            "ovms": self._import_ovms,
         }
 
         self.REQUEST_BATCH_SIZE = 16 # how many texts are in one request
@@ -97,20 +96,6 @@ class EragEmbedding:
             logger.exception("Exception when loading VLLMConnector")
             raise
 
-    def _import_ovms(self):
-        """Lazy import OVMS connector."""
-        try:
-            from comps.embeddings.utils.connectors.ovms_connector import OVMSConnector
-            return OVMSConnector(
-                model_name=self._model_name,
-                endpoint=self._endpoint,
-                api_config=self._api_config
-            )
-        except ModuleNotFoundError:
-            logger.exception("Exception when loading OVMSConnector")
-            raise
-
-
     async def run(self, input: Union[TextDoc, TextDocList]) -> Union[EmbedDoc, EmbedDocList]:
         """
         Processes the input document using the EragEmbedding.
@@ -127,7 +112,7 @@ class EragEmbedding:
             if input.text.strip() == "":
                 raise ValueError("Input text is empty. Provide a valid input text.")
 
-            embed_vector = await self._connector.embed_documents(texts=[input.text], return_pooling=input.return_pooling)
+            embed_vector = await self._connector.embed_documents(texts=[input.text])
             if len(embed_vector) == 1 and isinstance(embed_vector[0], list):
                 embed_vector = embed_vector[0]
             res = EmbedDoc(text=input.text, embedding=embed_vector, metadata=input.metadata)
@@ -148,7 +133,7 @@ class EragEmbedding:
                 async with semaphore:
                     logger.debug(f"Processing batch {i+1}/{len(batches)} with {len(batch)} texts")
                     texts = [doc.text for doc in batch]
-                    res_vectors = await self._connector.embed_documents(texts=texts, return_pooling=input.return_pooling)
+                    res_vectors = await self._connector.embed_documents(texts=texts)
 
                     if len(res_vectors) == 1:
                         res_vector = res_vectors[0]

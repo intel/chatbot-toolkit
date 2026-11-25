@@ -201,10 +201,29 @@
       kind: Namespace
       metadata:
         name: "{{ pipeline_namespace }}"
-        labels:
-          istio.io/dataplane-mode: "ambient"
-          erag-istio-protected: "true"
+        labels: "{{ istio_namespace_labels | default({'istio.io/dataplane-mode': 'ambient'}) | combine({'erag-istio-protected': 'true'}) }}"
   when: istio_enabled | default(false) | bool
+
+# KServe's DestinationRules for the models originate TLS (mode SIMPLE) from the
+# client's sidecar, but the usvcs already speak https to vLLM: TLS in TLS, which
+# vLLM refuses. A rule in the client namespace takes precedence over the service
+# namespace's; without a tls setting the sidecars use mutual TLS, with the usvcs'
+# https inside, as in ambient mode.
+- name: "app_pipeline | Mutual TLS to the models (sidecar)"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: networking.istio.io/v1
+      kind: DestinationRule
+      metadata:
+        name: inference-mtls
+        namespace: "{{ pipeline_namespace }}"
+      spec:
+        host: "*.{{ inference_namespace }}.svc.cluster.local"
+        exportTo: ["."]
+  when:
+    - istio_enabled | default(false) | bool
+    - istio_dataplane_mode | default('ambient') == 'sidecar'
 
 - name: "app_pipeline | Label pipeline namespace - PSS"
   kubernetes.core.k8s:
@@ -237,29 +256,19 @@
       kind: Namespace
       metadata:
         name: "{{ gmc_namespace }}"
-        labels:
-          istio.io/dataplane-mode: "ambient"
-          erag-istio-protected: "true"
+        labels: "{{ istio_namespace_labels | default({'istio.io/dataplane-mode': 'ambient'}) | combine({'erag-istio-protected': 'true'}) }}"
   when: istio_enabled | default(false) | bool
 
-# Host-network apiserver (no mesh identity) can't reach the GMC controller's
-# admission webhook under STRICT; open only its port, rest stays STRICT.
-- name: "app_pipeline | Allow apiserver to reach GMC webhook (port-level mTLS)"
-  kubernetes.core.k8s:
-    state: present
-    definition:
-      apiVersion: security.istio.io/v1
-      kind: PeerAuthentication
-      metadata:
-        name: allow-webhook
-        namespace: "{{ gmc_namespace }}"
-      spec:
-        selector:
-          matchLabels:
-            control-plane: gmc-controller
-        mtls:
-          mode: STRICT
-        portLevelMtls: "{{ {'9443': {'mode': 'PERMISSIVE'}} }}"
+- name: "app_pipeline | Open the GMC controller's ports to its out-of-mesh callers"
+  ansible.builtin.include_role:
+    name: istio
+    tasks_from: out_of_mesh_exception.yaml
+  vars:
+    istio_out_of_mesh_exception_namespace: "{{ gmc_namespace }}"
+    istio_out_of_mesh_exception_workloads:
+      - name: allow-webhook
+        selector: {control-plane: gmc-controller}
+        ports: "{{ _pipeline_gmc_out_of_mesh_ports }}"
   when: istio_enabled | default(false) | bool
 
 - name: "app_pipeline | Label GMC namespace - PSS"
@@ -299,6 +308,7 @@
   kubernetes.core.helm:
     name: "{{ gmc_helm_release_name }}"
     chart_ref: "{{ gmc_helm_chart_directory }}"
+    post_renderer: "{{ _pipeline_post_renderer or omit }}"
     namespace: "{{ gmc_namespace }}"
     values_files: "{{ values_files }}"
     state: present

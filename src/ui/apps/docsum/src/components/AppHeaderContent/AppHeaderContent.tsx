@@ -11,10 +11,11 @@ import { resetStore } from "@/store/utils";
 import { getDocSumAppEnv } from "@/utils";
 
 const APP_DISPLAY_NAME = "DocSum";
-const PROJECT_NAME = "Intel® AI for Enterprise RAG";
+const PROJECT_NAME = "Intel® Chatbot Toolkit";
 const APP_VERSION =
   getDocSumAppEnv("ERAG_VERSION") || import.meta.env.VITE_APP_VERSION;
-const USER_GUIDE_URL = `https://github.com/opea-project/Enterprise-RAG/blob/release-${APP_VERSION}/docs/Intel_AI_for_Enterprise_RAG_DocSum_User_Guide.pdf`;
+const USER_GUIDE_URL =
+  "https://github.com/intel/chatbot-toolkit/blob/main/docs/Intel_Chatbot_Toolkit_DocSum_User_Guide.pdf";
 
 /** Rendered as the side panel's own top header row — see SidePanelHeader. */
 export const SidePanelHeaderContent = () => (

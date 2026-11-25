@@ -2,7 +2,7 @@
 
 [← Customize](../README.md#customize)
 
-Intel® AI for Enterprise RAG supports multiple models for LLM inference, text embedding, and reranking, including multilingual models for non-English deployments.
+Intel® Chatbot Toolkit supports multiple models for LLM inference, text embedding, and reranking, including multilingual models for non-English deployments.
 
 ## How models are declared
 
@@ -58,7 +58,7 @@ Changing the embedding model changes the vector dimensions and invalidates the e
 
 LLM replica count and CPU allocation are calculated to fit the LLM, embedding, and reranking models together inside one NUMA node. Changing any model's size may affect the replica count of all three.
 
-Only models labeled `app.kubernetes.io/part-of=erag` are managed by the installer. Models deployed by hand or by the inference layer are left alone.
+Only models labeled `app.kubernetes.io/part-of=erag` are managed by the installer. Models deployed by hand or by Intel® Inference Toolkit are left alone.
 
 ## Model catalog reference
 
@@ -132,7 +132,7 @@ Each entry includes CPU/memory sizing, engine, category, and optional per-model 
 
 ## Accuracy tuning
 
-Intel AI for Enterprise RAG includes multiple techniques to improve retrieval and answer accuracy.
+Intel® Chatbot Toolkit includes multiple techniques to improve retrieval and answer accuracy.
 
 ### Metadata filtering
 
@@ -172,23 +172,9 @@ Enable or adjust at runtime via the Admin Panel by changing the retriever search
 
 See [`src/comps/vectorstores/README.md#search`](../../src/comps/vectorstores/README.md#search) for detailed configuration.
 
-### Late chunking
-
-**Status:** Not supported in this release.
-
-Late chunking embeds full documents before splitting them into chunks, preserving broader contextual meaning. Traditional chunking splits first and then embeds each chunk independently.
-
-**Why it is unavailable:** Late chunking requires token-level embeddings, which the embedding microservice requests with `return_pooling=true`. The only backend that implemented this was the TorchServe embedding server, which is no longer part of Intel AI for Enterprise RAG. Models are now served via Intel AI for Enterprise Solutions (Model Manager), and vLLM does not expose token-level pooling output yet.
-
-A request with `return_pooling=true` is rejected with an error rather than silently returning aggregated vectors, which would produce incorrect embeddings. The `edp_late_chunking_enabled` flag must stay at its default of `false`.
-
-**Alternative:** Use [Similarity Search with Siblings](#similarity-search-with-siblings) to give the LLM broader context around a matched chunk.
-
-Support will return once token-level pooling is available through the Model Manager catalog.
-
 ## Accuracy evaluator
 
-Intel AI for Enterprise RAG includes a comprehensive accuracy evaluator for automated end-to-end testing using the MultiHop dataset (2,556 queries). It computes 10+ metrics including:
+Intel® Chatbot Toolkit includes a comprehensive accuracy evaluator for automated end-to-end testing using the MultiHop dataset (2,556 queries). It computes 10+ metrics including:
 
 - Retrieval: Hits@K, MRR, MAP
 - Generation: BLEU, ROUGE-L
@@ -214,7 +200,7 @@ Run `./model-manager --help` for the full list of flags and environment variable
 
 | Topic | Link |
 |-------|------|
-| Model catalog structure and runtime settings | [`ext/enterprise.ai-inference/docs/customize/catalog.md`](https://github.com/intel/enterprise-inference/blob/main/docs/customize/catalog.md) |
-| Supported serving runtimes (vLLM, OpenVINO) | [`ext/enterprise.ai-inference/docs/customize/runtimes.md`](https://github.com/intel/enterprise-inference/blob/main/docs/customize/runtimes.md) |
+| Model catalog structure and runtime settings | [`ext/enterprise.ai-inference/docs/configuration/catalog.md`](https://github.com/intel/inference-toolkit/blob/main/docs/configuration/catalog.md) |
+| Supported serving runtimes (vLLM, OpenVINO) | [`ext/enterprise.ai-inference/docs/configuration/runtimes.md`](https://github.com/intel/inference-toolkit/blob/main/docs/configuration/runtimes.md) |
 | Performance tuning and sizing | [`../operate/performance.md`](../operate/performance.md) |
 | Pipeline variants and flavours | [`../deploy/pipelines.md`](../deploy/pipelines.md) |

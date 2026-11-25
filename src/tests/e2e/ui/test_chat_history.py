@@ -55,7 +55,7 @@ async def _ensure_at_least_one_chat(chat_ui_helper):
 # TEST CASES
 # ============================================================================
 
-@allure.testcase("IEASG-T356")
+@allure.testcase("DSPTV-T264")
 @pytest.mark.ui
 @pytest.mark.asyncio
 async def test_new_chat_button(chat_ui_helper):
@@ -106,7 +106,7 @@ async def test_new_chat_button(chat_ui_helper):
     logger.info("Test completed: New chat button validated")
 
 
-@allure.testcase("IEASG-T357")
+@allure.testcase("DSPTV-T265")
 @pytest.mark.ui
 @pytest.mark.asyncio
 async def test_chat_history_item_appears(chat_ui_helper):
@@ -148,7 +148,7 @@ async def test_chat_history_item_appears(chat_ui_helper):
     logger.info("Test completed: Chat history item appearance validated")
 
 
-@allure.testcase("IEASG-T358")
+@allure.testcase("DSPTV-T266")
 @pytest.mark.ui
 @pytest.mark.asyncio
 async def test_rename_chat(chat_ui_helper):
@@ -200,7 +200,7 @@ async def test_rename_chat(chat_ui_helper):
     logger.info("Test completed: Chat rename validated")
 
 
-@allure.testcase("IEASG-T359")
+@allure.testcase("DSPTV-T267")
 @pytest.mark.ui
 @pytest.mark.asyncio
 async def test_pin_unpin_chat(chat_ui_helper):
@@ -253,7 +253,7 @@ async def test_pin_unpin_chat(chat_ui_helper):
     logger.info("Test completed: Pin/Unpin validated")
 
 
-@allure.testcase("IEASG-T360")
+@allure.testcase("DSPTV-T268")
 @pytest.mark.ui
 @pytest.mark.asyncio
 async def test_delete_chat(chat_ui_helper):
@@ -325,7 +325,7 @@ async def test_delete_chat(chat_ui_helper):
     logger.info("Test completed: Chat deletion validated")
 
 
-@allure.testcase("IEASG-T361")
+@allure.testcase("DSPTV-T269")
 @pytest.mark.ui
 @pytest.mark.asyncio
 async def test_export_chat_dialog(chat_ui_helper):
@@ -371,7 +371,7 @@ async def test_export_chat_dialog(chat_ui_helper):
     logger.info("Test completed: Export chat dialog validated")
 
 
-@allure.testcase("IEASG-T362")
+@allure.testcase("DSPTV-T270")
 @pytest.mark.ui
 @pytest.mark.asyncio
 async def test_chat_history_search(chat_ui_helper):
@@ -442,7 +442,7 @@ async def test_chat_history_search(chat_ui_helper):
     logger.info("Test completed: Chat history search validated")
 
 
-@allure.testcase("IEASG-T363")
+@allure.testcase("DSPTV-T271")
 @pytest.mark.ui
 @pytest.mark.asyncio
 async def test_export_chat_downloads_file(chat_ui_helper):

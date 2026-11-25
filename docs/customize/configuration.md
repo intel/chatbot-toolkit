@@ -55,7 +55,7 @@ Variants: **base** (full), **retrieve-rerank** (no LLM, retrieval-only), **uploa
 
 | Setting | Default | Purpose |
 |---------|---------|---------|
-| `backup_enabled` | `false` | Arms this layer's backup profile. Also needs the platform's `velero_enabled: true` and `storage_backend: nfs` or `ceph` — both switches are independent, and either off makes a run a no-op |
+| `backup_enabled` | `false` | Arms this toolkit's backup profile. Also needs the platform's `velero_enabled: true` and `storage_backend: nfs` or `ceph` — both switches are independent, and either off makes a run a no-op |
 | `upgrade_backup_max_age_hours` | `6` | How fresh a backup the pre-upgrade gate demands, once `backup_enabled` is `true` |
 | `allow_upgrade_without_backup` | `false` | Bypass the gate for one upgrade |
 
@@ -93,9 +93,40 @@ See [models.md](models.md).
 
 Backends: **redis-cluster** (production, 1M+ vectors, HA, scalable), **mssql** (SQL Server; RBAC unsupported; EULA prompt on deploy), **pgvector** (PostgreSQL).
 
-Storage: default ~5GB. Increase in `deployment/components/vector_databases/values.yaml` (`persistence.size: 100Gi`). Vector store needs more storage than file storage (text + embeddings).
+Storage defaults: redis-cluster 8Gi per node (set `vector_databases_stores.redis-cluster.persistence.size` in `config.erag.yaml`), mssql and pgvector 10Gi (`deployment/components/vector_databases/values.yaml`). Vector store needs more storage than file storage (text + embeddings).
 
-Details: [`deployment/components/vector_databases/README.md`](../../deployment/components/vector_databases/README.md).
+The installer generates the database password and hands the connection details to the services in the `vector-database-config` secret, in the pipeline and EDP namespaces.
+
+> [!NOTE]
+> For production, use your own managed vector database, so it follows your organization's security, backup, disaster recovery and access policies.
+
+### Redis cluster
+
+A 3-node StatefulSet (masters only, 16384 hash slots, DNS-based topology) running Redis 8.2.2, which includes RediSearch and RedisJSON. Metrics are on port `9121`. Grafana dashboard: **VectorDB / Redis**.
+
+Check the cluster:
+
+```bash
+REDIS_PASSWORD=$(kubectl get secret redis-cluster-secret -n vdb -o jsonpath='{.data.REDIS_PASSWORD}' | base64 -d)
+kubectl exec -n vdb vdb-redis-cluster-0 -- redis-cli -a $REDIS_PASSWORD CLUSTER INFO   # cluster_state:ok, cluster_known_nodes:3
+kubectl exec -n vdb vdb-redis-cluster-0 -- redis-cli -a $REDIS_PASSWORD MODULE LIST    # search and ReJSON
+```
+
+### Microsoft SQL Server 2025
+
+A single Microsoft SQL Server Express Edition instance from Microsoft's official images. Express has feature and capacity limits (for example, 10 GB per database). Metrics are on port `4000`. Grafana dashboard: **VectorDB / Microsoft SQL Server**.
+
+You're responsible for accepting Microsoft's licensing terms (https://www.microsoft.com/en-us/useterms). With `mssql`, `install erag` stops and asks:
+
+```text
+Do you accept the Microsoft SQL Server 2025 Express Edition EULA? [Y/N]
+```
+
+Type `Y` and press ENTER. The install aborts unless you accept. To accept without the prompt, for example in automation, set `MSSQL_ACCEPT_EULA=Y` in the installer's environment.
+
+### Adding a vector database
+
+See [`src/comps/vectorstores/CONTRIBUTING.md`](../../src/comps/vectorstores/CONTRIBUTING.md). Add the new database to the `vector_databases_vector_store` options above.
 
 ## Enhanced Data Preparation (EDP)
 
@@ -103,7 +134,6 @@ Details: [`deployment/components/vector_databases/README.md`](../../deployment/c
 |---------|---------|---------|
 | `edp_namespace` | `edp` | |
 | `edp_storage_type` | `seaweedfs` | `seaweedfs` \| `s3` \| `s3compatible` |
-| `edp_late_chunking_enabled` | `false` | Not supported - [models.md](models.md#late-chunking) |
 | `edp_rbac_enabled` | `false` | Must be `false` for ONTAP S3, MSSQL |
 | `edp_scheduled_sync_enabled` | `false` | For S3-compatible sans SQS |
 
@@ -146,7 +176,7 @@ See [images.md](images.md).
 
 ## Horizontal Pod Autoscaling
 
-`hpa_enabled: true` (default). Scales pods by CPU/memory. Disable for: fixed workload, manual scaling, resource-constrained.
+`hpa_enabled: true` (default). Scales the guardrails and EDP on Prometheus custom metrics; see [Performance › Horizontal Pod Autoscaling](../operate/performance.md#horizontal-pod-autoscaling). Disable for: fixed workload, manual scaling, resource-constrained.
 
 ## UI
 
@@ -204,7 +234,6 @@ inference_models:
 # ui_chat_maintenance_mode: false
 # edp_namespace: "edp"
 # edp_storage_type: "seaweedfs"
-# edp_late_chunking_enabled: false
 # edp_rbac_enabled: false
 # edp_scheduled_sync_enabled: false
 # edp_s3_compatible_access_key_id: ""
@@ -231,4 +260,4 @@ Precedence: CLI `-e` > `global_config.yaml` > `config.erag.yaml` > role defaults
 
 ## Related docs
 
-[models.md](models.md) (models, multilingual, tuning), [auth.md](auth.md)/[sharepoint.md](sharepoint.md) (SSO, MFA, AD), [mcp.md](mcp.md) (MCP gateway), [object_store.md](object_store.md) (ONTAP S3), [images.md](images.md) (build images), [pipelines.md](../deploy/pipelines.md) (variants), [performance.md](../operate/performance.md) (tuning), [backup.md](../operate/backup.md) (backup and restore), [platform config](https://github.com/intel/enterprise-ai-solutions/blob/main/docs/customize/configuration.md).
+[models.md](models.md) (models, multilingual, tuning), [auth.md](auth.md)/[sharepoint.md](sharepoint.md) (SSO, MFA, AD), [mcp.md](mcp.md) (MCP gateway), [object_store.md](object_store.md) (ONTAP S3), [images.md](images.md) (build images), [pipelines.md](../deploy/pipelines.md) (variants), [performance.md](../operate/performance.md) (tuning), [backup.md](../operate/backup.md) (backup and restore), [platform config](https://github.com/intel/toolkit-manager/blob/main/docs/customize/configuration.md).

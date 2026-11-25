@@ -13,9 +13,17 @@ global:
 
 pipelineNamespace: "chatqna"
 
-# Replica count of the embedding model served by Enterprise Inference. Supplied
+# Replica count of the embedding model served by Intel® Inference Toolkit. Supplied
 # by the app_edp role; drives MAX_NEW_WORKERS and CELERY_BATCH_SIZE.
 embeddingReplicas: 1
+
+# What scales the text extractor with hpa_enabled: an HPA on the Prometheus
+# Adapter's metrics (prometheus-adapter), or a KEDA ScaledObject (keda).
+hpaProvider: prometheus-adapter
+keda:
+  prometheus:
+    serverAddress: ""
+  operatorNamespace: keda
 
 proxy:
   http_proxy: ""
@@ -210,7 +218,7 @@ minimalResources:
 
 celery:
   nameOverride: "edp-celery"
-  name: "enterprise-rag-enhanced-dataprep"
+  name: "chatbot-toolkit-enhanced-dataprep"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -293,11 +301,6 @@ celery:
         configMapKeyRef:
           name: edp-configmap
           key: TEXT_SPLITTER_ENDPOINT
-    - name: LATE_CHUNKING_ENDPOINT
-      valueFrom:
-        configMapKeyRef:
-          name: edp-configmap
-          key: LATE_CHUNKING_ENDPOINT
     - name: EMBEDDING_ENDPOINT
       valueFrom:
         configMapKeyRef:
@@ -353,11 +356,6 @@ celery:
         configMapKeyRef:
           name: edp-configmap
           key: DPGUARD_ENABLED
-    - name: LATE_CHUNKING_ENABLED
-      valueFrom:
-        configMapKeyRef:
-          name: edp-configmap
-          key: LATE_CHUNKING_ENABLED
     - name: BATCH_SIZE
       valueFrom:
         configMapKeyRef:
@@ -401,7 +399,7 @@ celery:
 flower:
   enabled: true
   nameOverride: "edp-flower"
-  name: "enterprise-rag-enhanced-dataprep"
+  name: "chatbot-toolkit-enhanced-dataprep"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -555,11 +553,6 @@ backend:
         configMapKeyRef:
           name: edp-configmap
           key: TEXT_SPLITTER_ENDPOINT
-    - name: LATE_CHUNKING_ENABLED
-      valueFrom:
-        configMapKeyRef:
-          name: edp-configmap
-          key: LATE_CHUNKING_ENABLED
     - name: "EMBEDDING_ENDPOINT"
       valueFrom:
         configMapKeyRef:
@@ -621,7 +614,7 @@ backend:
           "default"
         ]
   nameOverride: "edp-backend"
-  name: "enterprise-rag-enhanced-dataprep"
+  name: "chatbot-toolkit-enhanced-dataprep"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -634,60 +627,17 @@ backend:
       cpu: "1"
       memory: "2Gi"
 
-lateChunking:
-  enabled: false
-  nameOverride: "edp-late-chunking"
-  name: "enterprise-rag-late-chunking"
-  repository: "docker.io/intel"
-  tag: latest
-  pullPolicy: Always
-  replicas: 1
-  environment:
-    - name: OMP_NUM_THREADS
-      valueFrom:
-        resourceFieldRef:
-          resource: limits.cpu
-  config:
-    chunk_size: "512"
-    chunk_overlap: "0"
-    embedding_service_endpoint: "http://embedding-svc.chatqna.svc:6000/v1/embeddings"
-    model_name: "jinaai/jina-embeddings-v2-base-en"
-  resources:
-    requests:
-      cpu: "4"
-      memory: "1Gi"
-    limits:
-      cpu: "8"
-      memory: "8Gi"
-  hpa:
-    minReplicas: 1
-    maxReplicas: 2
-    targetValue: 2
-    behavior:
-      scaleDown:
-        stabilizationWindowSeconds: 60
-        policies:
-        - type: Percent
-          value: 25
-          periodSeconds: 15
-        - type: Pods
-          value: 1
-          periodSeconds: 15
-      scaleUp:
-        selectPolicy: Max
-        stabilizationWindowSeconds: 0
-        policies:
-        - type: Pods
-          value: 1
-          periodSeconds: 15
-
 textExtractor:
   nameOverride: "edp-text-extractor"
-  name: "enterprise-rag-text-extractor"
+  name: "chatbot-toolkit-text-extractor"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
   replicas: 1
+  # A part takes up to ~400 s (100 pages of a large PDF), and celery doesn't retry a part whose
+  # pod went away, so a scale-down must let the parts in flight finish. The extractor doesn't stop
+  # on SIGTERM, so a terminating pod is only killed when this runs out, idle or not.
+  terminationGracePeriodSeconds: 450
   environment:
     - name: OMP_NUM_THREADS
       value: "1"
@@ -738,7 +688,7 @@ textExtractor:
 
 textCompression:
   nameOverride: "edp-text-compression"
-  name: "enterprise-rag-text-compression"
+  name: "chatbot-toolkit-text-compression"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -760,7 +710,7 @@ textCompression:
 
 textSplitter:
   nameOverride: "edp-text-splitter"
-  name: "enterprise-rag-text-splitter"
+  name: "chatbot-toolkit-text-splitter"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -776,10 +726,6 @@ textSplitter:
     embedding_service_endpoint: "http://embedding-svc.chatqna.svc:6000/v1/embeddings"
     # For semantic chunking
     use_semantic_chunking: "False"
-    # For late chunking
-    use_late_chunking: "False"
-    late_chunk_size: "8192"
-    late_chunk_overlap: "1024"
   resources:
     requests:
       cpu: "100m"
@@ -791,7 +737,7 @@ textSplitter:
 dpguard:
   enabled: false
   nameOverride: "edp-dpguard"
-  name: "enterprise-rag-dpguard"
+  name: "chatbot-toolkit-dpguard"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -815,13 +761,13 @@ embedding:
     connector: "langchain"
     modelName: "nomic-ai/nomic-embed-text-v1"
     modelServer: "vllm"
-    # Model servers live outside this namespace (deployed by Enterprise
-    # Inference), so there is no usable default. Supply it when enabling this.
+    # Model servers live outside this namespace (deployed by Intel®
+    # Inference Toolkit), so there is no usable default. Supply it when enabling this.
     modelServerEndpoint: ""
     timeout: "120"
     eragLoggerLevel: "INFO"
   nameOverride: "edp-embedding"
-  name: "enterprise-rag-embedding"
+  name: "chatbot-toolkit-embedding"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always
@@ -836,7 +782,7 @@ embedding:
 
 ingestion:
   nameOverride: "edp-ingestion"
-  name: "enterprise-rag-ingestion"
+  name: "chatbot-toolkit-ingestion"
   repository: "docker.io/intel"
   tag: latest
   config:
@@ -891,7 +837,7 @@ awsSqs:
           key: AWS_SECRET_ACCESS_KEY
   enabled: false
   nameOverride: "edp-aws"
-  name: "enterprise-rag-enhanced-dataprep"
+  name: "chatbot-toolkit-enhanced-dataprep"
   repository: "docker.io/intel"
   tag: latest
   pullPolicy: Always

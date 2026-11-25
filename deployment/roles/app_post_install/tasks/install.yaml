@@ -9,14 +9,21 @@
     check_pods_no_fail: "{{ post_install_no_fail }}"
     check_pods_store_result: "{{ post_install_store_result }}"
 
+# After the health check, so the pods it checks the exceptions against exist.
+- name: "app_post_install | Open the metrics ports to the OpenShift Prometheus"
+  ansible.builtin.include_tasks: mesh_metrics.yaml
+  when:
+    - istio_enabled | default(false) | bool
+    - _post_install_metrics_exceptions | length > 0
+
 - name: "app_post_install | Print deployment summary"
   ansible.builtin.debug:
     msg: |
       ======================================================
        RAG Deployment — INSTALL {{ 'SUCCEEDED' if check_pods_healthy | default(false) | bool else 'COMPLETED' }}
       ======================================================
-      UI:        https://{{ ui_domain_name | default('solutions.ai') }}
-      Keycloak:  https://{{ erag_keycloak_domain_name | default('keycloak.solutions.ai') }}
+      UI:        https://{{ ui_domain_name }}
+      Keycloak:  https://{{ erag_keycloak_domain_name }}{{ erag_keycloak_path_prefix }}
       {% if telemetry_enabled | default(false) %}
       Grafana:   https://{{ telemetry_domain_name | default('grafana.solutions.ai') }}
       {% endif %}

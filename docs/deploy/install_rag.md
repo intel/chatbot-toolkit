@@ -1,4 +1,4 @@
-# Deploy the RAG Layer
+# Deploy Intel® Chatbot Toolkit
 
 [← Docs Index](../README.md)
 
@@ -10,12 +10,12 @@ One command installs: model servers, vector database, NATS, Enhanced Data Prepar
 
 ## Prerequisites
 
-Platform (infrastructure + inference) must be installed first: [Platform Quickstart](https://github.com/intel/enterprise-ai-solutions/blob/main/docs/quickstart/quickstart.md). Hardware: [Prerequisites](../quickstart/prerequisites.md).
+The platform and Intel® Inference Toolkit must be installed first: [Platform Quickstart](https://github.com/intel/toolkit-manager/blob/main/docs/quickstart/quickstart.md). Hardware: [Prerequisites](../quickstart/prerequisites.md).
 
 ## Deployment workflow
 
 > [!IMPORTANT]
-> Run every command from the **Enterprise AI Solutions** repo root, not from this repository. `init erag` clones this repository into `ext/enterprise.ai-erag` at a pinned revision.
+> Run every command from the **Toolkit Manager** repo root, not from this repository. `init erag` clones this repository into `ext/enterprise.ai-erag` at a pinned revision.
 
 ### Step 1 - Initialize
 
@@ -89,13 +89,14 @@ URLs: `https://solutions.ai` (RAG UI), `https://keycloak.solutions.ai`, `https:/
 
 ### Credentials
 
-All in `env/<name>/logs/rag/default_credentials.yaml` (one-time passwords; change after first login):
+Chatbot Toolkit accounts are in `env/<name>/logs/rag/` (one-time passwords; change after first login). The platform's Keycloak and Grafana accounts are in Kubernetes Secrets:
 
 | Service | Username | Location |
 |---------|----------|----------|
-| UI admin/user | (in file) | default_credentials.yaml |
-| Keycloak | admin | default_credentials.yaml |
-| Grafana | admin | default_credentials.yaml |
+| UI admin/user/maintainer (realm `EnterpriseRAG`) | `erag-admin`, `erag-user`, `erag-maintainer` | default_credentials.txt |
+| Keycloak admin console (realm `master`) | admin | `keycloak-admin-secret` Secret, namespace `keycloak` |
+| Grafana, **Sign in with Keycloak** (realm `platform`) | platform-admin | `platform-bootstrap-admin` Secret, namespace `keycloak` (temporary; change at first login) |
+| Grafana, local admin on the login form | admin | `grafana-admin-credentials` Secret, namespace `monitoring` |
 | Vector store | (varies) | default_credentials.yaml |
 | SeaweedFS S3 | (access/secret keys) | default_credentials.yaml |
 | SeaweedFS Admin | (user/pass) | default_credentials.yaml |
@@ -112,7 +113,7 @@ Edit `env/<name>/config.erag.yaml` and re-run `./es_auto_installer.sh install er
 
 ## Data ingestion, UI and telemetry
 
-Use **Data Ingestion** tab in **Admin Panel** (admin only; ChatQnA and AudioQnA only). User guides: [AudioQnA](../Intel_AI_for_Enterprise_RAG_AudioQnA_User_Guide.pdf), [ChatQnA](../Intel_AI_for_Enterprise_RAG_ChatQnA_User_Guide.pdf), [DocSum](../Intel_AI_for_Enterprise_RAG_DocSum_User_Guide.pdf). Telemetry: [Telemetry Guide](../operate/telemetry.md).
+Use **Data Ingestion** tab in **Admin Panel** (admin only; ChatQnA and AudioQnA only). User guides: [AudioQnA](../Intel_Chatbot_Toolkit_AudioQnA_User_Guide.pdf), [ChatQnA](../Intel_Chatbot_Toolkit_ChatQnA_User_Guide.pdf), [DocSum](../Intel_Chatbot_Toolkit_DocSum_User_Guide.pdf). Telemetry: [Telemetry Guide](../operate/telemetry.md).
 
 ## Single sign-on and SharePoint integration
 
@@ -137,7 +138,7 @@ All empty = disabled. Partial config rejected. Apply: `./es_auto_installer.sh in
 Removes components in reverse order; models undeployed automatically.
 
 > [!WARNING]
-> Teardown is environment-scoped. Tear down with the same `--env` you installed with: running it against another environment silently does nothing to the one you meant. `teardown erag` keeps the cluster, platform, and inference layers; `teardown infrastructure` removes the cluster and everything on it.
+> Teardown is environment-scoped. Tear down with the same `--env` you installed with: running it against another environment silently does nothing to the one you meant. `teardown erag` keeps the cluster, the platform, and Intel® Inference Toolkit; `teardown infrastructure` removes the cluster and everything on it.
 
 ## Troubleshooting
 
@@ -153,4 +154,4 @@ Removes components in reverse order; models undeployed automatically.
 
 ## Related documentation
 
-[Prerequisites](../quickstart/prerequisites.md), [Quickstart](../quickstart/quickstart.md), [Pipeline Configuration](pipelines.md), [Configuration Reference](../customize/configuration.md), [Platform Documentation](https://github.com/intel/enterprise-ai-solutions/blob/main/docs/README.md).
+[Prerequisites](../quickstart/prerequisites.md), [Quickstart](../quickstart/quickstart.md), [Pipeline Configuration](pipelines.md), [Configuration Reference](../customize/configuration.md), [Platform Documentation](https://github.com/intel/toolkit-manager/blob/main/docs/README.md).

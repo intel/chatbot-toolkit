@@ -23,7 +23,7 @@ LINK_DELETION_TIMEOUT_S = 60
 FILE_UPLOAD_TIMEOUT_S = 300  # 5 minutes
 FILE_DELETION_TIMEOUT_S = 120  # 2 minutes
 LINK_UPLOAD_TIMEOUT = 300  # 5 minutes
-DATAPREP_STATUS_FLOW = ["uploaded", "processing", "text_extracting", "text_compression", "text_splitting", "embedding", "late_chunking", "ingested"]
+DATAPREP_STATUS_FLOW = ["uploaded", "processing", "text_extracting", "text_compression", "text_splitting", "embedding", "ingested"]
 
 
 class EdpHelper(ApiRequestHelper):
@@ -239,13 +239,16 @@ class EdpHelper(ApiRequestHelper):
         )
         return response
 
+    def link_record(self, link_url):
+        """The /api/links entry for the given URL, or None when EDP does not know it"""
+        return next((item for item in self.list_links().json() if item.get("uri") == link_url), None)
+
     def delete_link_by_url(self, link_url):
         """Delete a link by its URL"""
-        links = self.list_links()
-        for item in links.json():
-            if item["uri"] == link_url:
-                logger.info(f"Deleting link with id: {link_url}")
-                return self.delete_link(item["id"])
+        link = self.link_record(link_url)
+        if link:
+            logger.info(f"Deleting link with id: {link_url}")
+            return self.delete_link(link["id"])
         logger.warning(f"Link with URL: {link_url} not found. Nothing to delete.")
 
     def wait_for_link_upload(self, link_uri, desired_status, timeout=LINK_UPLOAD_TIMEOUT):
@@ -253,9 +256,7 @@ class EdpHelper(ApiRequestHelper):
         sleep_interval = 10
         start_time = time.time()
         while time.time() < start_time + timeout:
-            current_links = self.list_links().json()
-
-            link = next((item for item in current_links if item['uri'] == link_uri), None)
+            link = self.link_record(link_uri)
             if not link:
                 raise UploadTimeoutException(f"Link {link_uri} not found in the list of links")
 
@@ -687,7 +688,7 @@ class EdpHelper(ApiRequestHelper):
     def cleanup_all_files_and_links(self, file_ids_to_keep=None):
         """Cancel in-progress tasks and delete all files and links not in file_ids_to_keep."""
         in_progress = {"uploaded", "processing", "text_extracting", "text_compression",
-                       "text_splitting", "late_chunking", "embedding"}
+                       "text_splitting", "embedding"}
         file_ids_to_keep = file_ids_to_keep or set()
 
         files = self.list_files()

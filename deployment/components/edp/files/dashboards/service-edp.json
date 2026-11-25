@@ -26,10 +26,10 @@
       "includeVars": false,
       "keepTime": true,
       "tags": [
-        "entrag"
+        "chatbot"
       ],
       "targetBlank": false,
-      "title": "Enterprise RAG dashboards",
+      "title": "Chatbot Toolkit dashboards",
       "tooltip": "",
       "type": "dashboards",
       "url": ""
@@ -177,7 +177,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "sum({__name__=~\"edp_(files|links)_(uploaded|processing|dpguard|text_extracting|text_compression|text_splitting|embedding|late_chunking)_total\"})",
+          "expr": "sum({__name__=~\"edp_(files|links)_(uploaded|processing|dpguard|text_extracting|text_compression|text_splitting|embedding)_total\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1292,7 +1292,7 @@
         "enableLogDetails": true,
         "prettifyLogMessage": false,
         "showCommonLabels": false,
-        "showLabels": false,
+        "showLabels": true,
         "showTime": false,
         "sortOrder": "Descending",
         "wrapLogMessage": false
@@ -1306,69 +1306,9 @@
           },
           "direction": "backward",
           "editorMode": "builder",
-          "expr": "{k8s_container_name=\"edp-dataprep\"} |= ``",
+          "expr": "{k8s_container_name=~\"$container\"} |= ``",
           "queryType": "range",
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "direction": "backward",
-          "editorMode": "builder",
-          "expr": "{k8s_container_name=\"edp-embedding\"} |= ``",
-          "hide": false,
-          "queryType": "range",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "direction": "backward",
-          "editorMode": "builder",
-          "expr": "{k8s_container_name=\"edp-ingestion\"} |= ``",
-          "hide": false,
-          "queryType": "range",
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "direction": "backward",
-          "editorMode": "builder",
-          "expr": "{k8s_container_name=\"edp-backend\"} |= ``",
-          "hide": false,
-          "queryType": "range",
-          "refId": "D"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "direction": "backward",
-          "editorMode": "builder",
-          "expr": "{k8s_container_name=\"edp-dpguard\"} |= ``",
-          "hide": false,
-          "queryType": "range",
-          "refId": "E"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "direction": "backward",
-          "editorMode": "builder",
-          "expr": "{k8s_container_name=\"edp-late-chunking\"} |= ``",
-          "hide": false,
-          "queryType": "range",
-          "refId": "F"
         }
       ],
       "title": "Logs",
@@ -1754,18 +1694,6 @@
           "legendFormat": "Files Embedding",
           "range": true,
           "refId": "E"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "edp_files_late_chunking_total",
-          "hide": false,
-          "legendFormat": "Files Late Chunking",
-          "range": true,
-          "refId": "F"
         },
         {
           "datasource": {
@@ -2159,18 +2087,6 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "edp_links_late_chunking_total",
-          "hide": false,
-          "legendFormat": "Links Late Chunking",
-          "range": true,
-          "refId": "F"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
           "expr": "edp_links_ingested_total",
           "legendFormat": "Links Ingested",
           "range": true,
@@ -2233,11 +2149,42 @@
   "refresh": "",
   "schemaVersion": 41,
   "tags": [
-    "entrag",
+    "chatbot",
     "edp"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "loki",
+          "uid": "loki"
+        },
+        "definition": "label_values({k8s_container_name=~\"edp-.*\"}, k8s_container_name)",
+        "includeAll": true,
+        "label": "Container",
+        "multi": true,
+        "name": "container",
+        "options": [],
+        "query": {
+          "label": "k8s_container_name",
+          "stream": "{k8s_container_name=~\"edp-.*\"}",
+          "type": 1,
+          "refId": "LokiVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-30m",
@@ -2245,7 +2192,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "EnterpriseRAG / Services / EDP",
+  "title": "Chatbot Toolkit / Services / EDP",
   "uid": "aebd052mpvif4f",
   "version": 1,
   "weekStart": ""

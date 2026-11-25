@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 ---
 # =============================================================================
 # Pipeline defaults — fetched via: ai-solutions installer init rag --translation
@@ -19,7 +21,7 @@ mcp_enabled: false
 # The role deploys them, waits for readiness, and computes endpoints dynamically.
 inference_namespace: "llm-inference"
 inference_models:
-  - name: "haoranxu/ALMA-7B-R"
+  - name: alma-7b-r
     role: llm
 
 # --- Ansible settings ---
@@ -33,7 +35,6 @@ inference_models:
 # --- EDP (app_edp) ---
 # edp_namespace: "edp"
 # edp_storage_type: "seaweedfs"            # seaweedfs | s3 | s3compatible
-# edp_late_chunking_enabled: false
 # edp_rbac_enabled: false
 # edp_scheduled_sync_enabled: false
 

@@ -4,7 +4,7 @@
 import asyncio
 import os
 import time
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures.process import BrokenProcessPool
 
 from dotenv import load_dotenv
 from fastapi import HTTPException
@@ -15,6 +15,7 @@ from comps.cores.mega.constants import MegaServiceEndpoint, ServiceType
 from comps.cores.mega.logger import change_erag_logger_level, get_erag_logger
 from comps.cores.mega.micro_service import erag_microservices, register_microservice
 from comps.cores.proto.docarray import TextSplitterInput, TextDocList
+from comps.cores.utils.process_pool import new_process_pool, replace_if_broken
 from comps.cores.utils.utils import sanitize_env
 from utils import erag_textsplitter
 
@@ -57,7 +58,16 @@ def run_splitter(loaded_docs, chunk_size, chunk_overlap, use_semantic_chunking):
 # https://github.com/fastapi/fastapi/issues/3725#issuecomment-902629033
 # https://luis-sena.medium.com/how-to-optimize-fastapi-for-ml-model-serving-6f75fb9e040d
 
-pool = ProcessPoolExecutor(max_workers=1)
+pool = new_process_pool(1)
+
+
+def _replace_broken_pool(broken):
+    """The worker died (OOM kill, native crash): the pool fails every later task."""
+    global pool
+    replacement = replace_if_broken(pool, broken, 1)
+    if replacement is not pool:
+        pool = replacement
+        logger.warning("Process pool broken (the worker died); started a new one")
 
 # Register the microservice with the specified configuration.
 @register_microservice(
@@ -81,25 +91,11 @@ async def process(input: TextSplitterInput) -> TextDocList:
     chunk_overlap = int(sanitize_env(str(input.chunk_overlap) if input.chunk_overlap else os.getenv("CHUNK_OVERLAP")))
     use_semantic_chunking = sanitize_env(str(input.use_semantic_chunking) if input.use_semantic_chunking is not None else os.getenv("USE_SEMANTIC_CHUNKING")).lower() == "true"
 
-    use_late_chunking = os.getenv("USE_LATE_CHUNKING").lower() == "true"
-
-    if use_late_chunking:
-        late_chunk_size = int(sanitize_env(os.getenv("LATE_CHUNK_SIZE")))
-        late_chunk_overlap = int(sanitize_env(os.getenv("LATE_CHUNK_OVERLAP")))
-        logger.debug(f"Late chunking enabled with late_chunk_size: {late_chunk_size}, late_chunk_overlap: {late_chunk_overlap}")
-
-        # disable semantic_chunking when late chunking is enabled for now
-        if use_semantic_chunking:
-            logger.warning("Semantic chunking is currently not supported with late chunking, so 'use_semantic_chunking' has been set to False.")
-            use_semantic_chunking = False
-
     textdocs = None
     loop = asyncio.get_event_loop()
+    current = pool
     try:
-        if use_late_chunking:
-            textdocs = await loop.run_in_executor(pool, run_splitter, loaded_docs, late_chunk_size, late_chunk_overlap, use_semantic_chunking)
-        else:
-            textdocs = await loop.run_in_executor(pool, run_splitter, loaded_docs, chunk_size, chunk_overlap, use_semantic_chunking)
+        textdocs = await loop.run_in_executor(current, run_splitter, loaded_docs, chunk_size, chunk_overlap, use_semantic_chunking)
     except ValueError as e:
         logger.exception(e)
         raise HTTPException(status_code=400, detail=f"An internal error occurred while processing: {str(e)}")
@@ -108,6 +104,8 @@ async def process(input: TextSplitterInput) -> TextDocList:
         raise HTTPException(status_code=503, detail=f"Could not connect to remote server: {str(e)}")
     except Exception as e:
         logger.exception(e)
+        if isinstance(e, BrokenProcessPool):
+            _replace_broken_pool(current)
         raise HTTPException(status_code=500, detail=f"An error occurred while processing: {str(e)}")
 
     statistics_dict[USVC_NAME].append_latency(time.time() - start, None)

@@ -17,7 +17,6 @@ const DATA_STATUSES: DataStatus[] = [
   "text_compression",
   "text_splitting",
   "dpguard",
-  "late_chunking",
   "embedding",
   "ingested",
   "deleting",

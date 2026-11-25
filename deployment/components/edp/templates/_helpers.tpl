@@ -30,16 +30,43 @@ Expand the name of the chart.
 {{- default .Chart.Name .Values.textExtractor.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
+{{- define "helm-edp.textExtractor.scaledName" -}}
+{{- .Values.textExtractor.nameOverride | default (include "helm-edp.fullname" .) }}
+{{- end }}
+
+{{- define "helm-edp.textExtractor.keda" -}}
+{{- if and .Values.hpa_enabled (eq .Values.hpaProvider "keda") }}true{{ end }}
+{{- end }}
+
+{{- define "helm-edp.textExtractor.hpaBehavior" -}}
+{{- with (((.Values).textExtractor).hpa).behavior }}
+{{- toYaml . }}
+{{- else }}
+scaleDown:
+  stabilizationWindowSeconds: 60
+  policies:
+  - type: Percent
+    value: 25
+    periodSeconds: 15
+  - type: Pods
+    value: 1
+    periodSeconds: 15
+scaleUp:
+  selectPolicy: Max
+  stabilizationWindowSeconds: 0
+  policies:
+  - type: Pods
+    value: 1
+    periodSeconds: 15
+{{- end }}
+{{- end }}
+
 {{- define "helm-edp.textCompression.name" -}}
 {{- default .Chart.Name .Values.textCompression.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "helm-edp.textSplitter.name" -}}
 {{- default .Chart.Name .Values.textSplitter.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{- define "helm-edp.lateChunking.name" -}}
-{{- default .Chart.Name .Values.lateChunking.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "helm-edp.dpguard.name" -}}
@@ -55,7 +82,7 @@ Expand the name of the chart.
 {{- end }}
 
 {{- define "helm-edp.noProxyWithContainers" -}}
-{{- printf "%s,edp-backend,edp-celery,edp-text-extractor-headless,edp-text-compression,edp-text-splitter,edp-late-chunking,edp-dpguard,edp-embedding,edp-flower,edp-ingestion,edp-postgresql-0,edp-redis-master-0" .Values.proxy.no_proxy }}
+{{- printf "%s,edp-backend,edp-celery,edp-text-extractor-headless,edp-text-compression,edp-text-splitter,edp-dpguard,edp-embedding,edp-flower,edp-ingestion,edp-postgresql-0,edp-redis-master-0" .Values.proxy.no_proxy }}
 {{- end }}
 
 {{- define "helm-edp.awsSqs.name" -}}
@@ -156,14 +183,6 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-lateChunking labels
-*/}}
-{{- define "helm-edp.lateChunking.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "helm-edp.lateChunking.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
 textExtractor labels
 */}}
 {{- define "helm-edp.textExtractor.selectorLabels" -}}
@@ -226,8 +245,6 @@ labels:
   {{- include "helm-edp.textCompression.selectorLabels" $context | nindent 2 }}
   {{- else if eq $deploymentName "edp-text-splitter" }}
   {{- include "helm-edp.textSplitter.selectorLabels" $context | nindent 2 }}
-  {{- else if eq $deploymentName "edp-late-chunking" }}
-  {{- include "helm-edp.lateChunking.selectorLabels" $context | nindent 2 }}
   {{- else if eq $deploymentName "edp-dpguard" }}
   {{- include "helm-edp.dpguard.selectorLabels" $context | nindent 2 }}
   {{- else if eq $deploymentName "edp-embedding" }}

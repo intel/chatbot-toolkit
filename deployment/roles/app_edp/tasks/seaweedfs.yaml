@@ -17,7 +17,7 @@
 - name: "app_edp | Set SeaweedFS facts"
   ansible.builtin.set_fact:
     useBearerTokenAuth: "{{ edp_helm_values.useBearerTokenAuth | default(false) }}"
-    kcDomainName: "{{ erag_keycloak_domain_name | default('auth.solutions.ai') }}"
+    kcDomainName: "{{ erag_keycloak_domain_name }}"
     keycloakRealm: "{{ ui_keycloak_realm | default('EnterpriseRAG') }}"
     clientId: "{{ client_id | default('EnterpriseRAG-oidc-minio') }}"
     s3_host: "{{ edp_helm_values.s3ApiDomain | default((edp_helm_values.s3DomainPrefix | default('s3')) ~ '.' ~ (base_domain_name | default('solutions.ai'))) }}"
@@ -40,9 +40,9 @@
 
 - name: "app_edp | Set OIDC endpoints for SeaweedFS"
   vars:
-    keycloak_realm_url: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ erag_keycloak_path_prefix | default('') }}/realms/{{ keycloakRealm }}"
+    keycloak_realm_url: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ erag_keycloak_path_prefix }}/realms/{{ keycloakRealm }}"
   ansible.builtin.set_fact:
-    oidc_issuer: "https://{{ erag_keycloak_domain_name | default('auth.solutions.ai') }}{{ erag_keycloak_path_prefix | default('') }}/realms/{{ keycloakRealm }}"
+    oidc_issuer: "https://{{ erag_keycloak_domain_name }}{{ erag_keycloak_path_prefix }}/realms/{{ keycloakRealm }}"
     oidc_jwksUri: "{{ keycloak_realm_url }}/protocol/openid-connect/certs"
     oidc_userInfoUri: "{{ keycloak_realm_url }}/protocol/openid-connect/userinfo"
     sts: "{{ edp_helm_values.seaweedfs.iamKeycloak.sts | default('{}') }}"
@@ -98,9 +98,7 @@
       kind: Namespace
       metadata:
         name: "{{ edp_seaweedfs_namespace }}"
-        labels:
-          istio.io/dataplane-mode: "ambient"
-          erag-istio-protected: "true"
+        labels: "{{ istio_namespace_labels | default({'istio.io/dataplane-mode': 'ambient'}) | combine({'erag-istio-protected': 'true'}) }}"
   when: istio_enabled | default(false) | bool
 
 - name: "app_edp | Label SeaweedFS namespace — PSS"
@@ -184,6 +182,7 @@
   kubernetes.core.helm:
     name: seaweedfs
     chart_ref: seaweedfs/seaweedfs
+    post_renderer: "{{ _edp_post_renderer or omit }}"
     chart_version: "{{ edp_helm_values.seaweedfs.version }}"
     namespace: "{{ edp_seaweedfs_namespace }}"
     create_namespace: true

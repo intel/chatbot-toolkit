@@ -191,16 +191,6 @@ edp_ontap_s3_cors_allow_origins: >-
   {{ [] if _edp_s3_path_mode | bool else ['https://' ~ base_domain_name] }}
 edp_ontap_s3_validate_reachability: true
 
-# --- Late chunking ---
-# NOTE: when enabled, embedding_model_id MUST be one of the models listed in
-# late_chunking_compatible_models (see app_pre_install/tasks/solution_config.yaml).
-edp_late_chunking_enabled: false
-edp_late_chunking_chunk_size: 512
-edp_late_chunking_chunk_overlap: 64
-# Tokenizer reference loaded from the HuggingFace Hub — tracks the deployed
-# embedding model, so it is the model_id and not the catalog name.
-edp_late_chunking_model_name: "{{ embedding_model_id }}"
-
 # --- Scheduled sync (SharePoint / S3 polling) ---
 edp_scheduled_sync_enabled: false
 edp_scheduled_sync_period_seconds: "60"
@@ -232,8 +222,9 @@ embedding_model_name: "nomic-embed"                # app_inference_models (catal
 embedding_model_id: "nomic-ai/nomic-embed-text-v1"        # app_inference_models (HuggingFace repo id)
 pipeline_namespace: "{{ pipeline_type | default('chatqna') }}"        # app_pipeline
 erag_keycloak_realm: "EnterpriseRAG"        # app_keycloak_config
-erag_keycloak_domain_name: "auth.solutions.ai"  # app_keycloak_config
-erag_keycloak_path_prefix: ""  # app_keycloak_config
+erag_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"  # app_keycloak_config
+erag_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
+erag_keycloak_path_prefix: "{{ erag_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
 # SharePoint credentials from the Entra app registration
 erag_keycloak_oidc_tenant_id: ""  # app_keycloak_config
 erag_keycloak_oidc_client_id: ""  # app_keycloak_config
@@ -254,7 +245,7 @@ ontap_s3_data_lif: ""
 ontap_s3_port: 443
 ontap_s3_tls: true
 ontap_s3_ca_cert_file: ""
-ui_domain_name: "solutions.ai"            # app_ui
+ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"  # app_ui
 ui_keycloak_realm: "EnterpriseRAG"    # app_ui
 vector_databases_vector_datatype: "FLOAT32"        # app_vector_databases
 vector_databases_vector_dims: 768                  # app_vector_databases

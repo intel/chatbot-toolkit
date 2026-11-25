@@ -30,13 +30,18 @@ minimalResources:
 {% set _apisix_kc_ns = keycloak_namespace | default('keycloak') %}
 {% set _apisix_realm = (ui_keycloak_realm if (ui_keycloak_realm | default("") | length > 0) else erag_keycloak_realm | default("EnterpriseRAG")) %}
 {# erag_keycloak_path_prefix: Keycloak's http-relative-path in path mode, '' otherwise. #}
-{% set _apisix_kc_base = 'http://keycloak-service.' ~ _apisix_kc_ns ~ '.svc:8080' ~ (erag_keycloak_path_prefix | default('')) %}
+{% set _apisix_kc_base = 'http://keycloak-service.' ~ _apisix_kc_ns ~ '.svc:8080' ~ erag_keycloak_path_prefix %}
 apisix:
   enabled: {{ (apisix_enabled | default(false)) | bool | string | lower }}
   ingressClassName: apisix
   routeHost: "{{ (ui_domain_name if ui_domain_name is defined else '') }}"
+  # Sidecars: send to the Service, so the gateway's sidecar can pick the endpoint (mTLS).
+  resolveGranularity: "{{ 'service' if istio_enabled | default(false) | bool and istio_dataplane_mode | default('ambient') == 'sidecar' else 'endpoint' }}"
   auth:
     realm: "{{ _apisix_realm }}"
     client_id: "{{ apisix_oidc_client_id | default('EnterpriseRAG-oidc-backend') }}"
     resource_registration_endpoint: "{{ _apisix_kc_base }}/realms/{{ _apisix_realm }}/authz/protection/resource_set"
     token_endpoint: "{{ _apisix_kc_base }}/realms/{{ _apisix_realm }}/protocol/openid-connect/token"
+
+monitoring:
+  enabled: {{ observability_enabled | default(true) | bool | string | lower }}

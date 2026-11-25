@@ -75,7 +75,6 @@ const (
 	TextCompression          = "TextCompression"
 	TextSplitter             = "TextSplitter"
 	DocSum                   = "DocSum"
-	LateChunking             = "LateChunking"
 	QueryRewrite             = "QueryRewrite"
 	monitoringCoreOSGroup    = "monitoring.coreos.com"
 )
@@ -121,7 +120,6 @@ var yamlDict = map[string]string{
 	TextCompression:   yaml_dir + "text-compression-usvc.yaml",
 	TextSplitter:      yaml_dir + "text-splitter-usvc.yaml",
 	DocSum:            yaml_dir + "docsum-usvc.yaml",
-	LateChunking:      yaml_dir + "late-chunking-usvc.yaml",
 	QueryRewrite:      yaml_dir + "query-rewrite-usvc.yaml",
 }
 
@@ -945,8 +943,8 @@ func (r *GMConnectorReconciler) handleStatusUpdate(ctx context.Context, deployme
 			if err == nil {
 				ue := r.collectResourceStatus(graph, ctx)
 				if ue != nil {
-					_log.Error(err, "Failed to get graph before update status", "name", graph.Name)
-					return reconcile.Result{}, err
+					_log.Error(ue, "Failed to update graph status", "name", graph.Name)
+					return reconcile.Result{}, ue
 				}
 			}
 		}

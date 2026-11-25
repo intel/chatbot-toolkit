@@ -36,6 +36,7 @@ jobs:
         test-name:
           - asr_unit_tests
           - chat_history_unit_tests
+          - cores_unit_tests
           - deployment_scripts_unit_tests
           - docsum_unit_tests
           - edp_unit_tests
@@ -43,7 +44,6 @@ jobs:
           - fingerprint_invariants_unit_tests
           - ingestion_unit_tests
           - language_detection_unit_tests
-          - late_chunking_unit_tests
           - llm_guard_dataprep_guardrail_unit_tests
           - llm_guard_input_guardrail_unit_tests
           - llm_guard_output_guardrail_unit_tests

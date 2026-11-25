@@ -1106,10 +1106,10 @@
   },
   "timezone": "browser",
   "tags": [
-    "entrag",
+    "chatbot",
     "vectordb"
   ],
-  "title": "EnterpriseRAG / VectorDB / Microsoft SQL Server",
+  "title": "Chatbot Toolkit / VectorDB / Microsoft SQL Server",
   "uid": "9J6ObCEMz",
   "version": 1,
   "weekStart": ""

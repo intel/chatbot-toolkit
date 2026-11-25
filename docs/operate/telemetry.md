@@ -1,6 +1,6 @@
 # Telemetry
 
-Intel® AI for Enterprise RAG services emit metrics, logs, and traces to the platform observability stack (Prometheus + Grafana + Loki + Tempo). This doc covers accessing Grafana and the RAG-specific dashboards.
+Intel® Chatbot Toolkit services emit metrics, logs, and traces to the platform observability stack (Prometheus + Grafana + Loki + Tempo). This doc covers accessing Grafana and the chatbot dashboards.
 
 ## Login
 
@@ -20,38 +20,38 @@ kubectl get secret -n monitoring grafana-admin-credentials \
 # Username: admin
 ```
 
-### Keycloak SSO
+### Platform Keycloak SSO
 
-On the Grafana login page, select **Sign in with Keycloak** and enter your username and password. Only users in the `erag-admins` or `erag-maintainers` Keycloak group can access Grafana.
+On the Grafana login page, select **Sign in with Keycloak** and sign in with your platform account, for example `platform-admin`. Its password is in `env/<name>/logs/rag/default_credentials.yaml` (`PLATFORM_ADMIN_PASSWORD`).
 
 ## Dashboards
 
-Click **Dashboards** in the left pane. Dashboards prefixed with `EnterpriseRAG` are tailored to Intel AI for Enterprise RAG services. The Grafana instance also provides standard Kubernetes, Node Exporter, and Prometheus Overview dashboards for cluster-level monitoring.
+Click **Dashboards** in the left pane. Dashboards prefixed with `Chatbot Toolkit` are tailored to Intel® Chatbot Toolkit services. The Grafana instance also provides standard Kubernetes, Node Exporter, and Prometheus Overview dashboards for cluster-level monitoring.
 
 ![dashboard](../images/telemetry/dashboards.png)
 
-Eight dashboards ship with this layer, each provisioned by the component that owns it:
+Eight dashboards ship with this toolkit, each provisioned by the component that owns it:
 
 | Dashboard | Shipped by | Covers |
 |---|---|---|
-| `EnterpriseRAG / Services / Details` | `app_pipeline` (gmc chart) | Per-service resource use, API traffic, and logs |
-| `EnterpriseRAG / Services / Top` | `app_pipeline` (gmc chart) | Cross-service summary of the busiest microservices |
-| `EnterpriseRAG / Services / GMConnector (router)` | `app_pipeline` (gmc chart) | Pipeline router throughput and per-step timing |
-| `EnterpriseRAG / Services / EDP` | `app_edp` | Ingestion counts, chunks, stages, and errors |
-| `EnterpriseRAG / Services / Audio` | `app_audio` | ASR and TTS activity (AudioQnA flavour only) |
-| `EnterpriseRAG / HPA` | `app_hpa` | Replica counts and scaling decisions |
-| `EnterpriseRAG / VectorDB / Redis` | `app_vector_databases` | Redis vector store health and query load |
-| `EnterpriseRAG / VectorDB / Microsoft SQL Server` | `app_vector_databases` | MSSQL vector store health and query load |
+| `Chatbot Toolkit / Services / Details` | `app_pipeline` (gmc chart) | Per-service resource use, API traffic, and logs |
+| `Chatbot Toolkit / Services / Top` | `app_pipeline` (gmc chart) | Cross-service summary of the busiest microservices |
+| `Chatbot Toolkit / Services / GMConnector (router)` | `app_pipeline` (gmc chart) | Pipeline router throughput and per-step timing |
+| `Chatbot Toolkit / Services / EDP` | `app_edp` | Ingestion counts, chunks, stages, and errors |
+| `Chatbot Toolkit / Services / Audio` | `app_audio` | ASR and TTS activity (AudioQnA flavour only) |
+| `Chatbot Toolkit / HPA` | `app_hpa` | Replica counts and scaling decisions |
+| `Chatbot Toolkit / VectorDB / Redis` | `app_vector_databases` | Redis vector store health and query load |
+| `Chatbot Toolkit / VectorDB / Microsoft SQL Server` | `app_vector_databases` | MSSQL vector store health and query load |
 
 A dashboard only appears if its component is enabled, so the Audio and VectorDB dashboards depend on the flavour and the `vector_databases_vector_store` you chose.
 
 The three most-used ones are described below.
 
-### EnterpriseRAG / Services / Details
+### Chatbot Toolkit / Services / Details
 
 Overview of resource usage and service activity for selected namespace and services.
 
-![Dashboard EnterpriseRAG / Services / Details](../images/telemetry/dashboard_01_services_details.png)
+![Dashboard Chatbot Toolkit / Services / Details](../images/telemetry/dashboard_01_services_details.png)
 
 Key panels:
 - **System Resource Utilization**: CPU and memory usage per service
@@ -59,11 +59,11 @@ Key panels:
 - **Internal API Traffic**: Monitoring and health-check requests (independent of user activity)
 - **Logs**: Recent log entries filterable by namespace or service. For deeper log analysis use Grafana's **Explore -> Logs** feature in the left panel.
 
-### EnterpriseRAG / Services / EDP
+### Chatbot Toolkit / Services / EDP
 
 Metrics from the Enhanced Data Preparation (EDP) service: ingested documents, links, chunks, and processing statuses.
 
-![Dashboard EnterpriseRAG / Services / EDP](../images/telemetry/dashboard_02_services_edp.png)
+![Dashboard Chatbot Toolkit / Services / EDP](../images/telemetry/dashboard_02_services_edp.png)
 
 Key panels:
 - **General**: Total ingested files and links, chunks, blocked documents (unsafe content), files in error state
@@ -73,19 +73,19 @@ Key panels:
 
 See [EDP documentation](../../src/edp/README.md) for service details.
 
-### EnterpriseRAG / HPA
+### Chatbot Toolkit / HPA
 
 Horizontal Pod Autoscaler activity: replica count, scaling actions over time, and the metrics used for scaling decisions (current value + threshold).
 
-![Dashboard EnterpriseRAG / HPA](../images/telemetry/dashboard_03_hpa.png)
+![Dashboard Chatbot Toolkit / HPA](../images/telemetry/dashboard_03_hpa.png)
 
 The top panel shows current replica count for each HPA-managed service. Below, each service has a section with replica changes over time and the scaling metric.
 
-See [HPA configuration](../../deployment/components/hpa/README.md).
+See [Horizontal Pod Autoscaling](performance.md#horizontal-pod-autoscaling).
 
-### Enterprise AI Inference Dashboards (tag `modelserving`)
+### Intel® Inference Toolkit Dashboards (tag `modelserving`)
 
-Enterprise RAG relies on the **Enterprise AI Inference** component for LLM model serving. Models are served on vLLM or OpenVINO backends; Grafana provides dashboards for the backend in use. All AI Inference dashboards are tagged with `modelserving`, making them easy to find by filtering dashboards using that tag.
+Intel® Chatbot Toolkit relies on the **Intel® Inference Toolkit** component for LLM model serving. Models are served on vLLM or OpenVINO backends; Grafana provides dashboards for the backend in use. All AI Inference dashboards are tagged with `modelserving`, making them easy to find by filtering dashboards using that tag.
 
 ![EnterpriseAIInference / ModelServing / vLLM](../images/telemetry/dashboard_04_llm_inference.png)
 
@@ -107,6 +107,6 @@ For more on using this feature see [Grafana Logs Drilldown documentation](https:
 
 ## Platform Telemetry
 
-Grafana itself, Prometheus, Loki, and Tempo are deployed by the **platform layer** (`roles/observability/`). For login setup, data retention, and platform-level dashboards see the Enterprise AI Solutions observability documentation:
+Grafana itself, Prometheus, Loki, and Tempo are deployed by the **platform** (`roles/observability/`). For login setup, data retention, and platform dashboards see the Toolkit Manager observability documentation:
 
-- [Enterprise AI Solutions documentation](https://github.com/intel/enterprise-ai-solutions/blob/main/docs/README.md)
+- [Toolkit Manager documentation](https://github.com/intel/toolkit-manager/blob/main/docs/README.md)

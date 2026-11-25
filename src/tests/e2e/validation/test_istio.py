@@ -86,6 +86,15 @@ docsum_endpoints = [
 if cfg.get("pipeline_type") == "docsum":
     http_endpoints.extend(docsum_endpoints)
 
+translation_endpoints = [
+    "langdtct-svc.translation.svc.cluster.local:8001",
+    "llm-svc.translation.svc.cluster.local:9000",
+    "prompt-template-svc.translation.svc.cluster.local:7900",
+    "router-service.translation.svc.cluster.local:8080",
+]
+if cfg.get("pipeline_type") == "translation":
+    http_endpoints.extend(translation_endpoints)
+
 # Service names follow the Helm release names pinned in the core installer's
 # roles/observability/tasks/install.yaml (kube-prometheus-stack, loki, tempo,
 # opentelemetry-collector), all in the single `monitoring` namespace.
@@ -222,7 +231,7 @@ class TestIstioInMesh:
         yield
         istio_helper.delete_namespace()
 
-    @allure.testcase("IEASG-T142")
+    @allure.testcase("DSPTV-T153")
     def test_authorization_gets_connections_blocked(self, istio_helper):
         endpoints = {endpoint: connection_type for connection_type, endpoint_list in istio_test_data.items() for endpoint in endpoint_list}
         connections_not_blocked = check_if_connections_blocked(istio_helper, endpoints)
@@ -238,7 +247,7 @@ class TestIstioOutOfMesh:
         yield
         istio_helper.delete_namespace()
 
-    @allure.testcase("IEASG-T146")
+    @allure.testcase("DSPTV-T154")
     def test_authorization_gets_connections_blocked(self, istio_helper):
         endpoints = {endpoint: connection_type for connection_type, endpoint_list in istio_test_data.items() for endpoint in endpoint_list}
         connections_not_blocked = check_if_connections_blocked(istio_helper, endpoints)

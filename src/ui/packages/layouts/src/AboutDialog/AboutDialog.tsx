@@ -11,8 +11,7 @@ import { ExternalLinkIcon } from "@intel-enterprise-rag-ui/icons";
 import { useRef } from "react";
 
 const SUPPORT_URL = "https://supporttickets.intel.com/s/supportrequest";
-const GITHUB_ISSUES_URL =
-  "https://github.com/opea-project/Enterprise-RAG/issues";
+const GITHUB_ISSUES_URL = "https://github.com/intel/chatbot-toolkit/issues";
 
 interface AboutDialogProps {
   appName: string;
@@ -102,7 +101,7 @@ export const AboutDialog = ({
             <ExternalLinkIcon fontSize={10} />
           </a>
           . Select <b className="font-medium">Software</b> and{" "}
-          <b className="font-medium">Intel&reg; AI for Enterprise</b>.
+          <b className="font-medium">Intel&reg; Chatbot Toolkit</b>.
         </p>
       </div>
     </Dialog>

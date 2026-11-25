@@ -10,19 +10,6 @@ import pytest
 
 from tests.e2e.validation.constants import DATAPREP_UPLOAD_DIR
 from tests.e2e.helpers.guard_helper import GuardType, GuardQuestions as questions
-from tests.e2e.validation.buildcfg import cfg
-
-# Guard tests drive the chatqna pipeline: assert_blocked/assert_allowed call
-# call_chatqa, so they only make sense on a pipeline that exposes a chatqna
-# endpoint. Skip the whole module on pipeline types (e.g. docsum) that have no
-# chatqna to scan. Mirrors the guard-disabling fixture's gate in
-# tests/e2e/conftest.py.
-GUARD_PIPELINE_TYPES = ("chatqna", "audioqna")
-
-if cfg.get("pipeline_type") not in GUARD_PIPELINE_TYPES:
-    pytestmark = pytest.mark.skip(
-        reason=f"Guard tests require a chatqna pipeline; pipeline_type="
-               f"{cfg.get('pipeline_type')!r} has no chatqna to scan")
 
 
 @pytest.fixture(autouse=True)
@@ -32,7 +19,7 @@ def cleanup(guard_helper):
 
 
 @pytest.mark.smoke
-@allure.testcase("IEASG-T75")
+@allure.testcase("DSPTV-T141")
 def test_in_guard_ban_substrings(guard_helper):
     """
     Enable "ban_substring" input scanner and check if questions containing banned substrings are blocked or redacted.
@@ -79,7 +66,7 @@ def test_in_guard_ban_substrings(guard_helper):
     guard_helper.assert_blocked(questions.MALWARE_AND_VIRUS)
 
 
-@allure.testcase("IEASG-T244")
+@allure.testcase("DSPTV-T139")
 def test_in_guard_ban_substrings_when_string_injected_into_file(guard_helper, edp_helper):
     """
     Enable the chatqa input "ban_substrings" scanner with redact, ingest a file
@@ -106,7 +93,7 @@ def test_in_guard_ban_substrings_when_string_injected_into_file(guard_helper, ed
         "Answer should not contain information from the file because 'zerquilloo' word should be redacted"
 
 
-@allure.testcase("IEASG-T76")
+@allure.testcase("DSPTV-T142")
 def test_in_guard_ban_topics(guard_helper):
     """
     Enable "ban_topics " input scanner. Check if questions are rejected in the following scenarios:
@@ -148,7 +135,7 @@ def test_in_guard_ban_topics(guard_helper):
     assert questions_not_banned == [], "Some of the questions were not banned"
 
 
-@allure.testcase("IEASG-T77")
+@allure.testcase("DSPTV-T143")
 def test_in_guard_code(guard_helper, code_snippets):
     """
     Enable "code" input scanner with some languages that should be blocked.
@@ -174,7 +161,7 @@ def test_in_guard_code(guard_helper, code_snippets):
             code_snippets[language_key], reason="it is in language that is not marked as blocked")
 
 
-@allure.testcase("IEASG-T81")
+@allure.testcase("DSPTV-T144")
 def test_in_guard_invisible_text(guard_helper):
     """Check if question with invisible white character is blocked"""
     guard_helper.setup(GuardType.INPUT, "invisible_text", {"enabled": True})
@@ -185,15 +172,14 @@ def test_in_guard_invisible_text(guard_helper):
     guard_helper.assert_allowed(questions.NO_INVISIBLE_TEXT)
 
 
-@allure.testcase("IEASG-T83")
+@allure.testcase("DSPTV-T145")
 def test_in_guard_prompt_injection(guard_helper):
     """
     Check if prompt_injection guard can detect malicious input that can manipulate the AI into
     providing incorrect or harmful outputs.
     """
     guard_params = {
-       "enabled": True,
-       "use_onnx": True
+       "enabled": True
     }
     guard_helper.setup(GuardType.INPUT, "prompt_injection", guard_params)
     guard_helper.assert_blocked(questions.DAN)
@@ -209,7 +195,7 @@ def test_in_guard_prompt_injection(guard_helper):
     guard_helper.assert_blocked(questions.KEVIN)
 
 
-@allure.testcase("IEASG-T84")
+@allure.testcase("DSPTV-T146")
 def test_in_guard_regex(guard_helper):
     """Check if scanner detects the predefined regex expressions and blocks/allows questions accordingly"""
     guard_params = {
@@ -247,7 +233,7 @@ def test_in_guard_regex(guard_helper):
 
 
 @pytest.mark.smoke
-@allure.testcase("IEASG-T85")
+@allure.testcase("DSPTV-T147")
 def test_in_guard_secrets(guard_helper):
     """Check if scanner detects secrets (like token, keys)"""
     guard_params = {
@@ -265,7 +251,7 @@ def test_in_guard_secrets(guard_helper):
         guard_helper.assert_allowed(sentences, reason="it does not contain secrets")
 
 
-@allure.testcase("IEASG-T86")
+@allure.testcase("DSPTV-T148")
 def test_in_guard_sentiment(guard_helper):
     """Check if sentiment scanner can properly identify negative sentiment in the question asked by the user"""
     guard_params = {
@@ -290,7 +276,7 @@ def test_in_guard_sentiment(guard_helper):
         questions.NEUTRAL_SENTIMENT, reason="0.9 means very positive sentiment so neutral question should be blocked")
 
 
-@allure.testcase("IEASG-T87")
+@allure.testcase("DSPTV-T149")
 def test_in_guard_token_limit(guard_helper):
     """Check if user's input do not exceed specified token limit"""
     guard_params = {
@@ -305,7 +291,7 @@ def test_in_guard_token_limit(guard_helper):
         guard_helper.assert_blocked(sentence, reason="it exceeds token limit")
 
 
-@allure.testcase("IEASG-T88")
+@allure.testcase("DSPTV-T150")
 def test_in_guard_toxicity(guard_helper):
     """Check if question contains toxic, harmful, or offensive content"""
     guard_params = {
@@ -326,7 +312,7 @@ def test_in_guard_toxicity(guard_helper):
     guard_helper.assert_blocked(questions.INSULTING_MIXED)
 
 
-@allure.testcase("IEASG-T245")
+@allure.testcase("DSPTV-T140")
 def test_in_guard_mix(guard_helper, code_snippets):
     """
     Enable multiple input guards at the same time. One of the guards should block the question,
@@ -438,13 +424,14 @@ def disabled_test_out_guard_json_scanner(guard_helper):
 
 
 @allure.testcase("IEASG-T98")
-def disabled_test_out_guard_malicious_urls(guard_helper):
-    """Check if malicious_urls output guard blocks answers that contain malicious urls"""
+def test_out_guard_malicious_urls(guard_helper):
+    """Check if malicious_urls output guard blocks answers that contain malicious urls and allows benign ones"""
     guard_params = {
         "enabled": True
     }
     guard_helper.setup(GuardType.OUTPUT, "malicious_urls", guard_params)
     guard_helper.assert_blocked(questions.URLS_IN_RESPONSE)
+    guard_helper.assert_allowed(questions.BENIGN_URLS_IN_RESPONSE)
 
 
 @allure.testcase("IEASG-T99")

@@ -12,6 +12,12 @@ balloonsEnabled: {{ balloons_enabled | default(false) }}
 pipelineNamespace: {{ pipeline_namespace }}
 {# _deploy_overrides is only set when app_inference_models ran with an embedding role #}
 embeddingReplicas: {{ _deploy_overrides.embedding.replicas | default(1) | int }}
+{% if _edp_hpa_provider == 'keda' %}
+keda:
+  prometheus:
+    serverAddress: "{{ _edp_keda_prometheus_url }}"
+  operatorNamespace: {{ _edp_keda_operator_namespace }}
+{% endif %}
 {% if (minimal_configuration | default(false) | bool) or (edp_minimal_configuration | default(false) | bool) %}
 minimalConfiguration: true
 celery:
@@ -56,6 +62,7 @@ edpExternalUrl: "https://{{ s3_api_domain }}{{ s3_path_prefix }}"
 {% if hpa_enabled is defined %}
 hpa_enabled: {{ hpa_enabled }}
 {% endif %}
+hpaProvider: {{ _edp_hpa_provider }}
 {% if edp_rbac_enabled | default(false) | bool %}
 useBearerTokenAuth: true
 {% else %}
@@ -89,7 +96,7 @@ bucketNameRegexFilter: {{ lookup('env', 's3_bucket_name_regex_filter') or edp_s3
 presignedUrlCredentialsSystemFallback: {{ edp_presigned_url_credentials_system_fallback | bool | string | lower }}
 {% endif %}
 
-edpOidcConfigUrl: "http://keycloak-service.{{ keycloak_namespace | default('keycloak') }}.svc:8080{{ erag_keycloak_path_prefix | default('') }}/realms/{{ ui_keycloak_realm | default('EnterpriseRAG') }}/.well-known/openid-configuration"
+edpOidcConfigUrl: "http://keycloak-service.{{ keycloak_namespace | default('keycloak') }}.svc:8080{{ erag_keycloak_path_prefix }}/realms/{{ ui_keycloak_realm | default('EnterpriseRAG') }}/.well-known/openid-configuration"
 
 # Use external Redis Operator cluster in same namespace
 redisHost: "edp-redis"
@@ -132,18 +139,6 @@ backend:
       cacheExpiration: "{{ edp_rbac_cache_expiration | default('600') }}"
       staticConfig: {{ edp_rbac_static_config | default('["default"]') | to_json }}
 {% endif %}
-{% if edp_late_chunking_enabled is true %}
-lateChunking:
-  enabled: {{ edp_late_chunking_enabled }}
-  tag: "{{ tag }}"
-  repository: "{{ registry }}"
-  name: "enterprise-rag-late-chunking"
-  config:
-    chunk_size: "{{ edp_late_chunking_chunk_size | default('512') }}"
-    chunk_overlap: "{{ edp_late_chunking_chunk_overlap | default('0') }}"
-    embedding_service_endpoint: "http://embedding-svc.{{ pipeline_namespace }}.svc:6000/v1/embeddings"
-    model_name: "{{ edp_late_chunking_model_name }}"
-{% else %}
 textExtractor:
   tag: "{{ tag }}"
   repository: "{{ registry }}"
@@ -162,7 +157,6 @@ textSplitter:
 {% if edp_semantic_chunking_enabled is true %}
     use_semantic_chunking: "True"
 {% endif %}
-{% endif %}
 ingestion:
   tag: "{{ tag }}"
   repository: "{{ registry }}"
@@ -173,9 +167,6 @@ ingestion:
     embedding_model_name: *embedding_model_name
     vector_dims: {{ vector_databases_vector_dims }}
     vector_datatype: {{ vector_databases_vector_datatype }}
-{% if edp_late_chunking_enabled is true %}
-    use_late_chunking: "True"
-{% endif %}
 embedding:
   enabled: false
   remoteEmbeddingUri: "http://embedding-svc.{{ pipeline_namespace }}.svc:6000/v1/embeddings"
@@ -193,11 +184,13 @@ awsSqs:
 {% set _apisix_kc_ns = keycloak_namespace | default('keycloak') %}
 {% set _apisix_realm = (ui_keycloak_realm if (ui_keycloak_realm | default("") | length > 0) else erag_keycloak_realm | default("EnterpriseRAG")) %}
 {# erag_keycloak_path_prefix: Keycloak's http-relative-path in path mode, '' otherwise. #}
-{% set _apisix_kc_base = 'http://keycloak-service.' ~ _apisix_kc_ns ~ '.svc:8080' ~ (erag_keycloak_path_prefix | default('')) %}
+{% set _apisix_kc_base = 'http://keycloak-service.' ~ _apisix_kc_ns ~ '.svc:8080' ~ erag_keycloak_path_prefix %}
 apisix:
   enabled: {{ (apisix_enabled | default(false)) | bool | string | lower }}
   ingressClassName: apisix
   routeHost: "{{ (ui_domain_name if ui_domain_name is defined else '') }}"
+  # Sidecars: send to the Service, so the gateway's sidecar can pick the endpoint (mTLS).
+  resolveGranularity: "{{ 'service' if istio_enabled | default(false) | bool and istio_dataplane_mode | default('ambient') == 'sidecar' else 'endpoint' }}"
   auth:
     realm: "{{ _apisix_realm }}"
     client_id: "{{ apisix_oidc_client_id | default('EnterpriseRAG-oidc-backend') }}"
