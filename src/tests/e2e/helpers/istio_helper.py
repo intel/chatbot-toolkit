@@ -413,7 +413,8 @@ class LogWatcher(threading.Thread):
             return dict(first_read_ts = self.first_read_ts, last_read_ts = self.last_read_ts, exit_ts = self.exit_ts)
 
     def run(self):
-        ztunnel_namespace = "istio-system"
+        # istio-system on Kubernetes, ztunnel on OpenShift (OSSM 3): found by label.
+        ztunnel_namespace = kr8s.ALL
         ztunnel_label_selector = "app=ztunnel"
 
         # Fetch all ztunnel pods
@@ -689,7 +690,8 @@ class IstioHelper:
         while i < len(self.log_snapshot):
             log_line = self.log_snapshot[i]
             try:
-                logline_ts = datetime.datetime.fromisoformat(log_line.split(maxsplit=1)[0]).timestamp()
+                # fromisoformat takes the trailing 'Z' from Python 3.11 only.
+                logline_ts = datetime.datetime.fromisoformat(log_line.split(maxsplit=1)[0].replace("Z", "+00:00")).timestamp()
                 if self.first_log_ts is None:
                     self.first_log_ts = logline_ts
                     logger.debug("[monitoring] Observed log timestamps start at %s", self.first_log_ts)
