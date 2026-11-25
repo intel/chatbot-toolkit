@@ -46,7 +46,7 @@ A restore replaces any object in the profile's namespaces without the `toolkit-m
 too, not only the ones this layer created. Arguments after `--` go to `ansible-playbook`, e.g.
 `-- -e backup_force=true` bypasses the checkout-version check (see below) the same way `--force`
 bypasses it for install. The helper runs the installer's `playbooks/backup.yaml` with the
-environment's configuration, inventory and kubeconfig, as `es_auto_installer.sh` would.
+environment's configuration, inventory and kubeconfig, as `toolkit_manager.sh` would.
 
 This layer's own `deployment/backup.yaml` playbook still exists, for the 3.0.0 workflow; new
 environments should use the commands above.
@@ -153,7 +153,7 @@ from its own cache of the pre-restore realm.
 The platform layer keeps its own realm, `platform`, in the same Keycloak database, so a restore
 puts that realm back as it was when the backup was taken too: restoring a backup taken before the
 platform realm was imported removes that realm. After such a restore, run
-`./es_auto_installer.sh install platform --env <name>`. If it fails with a 404 on
+`./toolkit_manager.sh install platform --env <name>`. If it fails with a 404 on
 `realms/platform`, delete `KeycloakRealmImport platform-realm`, Secret `keycloak-platform-realm`
 and ConfigMap `platform-realm-imported` (namespace `keycloak`), then run it again.
 
@@ -184,10 +184,10 @@ find, so the check refuses too and names the fix:
 ```bash
 ./run_backup.sh backup erag --env <name>
 
-./es_auto_installer.sh install erag --env <name>
+./toolkit_manager.sh install erag --env <name>
 #   refuses without a fresh backup of the installed release, and says so
 
-./es_auto_installer.sh install erag --env <name> --force
+./toolkit_manager.sh install erag --env <name> --force
 #   runs anyway; the deployment record and the upgrade report say forced
 ```
 
