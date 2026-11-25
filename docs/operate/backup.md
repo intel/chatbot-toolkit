@@ -146,7 +146,10 @@ Two consequences follow from the volume being **shared**:
 
 A restore takes the shared database down and brings it back, so anything that authenticates against
 it — every solution sharing that Keycloak instance, not only this one — fails to sign in for the few
-minutes the replay takes. After the replay, an account that existed at backup time is present again; one
+minutes the replay takes. The cluster's `Cluster` resource belongs to the platform layer, so this
+layer's backup does not carry it: a `pre_backup` hook saves its definition in the Secret
+`erag-postgresql-cluster`, and the first `post_restore` hook recreates the cluster on the restored
+volume and waits until it is healthy. After the replay, an account that existed at backup time is present again; one
 created after the backup is not. A `post_restore` hook rolls the identity service so it stops answering
 from its own cache of the pre-restore realm.
 

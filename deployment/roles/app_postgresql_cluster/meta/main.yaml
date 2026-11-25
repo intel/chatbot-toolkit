@@ -1,0 +1,14 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+galaxy_info:
+  author: Intel Corporation
+  role_name: app_postgresql_cluster
+  description: >-
+    Keeps the definition of the platform's shared PostgreSQL cluster in this
+    layer's backup and recreates the cluster after a restore. Helper role for
+    deployment/backup_profile.yaml's hooks: include it with tasks_from
+    (capture | recreate), not as a component.
+  license: Apache-2.0
+  min_ansible_version: "2.14"
+dependencies: []

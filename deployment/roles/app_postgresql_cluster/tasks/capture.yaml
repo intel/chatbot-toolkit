@@ -1,0 +1,53 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# pre_backup hook. The shared PostgreSQL Cluster resource carries the platform
+# layer's label, so this layer's backup leaves it out, yet a restore has to delete
+# it to replay its volume. Its definition goes into a Secret this layer's backup
+# does capture; tasks/recreate.yaml brings the cluster back from it.
+# backup_hook_args: namespace, name (the Cluster), secret.
+- name: "app_postgresql_cluster | Read the shared PostgreSQL cluster"
+  kubernetes.core.k8s_info:
+    api_version: postgresql.cnpg.io/v1
+    kind: Cluster
+    namespace: "{{ backup_hook_args.namespace }}"
+    name: "{{ backup_hook_args.name }}"
+  register: _pgc_live
+
+- name: "app_postgresql_cluster | Require the cluster"
+  ansible.builtin.assert:
+    that: _pgc_live.resources | length == 1
+    fail_msg: >-
+      No PostgreSQL Cluster {{ backup_hook_args.name }} in namespace {{ backup_hook_args.namespace }}:
+      a backup without it could not bring the identity realm back. Install the platform layer first.
+
+- name: "app_postgresql_cluster | Save its definition for a restore"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      type: Opaque
+      metadata:
+        name: "{{ backup_hook_args.secret }}"
+        namespace: "{{ backup_hook_args.namespace }}"
+        labels:
+          toolkit-manager.intel.com/layer: erag
+      data:
+        cluster.json: "{{ _pgc_definition | to_json | b64encode }}"
+  vars:
+    _pgc_object: "{{ _pgc_live.resources[0] }}"
+    # Only what the platform declared: status, uid and the last-applied copy belong
+    # to the running object, not to its definition.
+    _pgc_definition:
+      apiVersion: postgresql.cnpg.io/v1
+      kind: Cluster
+      metadata:
+        name: "{{ _pgc_object.metadata.name }}"
+        namespace: "{{ _pgc_object.metadata.namespace }}"
+        labels: "{{ _pgc_object.metadata.labels | default({}) }}"
+        annotations: >-
+          {{ _pgc_object.metadata.annotations | default({})
+             | dict2items | rejectattr('key', 'equalto', 'kubectl.kubernetes.io/last-applied-configuration')
+             | items2dict }}
+      spec: "{{ _pgc_object.spec }}"

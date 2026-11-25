@@ -123,7 +123,9 @@ cleanup:
   # The database is not a Helm release — the platform's PostgreSQL operator owns it
   # through this custom resource, and while the resource exists the operator
   # recreates the volume the restore is about to replay. Deleting the resource takes
-  # its pod and its volume with it, and the restore brings both back.
+  # its pod and its volume with it. The restore brings the volume back; the resource
+  # carries the platform layer's label, so this backup does not hold it, and the
+  # first post_restore hook recreates it from the definition pre_backup saved.
   postgresql:
     - kind: Cluster
       api_version: postgresql.cnpg.io/v1
@@ -154,12 +156,30 @@ cleanup:
 # -----------------------------------------------------------------------------
 # Hooks
 # -----------------------------------------------------------------------------
-# None. Every store in this profile is captured as the volume it sits on, and a
-# snapshot of a single volume is a crash-consistent copy the database recovers from
-# by replaying its own write-ahead log when it starts.
-pre_backup: []
+# Every store in this profile is captured as the volume it sits on, and a snapshot
+# of a single volume is a crash-consistent copy the database recovers from by
+# replaying its own write-ahead log when it starts. No store needs a dump.
+#
+# The one hook pair keeps the shared database's Cluster resource, which the cleanup
+# above deletes but this layer's backup does not capture (see cleanup).
+pre_backup:
+  - kind: role
+    name: "keep the shared database's definition for a restore"
+    role: app_postgresql_cluster
+    tasks_from: capture.yaml
+    args: &postgresql_cluster
+      namespace: postgresql
+      name: "{{ postgresql_cluster_name | default('postgresql') }}"
+      secret: erag-postgresql-cluster
 
 post_restore:
+  # First: every hook after it needs the database.
+  - kind: role
+    name: "bring the shared database back on its restored volume"
+    role: app_postgresql_cluster
+    tasks_from: recreate.yaml
+    args: *postgresql_cluster
+
   # The identity service holds the realm it serves in a local cache. The replay
   # changes the database underneath it without telling it, so it would keep
   # answering from accounts that no longer exist. Restarting it is what makes it

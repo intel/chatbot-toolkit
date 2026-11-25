@@ -1,0 +1,7 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# How long tasks/recreate.yaml waits for the cluster to report healthy after a
+# restore: the instance replays its write-ahead log before it accepts connections.
+postgresql_cluster_wait_retries: 60
+postgresql_cluster_wait_delay: 10
