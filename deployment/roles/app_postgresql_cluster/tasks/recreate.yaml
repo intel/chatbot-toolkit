@@ -33,7 +33,8 @@
         fail_msg: >-
           The restore removed PostgreSQL Cluster {{ backup_hook_args.name }} and this backup holds
           no saved definition of it (Secret {{ backup_hook_args.secret }}). Run
-          ./toolkit_manager.sh install platform --env <name> to recreate it.
+          ./toolkit_manager.sh install platform --env <name> to recreate it, and restart the identity
+          service so it reads the restored realm: kubectl -n keycloak rollout restart statefulset keycloak.
 
     - name: "app_postgresql_cluster | Create the cluster"
       kubernetes.core.k8s:
