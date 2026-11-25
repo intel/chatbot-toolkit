@@ -54,8 +54,17 @@ _PLAY = """
         tasks_from: report.yaml
       vars:
         data_consistency_report_kind: upgrade
+    - ansible.builtin.set_fact:
+        _upgrade_report_path: "{{ _data_consistency_report_path }}"
+    - ansible.builtin.include_role:
+        name: app_data_consistency
+        tasks_from: report.yaml
+      vars:
+        data_consistency_report_kind: snapshot
     - ansible.builtin.copy:
-        content: "{{ {'result': _upgrade_consistency_result, 'report': _data_consistency_report_path} | to_json }}"
+        content: >-
+          {{ {'result': _upgrade_consistency_result, 'report': _upgrade_report_path,
+              'data_report': _data_consistency_report_path} | to_json }}
         dest: "{{ env_dir }}/out.json"
         mode: "0644"
 """
@@ -82,11 +91,12 @@ def _run(tmp_path, pre, post_ok, failed_store="", failed_reason=""):
     )
     assert proc.returncode == 0, proc.stdout + proc.stderr
     out = json.loads((tmp_path / "out.json").read_text())
-    return out["result"], yaml.safe_load(Path(out["report"]).read_text())
+    data_report = yaml.safe_load(Path(out["data_report"]).read_text())
+    return out["result"], yaml.safe_load(Path(out["report"]).read_text()), data_report
 
 
 def test_each_store_gets_its_own_verdict(tmp_path):
-    result, report = _run(
+    result, report, data_report = _run(
         tmp_path,
         pre={"vdb": _ok(5), "chat_history": _ok(4), "edp": _ok(3), "keycloak": _ok(0)},
         post_ok={"vdb": _ok(6), "chat_history": _ok(2), "keycloak": _ok(0)},
@@ -109,14 +119,22 @@ def test_each_store_gets_its_own_verdict(tmp_path):
     assert report["post_snapshot"]["edp"]["reason"] == _REASON
     assert report["consistency"]["stores"]["edp"]["delta"] is None
     assert report["consistency"]["violations"] == result["violations"]
+    assert data_report["stores"]["edp"]["count"] is None
+    assert data_report["stores"]["edp"]["reason"] == _REASON
 
 
 def test_skipped_store_is_not_a_violation(tmp_path):
-    result, report = _run(
+    result, report, data_report = _run(
         tmp_path,
-        pre={"vdb": {"count": 0, "status": "skipped", "method": "none"}, "edp": _ok(3)},
+        pre={"vdb": {"count": 0, "status": "skipped", "method": "none"}, "edp": _ok(3),
+             "keycloak": {"count": 0, "status": "skipped", "method": "none"}},
         post_ok={"vdb": _ok(7), "edp": _ok(3)},
+        failed_store="keycloak",
+        failed_reason="no answer",
     )
-    assert {k: v["verdict"] for k, v in result["stores"].items()} == {"vdb": "skipped", "edp": "pass"}
+    assert {k: v["verdict"] for k, v in result["stores"].items()} == {
+        "vdb": "skipped", "edp": "pass", "keycloak": "skipped"}
+    # A count that never ran is not shown as 0.
+    assert result["stores"]["keycloak"]["post"] is None
     assert result["verdict"] == "pass"
     assert report["consistency"]["violations"] == []

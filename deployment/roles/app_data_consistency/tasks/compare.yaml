@@ -17,8 +17,8 @@
     _dc_stores: >-
       {{ _dc_stores | combine({item: {
            'pre': pre | int,
-           'post': (none if verdict == 'lost' else post | int),
-           'delta': (none if verdict == 'lost' else (post | int) - (pre | int)),
+           'post': (none if post_status == 'failed' else post | int),
+           'delta': (none if post_status == 'failed' else (post | int) - (pre | int)),
            'verdict': verdict}}) }}
     _dc_violations: >-
       {{ _dc_violations
