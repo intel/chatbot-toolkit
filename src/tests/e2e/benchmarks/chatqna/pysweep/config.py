@@ -31,6 +31,8 @@ from .client_args import (
     ClientArg,
 )
 from .properties.max_tokens import MaxNewTokens
+from .properties.reranker_top_n import RerankerTopN
+from .properties.retriever_k import RetrieverK
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +74,10 @@ ClientCombination = tuple[ClientSetting, ...]
 
 
 MaxTokensValue = PositiveInt | list[PositiveInt]
+# k=0 retrieves nothing; PositiveInt is also the app's own type.
+RetrieverKValue = PositiveInt | list[PositiveInt]
+# top_n=0 leaves the prompt without context; PositiveInt is also the app's own type.
+RerankerTopNValue = PositiveInt | list[PositiveInt]
 
 # Tighter than benchmark.py's argparse, which accepts -c 0, -e -1 and -w -1.
 CountValue = PositiveInt | list[PositiveInt]
@@ -107,6 +113,14 @@ class LlmsConfig(_StrictModel):
     max_new_tokens: Annotated[MaxTokensValue | None, PropertyBinding(MaxNewTokens)] = None
 
 
+class RetrieverConfig(_StrictModel):
+    k: Annotated[RetrieverKValue | None, PropertyBinding(RetrieverK)] = None
+
+
+class RerankerConfig(_StrictModel):
+    top_n: Annotated[RerankerTopNValue | None, PropertyBinding(RerankerTopN)] = None
+
+
 class ClientConfig(_StrictModel):
     """Load-generator knobs mirroring ``benchmark.py``; ``-m`` is derived, not declared."""
 
@@ -134,6 +148,8 @@ class RunConfig(_StrictModel):
 class SweepConfig(_StrictModel):
     pre_bench: PreBenchConfig | None = None
     llms: LlmsConfig | None = None
+    retriever: RetrieverConfig | None = None
+    reranker: RerankerConfig | None = None
     client: ClientConfig
 
     def iter_settings(self) -> Iterator[tuple[str, type[Property], list[Any]]]:

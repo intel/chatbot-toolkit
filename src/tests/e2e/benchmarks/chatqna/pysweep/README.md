@@ -23,7 +23,7 @@ environment gotchas.
 | `results.py` | Run records, `results.json` and the summary CSV. |
 | `client_args.py` | Adapter mirroring `benchmark.py`'s CLI options as sweep knobs. Not properties — no plane, nothing to apply or read back; see below. |
 | `pre_bench/` | Done once before the first run: `run_pre_bench()` in `__init__.py`, and `seed.py`, which loads the vector DB through EDP up to `pre_bench.edp.vector_db.num_vectors`. |
-| `properties/` | Deployment knobs: `base.py` (the `Property` interface and `Plane` enum) and one module per knob, e.g. `max_tokens.py` (`MaxNewTokens`, LLM `max_new_tokens`, Runtime-API plane). |
+| `properties/` | Deployment knobs: `base.py` (the `Property` interface and `Plane` enum) and one module per knob: `max_tokens.py` (`MaxNewTokens`, LLM `max_new_tokens`), `retriever_k.py` (`RetrieverK`, the retriever's `k`) and `reranker_top_n.py` (`RerankerTopN`, how many reranked documents reach the prompt), all on the Runtime-API plane. |
 | `cluster/auth.py` | `KubernetesAccess` (side-effect-free RBAC preflight via `SelfSubjectAccessReview`), `load_build_config()` (the installed environment's config), `keycloak_helper()` (the maintained `KeycloakHelper`, for user tokens) and `client_token_lifespan()` (a sweep-long access-token lifespan for the UI client, restored afterwards). |
 | `cluster/fingerprint.py` | `system_fingerprint` client. `HelperFingerprintClient` adapts the suite's `FingerprintApiHelper`; `PortForwardTransport` / `IngressTransport` cover deployments the helper can't reach. |
 | `cluster/served_model.py` | `ServedModel`: reads the model the pipeline is **observed** to generate with, out of the running `llm-usvc` pods. Not a knob — the runner uses it to pick the benchmark's tokenizer. |
@@ -60,6 +60,12 @@ A sweep is declared in YAML and validated by `config.load_config()`:
 ```yaml
 llms:                                      # DEPLOYMENT knobs: optional, outer loop
   max_new_tokens: [128, 256, 512]          # a list -> one product dimension
+
+retriever:
+  k: 10                                    # documents fetched per query
+
+reranker:
+  top_n: 7                                 # of those, how many reach the prompt
 
 client:                                    # CLIENT knobs: required, inner loop
   question_file: ../questions-short.csv    # relative to pysweep_bench.py, not the CWD

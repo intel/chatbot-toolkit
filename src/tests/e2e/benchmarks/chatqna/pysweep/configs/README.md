@@ -35,6 +35,8 @@ combination.
 | Key | Meaning |
 |---|---|
 | `llms.max_new_tokens` | Tokens the LLM may generate per request. |
+| `retriever.k` | Documents the retriever fetches per query. |
+| `reranker.top_n` | Of those, how many survive reranking and reach the prompt (the LLM's input length). Values above the live `k` all give the same prompt. |
 
 **Client knobs** are `benchmark.py`'s options. All are required, so no run
 silently falls back to the tool's defaults. They are the inner loop: each value

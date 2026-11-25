@@ -17,6 +17,8 @@ from tests.e2e.benchmarks.chatqna.pysweep.config import (
     load_run_config,
 )
 from tests.e2e.benchmarks.chatqna.pysweep.properties.max_tokens import MaxNewTokens
+from tests.e2e.benchmarks.chatqna.pysweep.properties.reranker_top_n import RerankerTopN
+from tests.e2e.benchmarks.chatqna.pysweep.properties.retriever_k import RetrieverK
 
 CLIENT = {
     "question_file": "questions-short.csv",
@@ -183,6 +185,132 @@ def test_max_new_tokens_is_runtime_api_plane():
 
 
 @allure.feature("pysweep")
+def test_retriever_k_binds_to_retriever_k_property():
+    cfg = load_config(_sweep(retriever={"k": 5}))
+    (path, property_cls, values) = next(iter(cfg.iter_settings()))
+    assert path == "retriever.k"
+    assert property_cls is RetrieverK
+    assert values == [5]
+
+
+@allure.feature("pysweep")
+def test_retriever_k_list_expands_to_product():
+    cfg = load_config(_sweep(retriever={"k": [1, 5, 10]}))
+    combos = cfg.deployment_combinations()
+    assert [c[0].value for c in combos] == [1, 5, 10]
+    assert all(c[0].property_cls is RetrieverK for c in combos)
+
+
+@allure.feature("pysweep")
+def test_retriever_section_is_optional():
+    assert list(load_config(_sweep()).iter_settings()) == []
+    assert list(load_config(_sweep(retriever={})).iter_settings()) == []
+
+
+@allure.feature("pysweep")
+@pytest.mark.parametrize("bad", [0, -1])
+def test_non_positive_retriever_k_is_rejected(bad):
+    with pytest.raises(ConfigError):
+        load_config(_sweep(retriever={"k": bad}))
+
+
+@allure.feature("pysweep")
+def test_unknown_retriever_key_is_rejected():
+    with pytest.raises(ConfigError):
+        load_config(_sweep(retriever={"kk": 5}))
+
+
+@allure.feature("pysweep")
+def test_retriever_k_is_runtime_api_plane():
+    assert RetrieverK.plane == Plane.RUNTIME_API
+
+
+@allure.feature("pysweep")
+def test_retriever_k_appears_in_knob_paths():
+    cfg = load_config(_sweep(retriever={"k": [1, 5]}))
+    assert "retriever.k" in cfg.knob_paths()
+    assert "retriever.k" in cfg.varying_paths()
+
+
+@allure.feature("pysweep")
+def test_reranker_top_n_binds_to_reranker_top_n_property():
+    cfg = load_config(_sweep(reranker={"top_n": 3}))
+    (path, property_cls, values) = next(iter(cfg.iter_settings()))
+    assert path == "reranker.top_n"
+    assert property_cls is RerankerTopN
+    assert values == [3]
+
+
+@allure.feature("pysweep")
+def test_reranker_top_n_list_expands_to_product():
+    cfg = load_config(_sweep(reranker={"top_n": [2, 7, 15]}))
+    combos = cfg.deployment_combinations()
+    assert [c[0].value for c in combos] == [2, 7, 15]
+    assert all(c[0].property_cls is RerankerTopN for c in combos)
+
+
+@allure.feature("pysweep")
+def test_reranker_section_is_optional():
+    assert list(load_config(_sweep()).iter_settings()) == []
+    assert list(load_config(_sweep(reranker={})).iter_settings()) == []
+
+
+@allure.feature("pysweep")
+@pytest.mark.parametrize("bad", [0, -1])
+def test_non_positive_reranker_top_n_is_rejected(bad):
+    with pytest.raises(ConfigError):
+        load_config(_sweep(reranker={"top_n": bad}))
+
+
+@allure.feature("pysweep")
+def test_unknown_reranker_key_is_rejected():
+    with pytest.raises(ConfigError):
+        load_config(_sweep(reranker={"topn": 3}))
+
+
+@allure.feature("pysweep")
+def test_reranker_top_n_is_not_accepted_under_retriever():
+    """Each section rejects the other component's knob."""
+    with pytest.raises(ConfigError):
+        load_config(_sweep(retriever={"top_n": 3}))
+    with pytest.raises(ConfigError):
+        load_config(_sweep(reranker={"k": 5}))
+
+
+@allure.feature("pysweep")
+def test_reranker_top_n_is_runtime_api_plane():
+    assert RerankerTopN.plane == Plane.RUNTIME_API
+
+
+@allure.feature("pysweep")
+def test_reranker_top_n_and_retriever_k_sweep_together():
+    """Two runtime-API knobs are ordered by dotted path."""
+    cfg = load_config(_sweep(reranker={"top_n": [2, 7]}, retriever={"k": [4, 10]}))
+    combos = cfg.deployment_combinations()
+
+    assert [tuple(s.path for s in c) for c in combos] == [
+        ("reranker.top_n", "retriever.k")
+    ] * 4
+    assert [tuple(s.value for s in c) for c in combos] == [
+        (2, 4), (2, 10), (7, 4), (7, 10),
+    ]
+
+
+@allure.feature("pysweep")
+def test_reranker_top_n_appears_in_knob_paths():
+    cfg = load_config(_sweep(reranker={"top_n": [2, 7]}))
+    assert "reranker.top_n" in cfg.knob_paths()
+    assert "reranker.top_n" in cfg.varying_paths()
+
+
+@allure.feature("pysweep")
+def test_constant_reranker_top_n_is_a_column_but_not_a_dimension():
+    cfg = load_config(_sweep(reranker={"top_n": 3}))
+    assert "reranker.top_n" in cfg.knob_paths()
+    assert "reranker.top_n" not in cfg.varying_paths()
+
+
+@allure.feature("pysweep")
 @pytest.mark.parametrize("missing", sorted(CLIENT))
 def test_every_scenario_client_knob_is_required(missing):
     section = {k: v for k, v in CLIENT.items() if k != missing}
@@ -309,6 +437,7 @@ def test_varying_paths_reports_only_multi_valued_knobs():
         {
             "client": {**CLIENT, "concurrency": [1, 16]},
             "llms": {"max_new_tokens": [128, 256]},
+            "retriever": {"k": 5},
         }
     )
     assert cfg.varying_paths() == {"client.concurrency", "llms.max_new_tokens"}
