@@ -49,6 +49,7 @@ jobs:
           - llm_guard_output_guardrail_unit_tests
           - llms_unit_tests
           - prompt_template_unit_tests
+          - pysweep_unit_tests
           - reranks_unit_tests
           - retrievers_unit_tests
           - system_fingerprint_unit_tests
