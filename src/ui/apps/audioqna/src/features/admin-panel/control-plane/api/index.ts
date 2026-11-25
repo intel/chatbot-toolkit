@@ -1,13 +1,13 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { keycloakService } from "@intel-enterprise-rag-ui/auth";
+import { keycloakService } from "@intel-chatbot-toolkit-ui/auth";
 import {
   API_ENDPOINTS,
   CONTROL_PLANE_PARAMS_KEYS,
   createControlPlaneApi,
   ERROR_MESSAGES,
-} from "@intel-enterprise-rag-ui/control-plane";
+} from "@intel-chatbot-toolkit-ui/control-plane";
 
 import {
   resetAudioQnAGraph,

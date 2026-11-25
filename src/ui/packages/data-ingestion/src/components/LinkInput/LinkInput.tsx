@@ -7,9 +7,9 @@ import {
   Button,
   IconButton,
   TextInput,
-} from "@intel-enterprise-rag-ui/components";
-import { getValidationErrorMessage } from "@intel-enterprise-rag-ui/input-validation";
-import { sanitizeString } from "@intel-enterprise-rag-ui/utils";
+} from "@intel-chatbot-toolkit-ui/components";
+import { getValidationErrorMessage } from "@intel-chatbot-toolkit-ui/input-validation";
+import { sanitizeString } from "@intel-chatbot-toolkit-ui/utils";
 import { ChangeEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import { validateLinkInput } from "@/validators/linkInput";

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [project]
-name = "Intel-Enterprise-RAG-Retriever-NER-OVMS"
+name = "Intel-Chatbot-Toolkit-Retriever-NER-OVMS"
 version = "3.0.0"
 requires-python = ">=3.11,<3.12"
 

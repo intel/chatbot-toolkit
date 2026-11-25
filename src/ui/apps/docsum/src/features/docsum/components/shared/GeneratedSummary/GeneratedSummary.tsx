@@ -6,8 +6,8 @@ import "./GeneratedSummary.css";
 import {
   CopyButton,
   LoadingFallback,
-} from "@intel-enterprise-rag-ui/components";
-import { Markdown } from "@intel-enterprise-rag-ui/markdown";
+} from "@intel-chatbot-toolkit-ui/components";
+import { Markdown } from "@intel-chatbot-toolkit-ui/markdown";
 import { useState } from "react";
 
 import ExportActionDialog from "@/features/docsum/components/shared/ExportActionDialog/ExportActionDialog";

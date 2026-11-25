@@ -3,7 +3,7 @@
 
 import "./Button.css";
 
-import { IconName, icons } from "@intel-enterprise-rag-ui/icons";
+import { IconName, icons } from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 import { forwardRef } from "react";
 import {

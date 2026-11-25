@@ -4,7 +4,7 @@
 import {
   containsRequiredValues,
   noEmpty,
-} from "@intel-enterprise-rag-ui/input-validation";
+} from "@intel-chatbot-toolkit-ui/input-validation";
 import { z } from "zod";
 
 import { PromptTemplateArgs } from "@/configs/services/promptTemplate";

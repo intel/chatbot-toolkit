@@ -3,8 +3,8 @@
 
 import "./UploadDataDialogFooter.css";
 
-import { Button } from "@intel-enterprise-rag-ui/components";
-import { IconName } from "@intel-enterprise-rag-ui/icons";
+import { Button } from "@intel-chatbot-toolkit-ui/components";
+import { IconName } from "@intel-chatbot-toolkit-ui/icons";
 
 import UploadErrorsPopover from "@/components/UploadErrorsPopover/UploadErrorsPopover";
 import { UploadErrors } from "@/types";

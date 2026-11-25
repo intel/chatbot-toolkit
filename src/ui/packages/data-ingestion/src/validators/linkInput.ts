@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { containsNullCharacters } from "@intel-enterprise-rag-ui/input-validation";
+import { containsNullCharacters } from "@intel-chatbot-toolkit-ui/input-validation";
 import { z } from "zod";
 
 import { LINK_ERROR_MESSAGES } from "@/utils/constants";

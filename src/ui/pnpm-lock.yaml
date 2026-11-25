@@ -155,103 +155,103 @@ importers:
 
   apps/audioqna:
     dependencies:
-      '@intel-enterprise-rag-ui/auth':
+      '@intel-chatbot-toolkit-ui/auth':
         specifier: workspace:^
         version: link:../../packages/auth
-      '@intel-enterprise-rag-ui/chat':
+      '@intel-chatbot-toolkit-ui/chat':
         specifier: workspace:^
         version: link:../../packages/chat
-      '@intel-enterprise-rag-ui/components':
+      '@intel-chatbot-toolkit-ui/components':
         specifier: workspace:^
         version: link:../../packages/components
-      '@intel-enterprise-rag-ui/control-plane':
+      '@intel-chatbot-toolkit-ui/control-plane':
         specifier: workspace:^
         version: link:../../packages/control-plane
-      '@intel-enterprise-rag-ui/data-ingestion':
+      '@intel-chatbot-toolkit-ui/data-ingestion':
         specifier: workspace:^
         version: link:../../packages/data-ingestion
-      '@intel-enterprise-rag-ui/icons':
+      '@intel-chatbot-toolkit-ui/icons':
         specifier: workspace:^
         version: link:../../packages/icons
-      '@intel-enterprise-rag-ui/input-validation':
+      '@intel-chatbot-toolkit-ui/input-validation':
         specifier: workspace:^
         version: link:../../packages/input-validation
-      '@intel-enterprise-rag-ui/layouts':
+      '@intel-chatbot-toolkit-ui/layouts':
         specifier: workspace:^
         version: link:../../packages/layouts
-      '@intel-enterprise-rag-ui/markdown':
+      '@intel-chatbot-toolkit-ui/markdown':
         specifier: workspace:^
         version: link:../../packages/markdown
-      '@intel-enterprise-rag-ui/tailwind-theme':
+      '@intel-chatbot-toolkit-ui/tailwind-theme':
         specifier: workspace:^
         version: link:../../packages/tailwind-theme
-      '@intel-enterprise-rag-ui/utils':
+      '@intel-chatbot-toolkit-ui/utils':
         specifier: workspace:^
         version: link:../../packages/utils
 
   apps/chatqna:
     dependencies:
-      '@intel-enterprise-rag-ui/auth':
+      '@intel-chatbot-toolkit-ui/auth':
         specifier: workspace:^
         version: link:../../packages/auth
-      '@intel-enterprise-rag-ui/chat':
+      '@intel-chatbot-toolkit-ui/chat':
         specifier: workspace:^
         version: link:../../packages/chat
-      '@intel-enterprise-rag-ui/components':
+      '@intel-chatbot-toolkit-ui/components':
         specifier: workspace:^
         version: link:../../packages/components
-      '@intel-enterprise-rag-ui/control-plane':
+      '@intel-chatbot-toolkit-ui/control-plane':
         specifier: workspace:^
         version: link:../../packages/control-plane
-      '@intel-enterprise-rag-ui/data-ingestion':
+      '@intel-chatbot-toolkit-ui/data-ingestion':
         specifier: workspace:^
         version: link:../../packages/data-ingestion
-      '@intel-enterprise-rag-ui/icons':
+      '@intel-chatbot-toolkit-ui/icons':
         specifier: workspace:^
         version: link:../../packages/icons
-      '@intel-enterprise-rag-ui/input-validation':
+      '@intel-chatbot-toolkit-ui/input-validation':
         specifier: workspace:^
         version: link:../../packages/input-validation
-      '@intel-enterprise-rag-ui/layouts':
+      '@intel-chatbot-toolkit-ui/layouts':
         specifier: workspace:^
         version: link:../../packages/layouts
-      '@intel-enterprise-rag-ui/markdown':
+      '@intel-chatbot-toolkit-ui/markdown':
         specifier: workspace:^
         version: link:../../packages/markdown
-      '@intel-enterprise-rag-ui/tailwind-theme':
+      '@intel-chatbot-toolkit-ui/tailwind-theme':
         specifier: workspace:^
         version: link:../../packages/tailwind-theme
-      '@intel-enterprise-rag-ui/utils':
+      '@intel-chatbot-toolkit-ui/utils':
         specifier: workspace:^
         version: link:../../packages/utils
 
   apps/docsum:
     dependencies:
-      '@intel-enterprise-rag-ui/auth':
+      '@intel-chatbot-toolkit-ui/auth':
         specifier: workspace:^
         version: link:../../packages/auth
-      '@intel-enterprise-rag-ui/components':
+      '@intel-chatbot-toolkit-ui/components':
         specifier: workspace:^
         version: link:../../packages/components
-      '@intel-enterprise-rag-ui/control-plane':
+      '@intel-chatbot-toolkit-ui/control-plane':
         specifier: workspace:^
         version: link:../../packages/control-plane
-      '@intel-enterprise-rag-ui/icons':
+      '@intel-chatbot-toolkit-ui/icons':
         specifier: workspace:^
         version: link:../../packages/icons
-      '@intel-enterprise-rag-ui/input-validation':
+      '@intel-chatbot-toolkit-ui/input-validation':
         specifier: workspace:^
         version: link:../../packages/input-validation
-      '@intel-enterprise-rag-ui/layouts':
+      '@intel-chatbot-toolkit-ui/layouts':
         specifier: workspace:^
         version: link:../../packages/layouts
-      '@intel-enterprise-rag-ui/markdown':
+      '@intel-chatbot-toolkit-ui/markdown':
         specifier: workspace:^
         version: link:../../packages/markdown
-      '@intel-enterprise-rag-ui/tailwind-theme':
+      '@intel-chatbot-toolkit-ui/tailwind-theme':
         specifier: workspace:^
         version: link:../../packages/tailwind-theme
-      '@intel-enterprise-rag-ui/utils':
+      '@intel-chatbot-toolkit-ui/utils':
         specifier: workspace:^
         version: link:../../packages/utils
       docx:
@@ -260,7 +260,7 @@ importers:
 
   packages/auth:
     dependencies:
-      '@intel-enterprise-rag-ui/components':
+      '@intel-chatbot-toolkit-ui/components':
         specifier: workspace:^
         version: link:../components
       keycloak-js:
@@ -278,25 +278,25 @@ importers:
 
   packages/chat:
     dependencies:
-      '@intel-enterprise-rag-ui/auth':
+      '@intel-chatbot-toolkit-ui/auth':
         specifier: workspace:^
         version: link:../auth
-      '@intel-enterprise-rag-ui/components':
+      '@intel-chatbot-toolkit-ui/components':
         specifier: workspace:^
         version: link:../components
-      '@intel-enterprise-rag-ui/icons':
+      '@intel-chatbot-toolkit-ui/icons':
         specifier: workspace:^
         version: link:../icons
-      '@intel-enterprise-rag-ui/layouts':
+      '@intel-chatbot-toolkit-ui/layouts':
         specifier: workspace:^
         version: link:../layouts
-      '@intel-enterprise-rag-ui/markdown':
+      '@intel-chatbot-toolkit-ui/markdown':
         specifier: workspace:^
         version: link:../markdown
-      '@intel-enterprise-rag-ui/tailwind-theme':
+      '@intel-chatbot-toolkit-ui/tailwind-theme':
         specifier: workspace:^
         version: link:../tailwind-theme
-      '@intel-enterprise-rag-ui/utils':
+      '@intel-chatbot-toolkit-ui/utils':
         specifier: workspace:^
         version: link:../utils
       '@reduxjs/toolkit':
@@ -318,13 +318,13 @@ importers:
 
   packages/components:
     dependencies:
-      '@intel-enterprise-rag-ui/icons':
+      '@intel-chatbot-toolkit-ui/icons':
         specifier: workspace:^
         version: link:../icons
-      '@intel-enterprise-rag-ui/tailwind-theme':
+      '@intel-chatbot-toolkit-ui/tailwind-theme':
         specifier: workspace:^
         version: link:../tailwind-theme
-      '@intel-enterprise-rag-ui/utils':
+      '@intel-chatbot-toolkit-ui/utils':
         specifier: workspace:^
         version: link:../utils
       react:
@@ -343,25 +343,25 @@ importers:
 
   packages/control-plane:
     dependencies:
-      '@intel-enterprise-rag-ui/auth':
+      '@intel-chatbot-toolkit-ui/auth':
         specifier: workspace:^
         version: link:../auth
-      '@intel-enterprise-rag-ui/chat':
+      '@intel-chatbot-toolkit-ui/chat':
         specifier: workspace:^
         version: link:../chat
-      '@intel-enterprise-rag-ui/components':
+      '@intel-chatbot-toolkit-ui/components':
         specifier: workspace:^
         version: link:../components
-      '@intel-enterprise-rag-ui/icons':
+      '@intel-chatbot-toolkit-ui/icons':
         specifier: workspace:^
         version: link:../icons
-      '@intel-enterprise-rag-ui/input-validation':
+      '@intel-chatbot-toolkit-ui/input-validation':
         specifier: workspace:^
         version: link:../input-validation
-      '@intel-enterprise-rag-ui/tailwind-theme':
+      '@intel-chatbot-toolkit-ui/tailwind-theme':
         specifier: workspace:^
         version: link:../tailwind-theme
-      '@intel-enterprise-rag-ui/utils':
+      '@intel-chatbot-toolkit-ui/utils':
         specifier: workspace:^
         version: link:../utils
       '@reduxjs/toolkit':
@@ -386,22 +386,22 @@ importers:
 
   packages/data-ingestion:
     dependencies:
-      '@intel-enterprise-rag-ui/auth':
+      '@intel-chatbot-toolkit-ui/auth':
         specifier: workspace:^
         version: link:../auth
-      '@intel-enterprise-rag-ui/components':
+      '@intel-chatbot-toolkit-ui/components':
         specifier: workspace:^
         version: link:../components
-      '@intel-enterprise-rag-ui/icons':
+      '@intel-chatbot-toolkit-ui/icons':
         specifier: workspace:^
         version: link:../icons
-      '@intel-enterprise-rag-ui/input-validation':
+      '@intel-chatbot-toolkit-ui/input-validation':
         specifier: workspace:^
         version: link:../input-validation
-      '@intel-enterprise-rag-ui/tailwind-theme':
+      '@intel-chatbot-toolkit-ui/tailwind-theme':
         specifier: workspace:^
         version: link:../tailwind-theme
-      '@intel-enterprise-rag-ui/utils':
+      '@intel-chatbot-toolkit-ui/utils':
         specifier: workspace:^
         version: link:../utils
       '@reduxjs/toolkit':
@@ -431,7 +431,7 @@ importers:
 
   packages/input-validation:
     dependencies:
-      '@intel-enterprise-rag-ui/utils':
+      '@intel-chatbot-toolkit-ui/utils':
         specifier: workspace:^
         version: link:../utils
     devDependencies:
@@ -441,16 +441,16 @@ importers:
 
   packages/layouts:
     dependencies:
-      '@intel-enterprise-rag-ui/auth':
+      '@intel-chatbot-toolkit-ui/auth':
         specifier: workspace:^
         version: link:../auth
-      '@intel-enterprise-rag-ui/components':
+      '@intel-chatbot-toolkit-ui/components':
         specifier: workspace:^
         version: link:../components
-      '@intel-enterprise-rag-ui/icons':
+      '@intel-chatbot-toolkit-ui/icons':
         specifier: workspace:^
         version: link:../icons
-      '@intel-enterprise-rag-ui/tailwind-theme':
+      '@intel-chatbot-toolkit-ui/tailwind-theme':
         specifier: workspace:^
         version: link:../tailwind-theme
       react:
@@ -465,10 +465,10 @@ importers:
 
   packages/markdown:
     dependencies:
-      '@intel-enterprise-rag-ui/tailwind-theme':
+      '@intel-chatbot-toolkit-ui/tailwind-theme':
         specifier: workspace:^
         version: link:../tailwind-theme
-      '@intel-enterprise-rag-ui/utils':
+      '@intel-chatbot-toolkit-ui/utils':
         specifier: workspace:^
         version: link:../utils
       highlight.js:

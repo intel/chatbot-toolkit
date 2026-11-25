@@ -1,5 +1,5 @@
 {
-  "name": "@intel-enterprise-rag-ui/docsum",
+  "name": "@intel-chatbot-toolkit-ui/docsum",
   "private": true,
   "version": "3.0.0",
   "license": "Apache-2.0",
@@ -14,15 +14,15 @@
     "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json"
   },
   "dependencies": {
-    "@intel-enterprise-rag-ui/auth": "workspace:^",
-    "@intel-enterprise-rag-ui/components": "workspace:^",
-    "@intel-enterprise-rag-ui/control-plane": "workspace:^",
-    "@intel-enterprise-rag-ui/icons": "workspace:^",
-    "@intel-enterprise-rag-ui/input-validation": "workspace:^",
-    "@intel-enterprise-rag-ui/layouts": "workspace:^",
-    "@intel-enterprise-rag-ui/markdown": "workspace:^",
-    "@intel-enterprise-rag-ui/tailwind-theme": "workspace:^",
-    "@intel-enterprise-rag-ui/utils": "workspace:^",
+    "@intel-chatbot-toolkit-ui/auth": "workspace:^",
+    "@intel-chatbot-toolkit-ui/components": "workspace:^",
+    "@intel-chatbot-toolkit-ui/control-plane": "workspace:^",
+    "@intel-chatbot-toolkit-ui/icons": "workspace:^",
+    "@intel-chatbot-toolkit-ui/input-validation": "workspace:^",
+    "@intel-chatbot-toolkit-ui/layouts": "workspace:^",
+    "@intel-chatbot-toolkit-ui/markdown": "workspace:^",
+    "@intel-chatbot-toolkit-ui/tailwind-theme": "workspace:^",
+    "@intel-chatbot-toolkit-ui/utils": "workspace:^",
     "docx": "^9.5.1"
   }
 }

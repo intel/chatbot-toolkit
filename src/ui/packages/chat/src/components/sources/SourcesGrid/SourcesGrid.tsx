@@ -3,7 +3,7 @@
 
 import "./SourcesGrid.css";
 
-import { Button } from "@intel-enterprise-rag-ui/components";
+import { Button } from "@intel-chatbot-toolkit-ui/components";
 import { useState } from "react";
 
 import { FileSourceDialog } from "@/components/sources/FileSourceDialog/FileSourceDialog";

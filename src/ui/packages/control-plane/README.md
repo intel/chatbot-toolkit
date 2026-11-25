@@ -1,4 +1,4 @@
-# @intel-enterprise-rag-ui/control-plane
+# @intel-chatbot-toolkit-ui/control-plane
 
 This package provides reusable Control Plane panel component that displays microservices pipeline graph for the Intel® Chatbot Toolkit UI.
 
@@ -16,7 +16,7 @@ Add the package as a dependency in `package.json`:
 ```json
 {
   "dependencies": {
-    "@intel-enterprise-rag-ui/control-plane": "workspace:*"
+    "@intel-chatbot-toolkit-ui/control-plane": "workspace:*"
   }
 }
 ```
@@ -30,13 +30,13 @@ pnpm install && pnpm -r build
 Import `style.scss` from this package into your main SCSS file:
 
 ```scss
-@import "@intel-enterprise-rag-ui/control-plane/style.scss";
+@import "@intel-chatbot-toolkit-ui/control-plane/style.scss";
 ```
 
 Import `ControlPlanePanel` component from this package into your code:
 
 ```js
-import { ControlPlanePanel } from "@intel-enterprise-rag-ui/control-plane";
+import { ControlPlanePanel } from "@intel-chatbot-toolkit-ui/control-plane";
 
 // Usage in a React component
 function ControlPlaneTab() {

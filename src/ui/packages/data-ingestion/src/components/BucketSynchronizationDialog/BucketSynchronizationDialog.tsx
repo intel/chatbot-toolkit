@@ -12,8 +12,8 @@ import {
   DialogRef,
   IconButton,
   Tooltip,
-} from "@intel-enterprise-rag-ui/components";
-import { IconName } from "@intel-enterprise-rag-ui/icons";
+} from "@intel-chatbot-toolkit-ui/components";
+import { IconName } from "@intel-chatbot-toolkit-ui/icons";
 import { useMemo, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 

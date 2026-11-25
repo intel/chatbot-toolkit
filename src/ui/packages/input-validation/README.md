@@ -1,4 +1,4 @@
-# @intel-enterprise-rag-ui/input-validation
+# @intel-chatbot-toolkit-ui/input-validation
 
 This package provides utility functions for input validation in the Intel® Chatbot Toolkit UI applications.
 
@@ -16,7 +16,7 @@ Add the package as a dependency in `package.json`:
 ```json
 {
   "dependencies": {
-    "@intel-enterprise-rag-ui/input-validation": "workspace:*"
+    "@intel-chatbot-toolkit-ui/input-validation": "workspace:*"
   }
 }
 ```
@@ -30,7 +30,7 @@ pnpm install && pnpm -r build
 Import validation functions from this package into your code:
 
 ```js
-import { containsNullCharacters } from "@intel-enterprise-rag-ui/input-validation";
+import { containsNullCharacters } from "@intel-chatbot-toolkit-ui/input-validation";
 
 // Usage example
 const isSafeFileName = containsNullCharacters(...);

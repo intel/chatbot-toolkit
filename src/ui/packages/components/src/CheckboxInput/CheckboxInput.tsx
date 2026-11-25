@@ -3,7 +3,7 @@
 
 import "./CheckboxInput.css";
 
-import { CheckboxCheckIcon, InfoIcon } from "@intel-enterprise-rag-ui/icons";
+import { CheckboxCheckIcon, InfoIcon } from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 import { useId } from "react";
 import {

@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { getAppEnv } from "@intel-enterprise-rag-ui/utils";
+import { getAppEnv } from "@intel-chatbot-toolkit-ui/utils";
 
 import { AppEnvKey } from "@/types";
 

@@ -1,13 +1,13 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { keycloakService } from "@intel-enterprise-rag-ui/auth";
-import { DataIngestionTab } from "@intel-enterprise-rag-ui/data-ingestion";
+import { keycloakService } from "@intel-chatbot-toolkit-ui/auth";
+import { DataIngestionTab } from "@intel-chatbot-toolkit-ui/data-ingestion";
 import {
   AdminPanelRoute,
   AdminTab,
   TelemetryAuthenticationTab,
-} from "@intel-enterprise-rag-ui/layouts";
+} from "@intel-chatbot-toolkit-ui/layouts";
 import { useMemo } from "react";
 
 import {

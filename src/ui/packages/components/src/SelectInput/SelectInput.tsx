@@ -7,7 +7,7 @@ import {
   InfoIcon,
   SelectInputArrowDown,
   SelectInputArrowUp,
-} from "@intel-enterprise-rag-ui/icons";
+} from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 import { type ReactNode, useId } from "react";
 import {

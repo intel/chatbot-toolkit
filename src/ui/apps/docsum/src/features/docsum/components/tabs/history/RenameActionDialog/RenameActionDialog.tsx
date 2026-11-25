@@ -5,7 +5,7 @@ import {
   ActionDialog,
   addNotification,
   TextInput,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 
 import { renameHistoryItem } from "@/features/docsum/store/history.slice";

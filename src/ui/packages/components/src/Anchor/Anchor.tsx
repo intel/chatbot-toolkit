@@ -3,8 +3,8 @@
 
 import "./Anchor.css";
 
-import { ExternalLinkIcon } from "@intel-enterprise-rag-ui/icons";
-import { isSafeHref, sanitizeHref } from "@intel-enterprise-rag-ui/utils";
+import { ExternalLinkIcon } from "@intel-chatbot-toolkit-ui/icons";
+import { isSafeHref, sanitizeHref } from "@intel-chatbot-toolkit-ui/utils";
 import classNames from "classnames";
 import { ReactNode } from "react";
 import {

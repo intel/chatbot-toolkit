@@ -3,7 +3,7 @@
 
 import "./ChunksProgressBar.css";
 
-import { ProgressBar } from "@intel-enterprise-rag-ui/components";
+import { ProgressBar } from "@intel-chatbot-toolkit-ui/components";
 import { memo } from "react";
 
 interface ChunksProgressBarProps {

@@ -9,8 +9,8 @@ import {
   Dialog,
   LoadingFallback,
   TextInput,
-} from "@intel-enterprise-rag-ui/components";
-import { useDebug } from "@intel-enterprise-rag-ui/utils";
+} from "@intel-chatbot-toolkit-ui/components";
+import { useDebug } from "@intel-chatbot-toolkit-ui/utils";
 import classNames from "classnames";
 import { ChangeEventHandler, FormEvent, useMemo, useState } from "react";
 

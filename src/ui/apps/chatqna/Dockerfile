@@ -21,10 +21,10 @@ COPY ./ui/packages/ ./packages/
 COPY ./ui/apps/chatqna/ ./apps/chatqna/
 
 # Install dependencies for this app and its workspace dependencies only
-RUN pnpm install --frozen-lockfile --filter @intel-enterprise-rag-ui/chatqna...
+RUN pnpm install --frozen-lockfile --filter @intel-chatbot-toolkit-ui/chatqna...
 
 # Build the app and all its dependencies in correct order
-RUN pnpm --filter @intel-enterprise-rag-ui/chatqna... build
+RUN pnpm --filter @intel-chatbot-toolkit-ui/chatqna... build
 
 FROM nginx:alpine
 

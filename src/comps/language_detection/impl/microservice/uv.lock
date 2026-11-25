@@ -402,7 +402,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-language-detection-microservice"
+name = "intel-chatbot-toolkit-language-detection-microservice"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

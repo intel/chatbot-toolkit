@@ -1,8 +1,8 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { keycloakService } from "@intel-enterprise-rag-ui/auth";
-import { App } from "@intel-enterprise-rag-ui/layouts";
+import { keycloakService } from "@intel-chatbot-toolkit-ui/auth";
+import { App } from "@intel-chatbot-toolkit-ui/layouts";
 
 import AppRouter from "@/app/router";
 import { store } from "@/store";

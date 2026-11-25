@@ -14,8 +14,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
-      name: "intel-enterprise-rag-ui-input-validation",
-      fileName: "intel-enterprise-rag-ui-input-validation",
+      name: "intel-chatbot-toolkit-ui-input-validation",
+      fileName: "intel-chatbot-toolkit-ui-input-validation",
     },
     rollupOptions: {
       external: ["zod"],

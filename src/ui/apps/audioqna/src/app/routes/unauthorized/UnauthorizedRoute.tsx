@@ -3,8 +3,8 @@
 
 import "./UnauthorizedRoute.css";
 
-import { keycloakService } from "@intel-enterprise-rag-ui/auth";
-import { Button } from "@intel-enterprise-rag-ui/components";
+import { keycloakService } from "@intel-chatbot-toolkit-ui/auth";
+import { Button } from "@intel-chatbot-toolkit-ui/components";
 
 const UnauthorizedRoute = () => {
   const handleLogout = () => {

@@ -4,7 +4,7 @@
 import {
   colorSchemeReducer,
   notificationsReducer,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import { configureStore } from "@reduxjs/toolkit";
 
 import { controlPlaneApi } from "@/features/admin-panel/control-plane/api";

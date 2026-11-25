@@ -3,7 +3,7 @@
 
 import "./DataItemStatus.css";
 
-import { Tooltip } from "@intel-enterprise-rag-ui/components";
+import { Tooltip } from "@intel-chatbot-toolkit-ui/components";
 import {
   BlockedIcon,
   CanceledIcon,
@@ -15,8 +15,8 @@ import {
   LoadingIcon,
   SuccessIcon,
   UploadIcon,
-} from "@intel-enterprise-rag-ui/icons";
-import { titleCaseString } from "@intel-enterprise-rag-ui/utils";
+} from "@intel-chatbot-toolkit-ui/icons";
+import { titleCaseString } from "@intel-chatbot-toolkit-ui/utils";
 import classNames from "classnames";
 import { memo, ReactNode } from "react";
 

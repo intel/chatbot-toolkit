@@ -1,9 +1,9 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { FileInput } from "@intel-enterprise-rag-ui/components";
-import { getValidationErrorMessage } from "@intel-enterprise-rag-ui/input-validation";
-import { sanitizeFiles } from "@intel-enterprise-rag-ui/utils";
+import { FileInput } from "@intel-chatbot-toolkit-ui/components";
+import { getValidationErrorMessage } from "@intel-chatbot-toolkit-ui/input-validation";
+import { sanitizeFiles } from "@intel-chatbot-toolkit-ui/utils";
 import {
   ChangeEvent,
   Dispatch,

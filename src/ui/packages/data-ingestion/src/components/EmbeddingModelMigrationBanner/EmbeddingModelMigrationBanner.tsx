@@ -3,8 +3,8 @@
 
 import "./EmbeddingModelMigrationBanner.css";
 
-import { Button } from "@intel-enterprise-rag-ui/components";
-import { RefreshIcon, WarningIcon } from "@intel-enterprise-rag-ui/icons";
+import { Button } from "@intel-chatbot-toolkit-ui/components";
+import { RefreshIcon, WarningIcon } from "@intel-chatbot-toolkit-ui/icons";
 import { useMemo, useState } from "react";
 
 import {

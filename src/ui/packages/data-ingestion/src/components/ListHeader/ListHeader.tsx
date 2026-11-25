@@ -3,7 +3,7 @@
 
 import "./ListHeader.css";
 
-import { Button } from "@intel-enterprise-rag-ui/components";
+import { Button } from "@intel-chatbot-toolkit-ui/components";
 import classNames from "classnames";
 
 interface ListHeaderProps {

@@ -3,7 +3,7 @@
 
 import "./PromptInput.css";
 
-import { sanitizeString } from "@intel-enterprise-rag-ui/utils";
+import { sanitizeString } from "@intel-chatbot-toolkit-ui/utils";
 import classNames from "classnames";
 import {
   ChangeEvent,

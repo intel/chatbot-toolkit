@@ -7,8 +7,8 @@ import {
   DeleteIcon,
   PlusIcon,
   UploadIcon,
-} from "@intel-enterprise-rag-ui/icons";
-import { titleCaseString } from "@intel-enterprise-rag-ui/utils";
+} from "@intel-chatbot-toolkit-ui/icons";
+import { titleCaseString } from "@intel-chatbot-toolkit-ui/utils";
 import classNames from "classnames";
 import { ReactNode } from "react";
 

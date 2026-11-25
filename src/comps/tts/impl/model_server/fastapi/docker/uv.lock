@@ -330,7 +330,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-tts-fastapi-modelserver"
+name = "intel-chatbot-toolkit-tts-fastapi-modelserver"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

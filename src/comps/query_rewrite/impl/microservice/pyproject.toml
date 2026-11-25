@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [project]
-name = "Intel_Enterprise_RAG-QueryRewrite_Microservice"
+name = "Intel_Chatbot_Toolkit-QueryRewrite_Microservice"
 version = "3.0.0"
 requires-python = ">=3.11,<3.12"
 

@@ -4,16 +4,16 @@
 import {
   chatHistoryReducer,
   chatSideMenuReducer,
-} from "@intel-enterprise-rag-ui/chat";
+} from "@intel-chatbot-toolkit-ui/chat";
 import {
   colorSchemeReducer,
   notificationsReducer,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import {
   createDataIngestionApiMiddleware,
   dataIngestionSettingsReducer,
   edpApi,
-} from "@intel-enterprise-rag-ui/data-ingestion";
+} from "@intel-chatbot-toolkit-ui/data-ingestion";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 
 import { appApi } from "@/api";

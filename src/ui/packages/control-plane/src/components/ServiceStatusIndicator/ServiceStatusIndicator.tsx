@@ -3,7 +3,7 @@
 
 import "./ServiceStatusIndicator.css";
 
-import { Tooltip } from "@intel-enterprise-rag-ui/components";
+import { Tooltip } from "@intel-chatbot-toolkit-ui/components";
 import classNames from "classnames";
 
 import { ServiceStatus } from "@/types/index";

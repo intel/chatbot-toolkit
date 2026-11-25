@@ -21,10 +21,10 @@ COPY ./ui/packages/ ./packages/
 COPY ./ui/apps/audioqna/ ./apps/audioqna/
 
 # Install dependencies for this app and its workspace dependencies only
-RUN pnpm install --frozen-lockfile --filter @intel-enterprise-rag-ui/audioqna...
+RUN pnpm install --frozen-lockfile --filter @intel-chatbot-toolkit-ui/audioqna...
 
 # Build the app and all its dependencies in correct order
-RUN pnpm --filter @intel-enterprise-rag-ui/audioqna... build
+RUN pnpm --filter @intel-chatbot-toolkit-ui/audioqna... build
 
 FROM nginx:alpine
 

@@ -3,7 +3,7 @@
 
 import "./HistoryItem.css";
 
-import { Anchor, Tooltip } from "@intel-enterprise-rag-ui/components";
+import { Anchor, Tooltip } from "@intel-chatbot-toolkit-ui/components";
 import classNames from "classnames";
 import { useMemo, useState } from "react";
 

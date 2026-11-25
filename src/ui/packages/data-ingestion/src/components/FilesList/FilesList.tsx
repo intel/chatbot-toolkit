@@ -3,8 +3,8 @@
 
 import "./FilesList.css";
 
-import { IconButton } from "@intel-enterprise-rag-ui/components";
-import { formatFileSize } from "@intel-enterprise-rag-ui/utils";
+import { IconButton } from "@intel-chatbot-toolkit-ui/components";
+import { formatFileSize } from "@intel-chatbot-toolkit-ui/utils";
 import { Dispatch, SetStateAction } from "react";
 
 import ListHeader from "@/components/ListHeader/ListHeader";

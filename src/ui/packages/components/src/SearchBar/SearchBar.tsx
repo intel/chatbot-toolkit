@@ -1,6 +1,6 @@
 import "./SearchBar.css";
 
-import { ClearIcon, SearchIcon } from "@intel-enterprise-rag-ui/icons";
+import { ClearIcon, SearchIcon } from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 import debounce from "lodash.debounce";
 import {

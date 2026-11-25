@@ -366,7 +366,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-chat-history-microservice"
+name = "intel-chatbot-toolkit-chat-history-microservice"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

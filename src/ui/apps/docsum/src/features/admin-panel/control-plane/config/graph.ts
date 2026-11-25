@@ -7,7 +7,7 @@ import {
   docsumArgumentsDefault,
   GraphNodeId,
   llmArgumentsDefault,
-} from "@intel-enterprise-rag-ui/control-plane";
+} from "@intel-chatbot-toolkit-ui/control-plane";
 import { Position } from "@xyflow/react";
 
 const graphNodes = [

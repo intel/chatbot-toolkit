@@ -4,7 +4,7 @@
 import {
   BASE_SERVICE_NAME_NODE_ID_MAP,
   BASE_SERVICE_NODE_IDS,
-} from "@intel-enterprise-rag-ui/control-plane";
+} from "@intel-chatbot-toolkit-ui/control-plane";
 
 export const SERVICE_NODE_IDS = [
   ...BASE_SERVICE_NODE_IDS,

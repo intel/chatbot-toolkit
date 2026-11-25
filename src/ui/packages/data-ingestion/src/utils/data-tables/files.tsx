@@ -3,12 +3,12 @@
 
 import "./dataTableCells.css";
 
-import { Button, Tooltip } from "@intel-enterprise-rag-ui/components";
+import { Button, Tooltip } from "@intel-chatbot-toolkit-ui/components";
 import {
   S3BucketIcon,
   SharePointSiteIcon,
-} from "@intel-enterprise-rag-ui/icons";
-import { formatFileSize } from "@intel-enterprise-rag-ui/utils";
+} from "@intel-chatbot-toolkit-ui/icons";
+import { formatFileSize } from "@intel-chatbot-toolkit-ui/utils";
 import { ColumnDef } from "@tanstack/react-table";
 
 import ChunksProgressBar from "@/components/ChunksProgressBar/ChunksProgressBar";

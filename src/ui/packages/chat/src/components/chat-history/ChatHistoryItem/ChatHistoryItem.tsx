@@ -3,8 +3,8 @@
 
 import "./ChatHistoryItem.css";
 
-import { Anchor, Button, Tooltip } from "@intel-enterprise-rag-ui/components";
-import { PinFilledIcon } from "@intel-enterprise-rag-ui/icons";
+import { Anchor, Button, Tooltip } from "@intel-chatbot-toolkit-ui/components";
+import { PinFilledIcon } from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 import { useState } from "react";
 

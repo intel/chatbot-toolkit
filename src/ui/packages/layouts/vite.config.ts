@@ -16,8 +16,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
-      name: "intel-enterprise-rag-ui-layouts",
-      fileName: "intel-enterprise-rag-ui-layouts",
+      name: "intel-chatbot-toolkit-ui-layouts",
+      fileName: "intel-chatbot-toolkit-ui-layouts",
       cssFileName: "style",
       formats: ["es"],
     },
@@ -26,7 +26,7 @@ export default defineConfig({
         "react",
         "react-dom",
         "react-router-dom",
-        /^@intel-enterprise-rag-ui\/.*/,
+        /^@intel-chatbot-toolkit-ui\/.*/,
       ],
       output: {
         globals: {

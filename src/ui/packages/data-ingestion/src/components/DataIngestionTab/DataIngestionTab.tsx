@@ -3,7 +3,7 @@
 
 import "./DataIngestionTab.css";
 
-import { InfoIcon } from "@intel-enterprise-rag-ui/icons";
+import { InfoIcon } from "@intel-chatbot-toolkit-ui/icons";
 
 import BucketSynchronizationDialog from "@/components/BucketSynchronizationDialog/BucketSynchronizationDialog";
 import DataIngestionSettingsDialog from "@/components/DataIngestionSettingsDialog/DataIngestionSettingsDialog";

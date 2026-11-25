@@ -6,8 +6,8 @@ import {
   Popover,
   TextInput,
   usePopover,
-} from "@intel-enterprise-rag-ui/components";
-import { ErrorIcon, IconName } from "@intel-enterprise-rag-ui/icons";
+} from "@intel-chatbot-toolkit-ui/components";
+import { ErrorIcon, IconName } from "@intel-chatbot-toolkit-ui/icons";
 import { ChangeEvent, useState } from "react";
 
 import { usePostSharePointSiteMutation } from "@/api/edpApi";

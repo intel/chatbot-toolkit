@@ -6,7 +6,7 @@ import "./ChatHistoryList.css";
 import {
   LoadingFallback,
   SearchBar,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import classNames from "classnames";
 import { useMemo, useState } from "react";
 

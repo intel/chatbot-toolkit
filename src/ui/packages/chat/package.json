@@ -1,17 +1,17 @@
 {
-  "name": "@intel-enterprise-rag-ui/chat",
+  "name": "@intel-chatbot-toolkit-ui/chat",
   "private": true,
   "version": "3.0.0",
   "type": "module",
   "license": "Apache-2.0",
   "description": "Chat components and utilities for Intel Chatbot Toolkit UI",
-  "module": "./dist/intel-enterprise-rag-ui-chat.js",
+  "module": "./dist/intel-chatbot-toolkit-ui-chat.js",
   "types": "./dist/index.d.ts",
   "style": "./dist/style.css",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/intel-enterprise-rag-ui-chat.js"
+      "import": "./dist/intel-chatbot-toolkit-ui-chat.js"
     },
     "./style.css": "./dist/style.css",
     "./style": "./src/style.ts"
@@ -25,13 +25,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@intel-enterprise-rag-ui/auth": "workspace:^",
-    "@intel-enterprise-rag-ui/components": "workspace:^",
-    "@intel-enterprise-rag-ui/icons": "workspace:^",
-    "@intel-enterprise-rag-ui/layouts": "workspace:^",
-    "@intel-enterprise-rag-ui/markdown": "workspace:^",
-    "@intel-enterprise-rag-ui/tailwind-theme": "workspace:^",
-    "@intel-enterprise-rag-ui/utils": "workspace:^"
+    "@intel-chatbot-toolkit-ui/auth": "workspace:^",
+    "@intel-chatbot-toolkit-ui/components": "workspace:^",
+    "@intel-chatbot-toolkit-ui/icons": "workspace:^",
+    "@intel-chatbot-toolkit-ui/layouts": "workspace:^",
+    "@intel-chatbot-toolkit-ui/markdown": "workspace:^",
+    "@intel-chatbot-toolkit-ui/tailwind-theme": "workspace:^",
+    "@intel-chatbot-toolkit-ui/utils": "workspace:^"
   },
   "peerDependencies": {
     "@reduxjs/toolkit": ">=2.0.0",

@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { useColorScheme } from "@intel-enterprise-rag-ui/components";
+import { useColorScheme } from "@intel-chatbot-toolkit-ui/components";
 import {
   Connection,
   Edge,

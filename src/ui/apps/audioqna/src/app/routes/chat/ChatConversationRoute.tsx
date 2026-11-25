@@ -7,11 +7,11 @@ import {
   selectIsChatSideMenuOpen,
   useChat,
   useChatHistoryHandlers,
-} from "@intel-enterprise-rag-ui/chat";
-import { addNotification } from "@intel-enterprise-rag-ui/components";
-import { usePostSharePointFileUrlMutation } from "@intel-enterprise-rag-ui/data-ingestion";
-import { PageLayout } from "@intel-enterprise-rag-ui/layouts";
-import { downloadBlob } from "@intel-enterprise-rag-ui/utils";
+} from "@intel-chatbot-toolkit-ui/chat";
+import { addNotification } from "@intel-chatbot-toolkit-ui/components";
+import { usePostSharePointFileUrlMutation } from "@intel-chatbot-toolkit-ui/data-ingestion";
+import { PageLayout } from "@intel-chatbot-toolkit-ui/layouts";
+import { downloadBlob } from "@intel-chatbot-toolkit-ui/utils";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import {
