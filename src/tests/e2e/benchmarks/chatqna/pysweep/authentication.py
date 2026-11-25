@@ -46,19 +46,20 @@ from kr8s.objects import APIObject
 from tests.e2e.helpers.k8s_helper import K8sHelper
 from tests.e2e.helpers.keycloak_helper import KeycloakHelper
 from tests.e2e.validation.buildcfg import cfg
-from tests.e2e.validation.constants import VITE_KEYCLOAK_CLIENT_ID, VITE_KEYCLOAK_REALM
+from tests.e2e.validation.constants import (
+    CHATQNA_NAMESPACE,
+    FINGERPRINT_NAMESPACE,
+    KEYCLOAK_NAMESPACE,
+    LLM_INFERENCE_NAMESPACE,
+    VITE_KEYCLOAK_CLIENT_ID,
+    VITE_KEYCLOAK_REALM,
+)
 
 from .paths import deploy_roots, is_dir, is_file
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
-
-# Kubernetes namespaces pysweep touches (see DESIGN.md).
-PIPELINE_NAMESPACE = "chatqna"
-INFERENCE_NAMESPACE = "llm-inference"
-FINGERPRINT_NAMESPACE = "fingerprint"
-KEYCLOAK_NAMESPACE = "keycloak"
 
 # The installed environment's config directory, mirroring the e2e suite's
 # --build-config-dir default. Overridable so a sweep can be run against a
@@ -124,10 +125,10 @@ class AccessCheckResult:
 # list is the fastest way to see everything a sweep can touch.
 REQUIRED_ACCESS = [
     # The served model, read back to pick the tokenizer (served_model.py).
-    RequiredAccess("list", "pods", PIPELINE_NAMESPACE, reason="locate the llm-usvc replicas"),
-    RequiredAccess("create", "pods/exec", PIPELINE_NAMESPACE, reason="read the pods' effective LLM_MODEL_NAME"),
+    RequiredAccess("list", "pods", CHATQNA_NAMESPACE, reason="locate the llm-usvc replicas"),
+    RequiredAccess("create", "pods/exec", CHATQNA_NAMESPACE, reason="read the pods' effective LLM_MODEL_NAME"),
     RequiredAccess(
-        "get", "llminferenceservices", INFERENCE_NAMESPACE,
+        "get", "llminferenceservices", LLM_INFERENCE_NAMESPACE,
         group="serving.kserve.io", reason="observed model readiness",
     ),
     # Runtime-API plane, reached by port-forwarding to fingerprint-svc.

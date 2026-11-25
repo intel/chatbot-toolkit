@@ -26,6 +26,8 @@ import logging
 import kr8s
 from kr8s.objects import APIObject
 
+from tests.e2e.validation.constants import CHATQNA_NAMESPACE, LLM_INFERENCE_NAMESPACE
+
 from .base import PropertyReadError
 
 logger = logging.getLogger(__name__)
@@ -33,13 +35,9 @@ logger = logging.getLogger(__name__)
 # The ChatQNA LLM microservice: the Deployment is 'llm-svc-deployment' but the
 # stable handle across chart versions is the label, and the container name is
 # needed because the pod also has an init container.
-PIPELINE_NAMESPACE = "chatqna"
 LLM_USVC_LABEL_SELECTOR = {"app.kubernetes.io/name": "llm-usvc"}
 LLM_USVC_CONTAINER = "llm-usvc"
 MODEL_NAME_ENV = "LLM_MODEL_NAME"
-
-# Where model serving lives.
-INFERENCE_NAMESPACE = "llm-inference"
 
 
 class LLMInferenceService(APIObject):
@@ -64,8 +62,8 @@ class ServedModel:
 
     def __init__(
         self,
-        namespace: str = PIPELINE_NAMESPACE,
-        inference_namespace: str = INFERENCE_NAMESPACE,
+        namespace: str = CHATQNA_NAMESPACE,
+        inference_namespace: str = LLM_INFERENCE_NAMESPACE,
     ):
         self.namespace = namespace
         self.inference_namespace = inference_namespace

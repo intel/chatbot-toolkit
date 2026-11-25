@@ -19,8 +19,9 @@ import logging
 import allure
 import pytest
 
-from tests.e2e.benchmarks.chatqna.pysweep import model_catalog, served_model
+from tests.e2e.benchmarks.chatqna.pysweep import model_catalog
 from tests.e2e.benchmarks.chatqna.pysweep.served_model import LLMInferenceService, ServedModel
+from tests.e2e.validation.constants import LLM_INFERENCE_NAMESPACE
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +87,7 @@ def test_the_served_model_is_a_ready_llminferenceservice(observed_model):
     :class:`LLMInferenceService`); when KServe moves past ``v1alpha2`` this test is
     the notice.
     """
-    llmisvc = LLMInferenceService.get(observed_model, namespace=served_model.INFERENCE_NAMESPACE)
+    llmisvc = LLMInferenceService.get(observed_model, namespace=LLM_INFERENCE_NAMESPACE)
     conditions = (llmisvc.raw.get("status", {}) or {}).get("conditions", []) or []
     assert any(
         cond.get("type") == "Ready" and cond.get("status") == "True" for cond in conditions

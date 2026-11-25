@@ -42,12 +42,12 @@ import requests
 import urllib3
 
 from tests.e2e.validation.buildcfg import cfg
+from tests.e2e.validation.constants import FINGERPRINT_NAMESPACE
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 logger = logging.getLogger(__name__)
 
-FINGERPRINT_NAMESPACE = "fingerprint"
 FINGERPRINT_SERVICE = "fingerprint-svc"
 FINGERPRINT_PORT = 6012
 API_PREFIX = "/v1/system_fingerprint"
