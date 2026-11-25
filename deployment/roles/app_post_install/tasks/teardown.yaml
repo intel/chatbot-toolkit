@@ -9,3 +9,13 @@
     - "{{ tmp_dir }}"
     - "{{ rag_log_dir }}"
     - "{{ rag_tmp_dir }}"
+
+# Saved by the backup hook (backup_profile.yaml, pre_backup) in the platform's namespace;
+# a backup keeps its own copy, so a restore after this teardown still finds it.
+- name: "app_post_install | Delete the saved PostgreSQL Cluster definition"
+  kubernetes.core.k8s:
+    state: absent
+    api_version: v1
+    kind: Secret
+    name: erag-postgresql-cluster
+    namespace: postgresql
