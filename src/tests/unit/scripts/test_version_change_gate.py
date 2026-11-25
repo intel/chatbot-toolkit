@@ -162,7 +162,7 @@ def test_force_passes_and_records_the_bypass(tmp_path):
 def test_force_without_the_gate_fact_fails(tmp_path):
     proc, _ = _run(tmp_path, "upgrade", [_counts(5), _counts(3)], force=True, gate=None)
     assert proc.returncode != 0
-    assert "_upgrade_gate" in proc.stdout
+    assert "the installer did not provide _upgrade_gate" in proc.stdout
 
 
 def test_same_version_run_writes_only_the_data_report(tmp_path):

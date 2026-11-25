@@ -83,7 +83,16 @@
 
     # The installer's upgrade report, written after this role, lists the checks
     # --force bypassed in this fact, so a bypass of this one is reported the same way.
-    # Not guarded: without the fact the bypass would go unrecorded, so the run fails.
+    - name: "app_post_install | Check the installer provides the forced-checks fact"
+      ansible.builtin.assert:
+        that: _upgrade_gate is defined and _upgrade_gate is mapping
+        fail_msg: >-
+          --force bypassed erag/data_consistency, but the installer did not provide _upgrade_gate,
+          so the bypass cannot be recorded in the upgrade report. Run this release with a Toolkit Manager
+          release that provides the upgrade checks.
+        quiet: true
+      when: _upgrade_force | default(false) | bool
+
     - name: "app_post_install | Report the bypassed data consistency check as forced"
       ansible.builtin.set_fact:
         _upgrade_gate: >-
