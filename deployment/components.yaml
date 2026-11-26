@@ -49,6 +49,9 @@ components:
     layer: erag
     enabled: "{{ keycloak_enabled | default(true) | bool }}"
     depends_on: [app_pre_install]
+    # The realm lives in the platform Keycloak, which outlives this layer, and no
+    # label reaches it: the role's teardown deletes it, after the labelled objects.
+    teardown: both
     # Created by the configurator Job (kubectl apply).
     ownership_declared:
       - {kind: Secret, name: chattool-credentials}
