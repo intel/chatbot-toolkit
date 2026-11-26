@@ -1,0 +1,10 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+---
+# The API paths' grants live in the gateway namespace, so deleting the namespace
+# does not release them. Also the label teardown's teardown_tasks (components.yaml).
+- name: "app_apisix | Remove the API route"
+  ansible.builtin.include_tasks: api_route.yaml
+  vars:
+    _apisix_api_route_present: false

@@ -61,6 +61,10 @@ components:
     layer: erag
     enabled: "{{ apisix_enabled | default(true) | bool }}"
     depends_on: [app_pre_install]
+    # What it publishes is kept in the gateway namespace (path grants, portal entries),
+    # which outlives this layer: teardown_tasks withdraws it. So for app_edp,
+    # app_mcp_gateway and app_ui.
+    teardown_tasks: unpublish.yaml
 
   - name: app_chat_history
     layer: erag
@@ -91,6 +95,7 @@ components:
     layer: erag
     enabled: "{{ edp_enabled | default(false) | bool }}"
     depends_on: [app_vector_databases, app_apisix, app_hpa]
+    teardown_tasks: unpublish.yaml
     # Created by the Keycloak client-secret Job (kubectl apply).
     ownership_declared:
       - {kind: Secret, name: keycloak-minio-secret}
@@ -99,11 +104,13 @@ components:
     layer: erag
     enabled: "{{ mcp_enabled | default(false) | bool }}"
     depends_on: [app_edp, app_keycloak_config]
+    teardown_tasks: unpublish.yaml
 
   - name: app_ui
     layer: erag
     enabled: "{{ ui_enabled | default(false) | bool }}"
     depends_on: [app_pipeline, app_apisix]
+    teardown_tasks: unpublish.yaml
 
   # --- Reboot recovery ---
   # Repairs ambient capture after a reboot; sidecars (OpenShift) have nothing to repair.
