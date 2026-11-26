@@ -19,6 +19,7 @@
 
 # --- Realm + domain ---
 chattool_keycloak_realm: "ChatbotToolkit"
+chattool_keycloak_previous_realm: "{{ 'EnterpriseRAG' if chattool_keycloak_realm == 'ChatbotToolkit' else chattool_keycloak_realm }}"
 chattool_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"
 # Must match where the platform serves Keycloak in path mode (keycloak role: keycloak_path,
 # default /keycloak); a different prefix breaks every issuer URL.

@@ -3,7 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Counts the users of one realm through the admin REST API and prints the total
-# on the last line as DATA_COUNT=<n>.
+# on the last line as DATA_COUNT=<n>. KEYCLOAK_PREVIOUS_REALM, when set, is
+# counted instead while KEYCLOAK_REALM does not exist.
 #
 # The admin password reaches curl on standard input as part of the form body,
 # and the bearer token reaches it through a curl configuration file under /tmp.
@@ -13,6 +14,7 @@
 set -euo pipefail
 
 readonly TOKEN_CONFIG=/tmp/curl-token.conf
+readonly COUNT_FILE=/tmp/user-count
 
 encoded_user=$(printf '%s' "$KEYCLOAK_ADMIN_USER" | jq -sRr @uri)
 encoded_password=$(printf '%s' "$KEYCLOAK_ADMIN_PASSWORD" | jq -sRr @uri)
@@ -33,14 +35,31 @@ fi
 umask 077
 printf 'header = "Authorization: Bearer %s"\n' "$access_token" >"$TOKEN_CONFIG"
 
-count=$(curl -sS --fail-with-body -K "$TOKEN_CONFIG" -X GET \
-  "${KEYCLOAK_URL}/admin/realms/${KEYCLOAK_REALM}/users/count")
+count_users() {
+  curl -sS -o "$COUNT_FILE" -w '%{http_code}' -K "$TOKEN_CONFIG" -X GET \
+    "${KEYCLOAK_URL}/admin/realms/$1/users/count"
+}
+
+realm=$KEYCLOAK_REALM
+status=$(count_users "$realm")
+previous=${KEYCLOAK_PREVIOUS_REALM:-}
+if [ "$status" = 404 ] && [ -n "$previous" ] && [ "$previous" != "$realm" ]; then
+  status=$(count_users "$previous")
+  [ "$status" = 404 ] || realm=$previous
+fi
 rm -f "$TOKEN_CONFIG"
+if [ "$status" != 200 ]; then
+  echo "user count for realm ${realm} returned HTTP ${status}: $(head -c 300 "$COUNT_FILE")" >&2
+  rm -f "$COUNT_FILE"
+  exit 1
+fi
+count=$(cat "$COUNT_FILE")
+rm -f "$COUNT_FILE"
 
 count=$(printf '%s' "$count" | tr -d '[:space:]')
 case "$count" in
   '' | *[!0-9]*)
-    echo "unexpected user count for realm ${KEYCLOAK_REALM}: '${count}'" >&2
+    echo "unexpected user count for realm ${realm}: '${count}'" >&2
     exit 1
     ;;
 esac

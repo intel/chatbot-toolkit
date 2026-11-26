@@ -38,10 +38,15 @@ CANONICAL = {
     "chattool_keycloak_path_prefix": (
         "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"
     ),
+    # The realm app_keycloak_config renames in place and app_data_consistency counts until then.
+    "chattool_keycloak_previous_realm": (
+        "{{ 'EnterpriseRAG' if chattool_keycloak_realm == 'ChatbotToolkit' else chattool_keycloak_realm }}"
+    ),
 }
 # chattool_keycloak_path_prefix is defined in terms of this one, so a role that declares the
 # former must declare it too.
-_REQUIRES = {"chattool_keycloak_path_prefix": "chattool_keycloak_default_path_prefix"}
+_REQUIRES = {"chattool_keycloak_path_prefix": "chattool_keycloak_default_path_prefix",
+             "chattool_keycloak_previous_realm": "chattool_keycloak_realm"}
 
 
 def _roles():
@@ -131,3 +136,10 @@ def test_rendered_values_match_the_platform(extra_vars, domain, prefix):
     assert scope["chattool_keycloak_domain_name"] == domain
     assert scope["chattool_keycloak_path_prefix"] == prefix
     assert scope["ui_domain_name"] == "example.com"
+
+
+@pytest.mark.parametrize("realm, previous", [("ChatbotToolkit", "EnterpriseRAG"), ("Corp", "Corp")])
+def test_previous_realm(realm, previous):
+    """A realm name set in the configuration was kept by the rename."""
+    rendered = jinja2.Environment().from_string(CANONICAL["chattool_keycloak_previous_realm"])
+    assert rendered.render(chattool_keycloak_realm=realm) == previous

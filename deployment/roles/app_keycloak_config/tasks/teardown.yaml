@@ -132,9 +132,42 @@
     - { api: v1, kind: ConfigMap, name: keycloak-configurator-script }
     - { api: v1, kind: Secret, name: keycloak-configurator-sensitive }
     - { api: v1, kind: Secret, name: chattool-credentials }
+    - { api: v1, kind: ServiceAccount, name: keycloak-rename }
+    - { api: rbac.authorization.k8s.io/v1, kind: Role, name: keycloak-rename }
+    - { api: rbac.authorization.k8s.io/v1, kind: RoleBinding, name: keycloak-rename }
+    - { api: v1, kind: ConfigMap, name: keycloak-rename-script }
   loop_control:
     label: "{{ item.kind }}/{{ item.name }}"
   failed_when: false
+
+# Only once renamed: before that the Secret holds the passwords of an earlier release's realm,
+# which teardown does not delete, and starts the rename on the next install; the state
+# ConfigMap holds that realm's original editUsernameAllowed for a rename that stopped part way.
+- name: "app_keycloak_config | Find the renamed credentials of an earlier release"
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: erag-credentials
+    namespace: "{{ keycloak_namespace }}"
+  register: _kc_old_secret
+  no_log: "{{ secure_logs }}"
+
+- name: "app_keycloak_config | Delete the renamed credentials and rename state of an earlier release"
+  kubernetes.core.k8s:
+    state: absent
+    api_version: v1
+    kind: "{{ item.kind }}"
+    name: "{{ item.name }}"
+    namespace: "{{ keycloak_namespace }}"
+  loop:
+    - { kind: Secret, name: erag-credentials }
+    - { kind: ConfigMap, name: keycloak-rename-state }
+  loop_control:
+    label: "{{ item.kind }}/{{ item.name }}"
+  no_log: "{{ secure_logs }}"
+  when: >-
+    _kc_old_secret.resources | default([]) | length > 0 and
+    (_kc_old_secret.resources[0].metadata.labels | default({}))['chatbot-toolkit/keycloak-renamed'] is defined
 
 - name: "app_keycloak_config | Find configurator Jobs"
   kubernetes.core.k8s_info:
@@ -142,7 +175,7 @@
     kind: Job
     namespace: "{{ keycloak_namespace }}"
     label_selectors:
-      - "app.kubernetes.io/name=keycloak-configurator"
+      - "app.kubernetes.io/name in (keycloak-configurator, keycloak-rename)"
   register: _kc_cfg_jobs
 
 - name: "app_keycloak_config | Delete configurator Jobs"

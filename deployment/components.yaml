@@ -55,6 +55,7 @@ components:
     # Created by the configurator Job (kubectl apply).
     ownership_declared:
       - {kind: Secret, name: chattool-credentials}
+      - {kind: ConfigMap, name: keycloak-rename-state}
 
   # --- Edge / API surface ---
   - name: app_apisix

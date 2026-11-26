@@ -298,6 +298,8 @@
             value: "{{ data_consistency_keycloak_url }}"
           - name: KEYCLOAK_REALM
             value: "{{ chattool_keycloak_realm }}"
+          - name: KEYCLOAK_PREVIOUS_REALM
+            value: "{{ chattool_keycloak_previous_realm }}"
           - name: KEYCLOAK_ADMIN_USER
             value: "{{ keycloak_admin_user }}"
           - name: KEYCLOAK_ADMIN_PASSWORD
