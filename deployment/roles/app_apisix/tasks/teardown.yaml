@@ -3,9 +3,7 @@
 
 ---
 - name: "app_apisix | Remove the API route"
-  ansible.builtin.include_tasks: api_route.yaml
-  vars:
-    _apisix_api_route_present: false
+  ansible.builtin.include_tasks: unpublish.yaml
 
 - name: "app_apisix | Uninstall Helm chart"
   kubernetes.core.helm:
