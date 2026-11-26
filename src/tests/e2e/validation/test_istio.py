@@ -170,8 +170,7 @@ def get_vector_db_endpoints():
     """Return the vector database endpoints to probe, keyed by the connection type used to reach them.
 
     Milvus serves gRPC on 19530. The probe only has to open a TCP connection for ztunnel to log
-    the policy decision, so Milvus is probed with the HTTP client (curl), like the other non-Redis
-    ports in this module.
+    the policy decision, so Milvus is probed with the HTTP client (curl).
     """
     if not cfg.get("vector_databases_enabled"):
         return {}
@@ -218,7 +217,7 @@ def get_edp_redis_endpoints():
 def prepare_tests(istio_helper):
     logger.info("============= Prepare Istio Authorization tests =====================")
 
-    # Dynamically populate redis endpoints
+    # Dynamically populate the EDP Redis and vector DB endpoints
     redis_endpoints.extend(get_edp_redis_endpoints())
     for connection_type, endpoints in get_vector_db_endpoints().items():
         istio_test_data[connection_type].extend(endpoints)
