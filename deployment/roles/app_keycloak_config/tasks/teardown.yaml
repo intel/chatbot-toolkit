@@ -64,6 +64,14 @@
             name: keycloak-configurator
             namespace: "{{ keycloak_namespace }}"
 
+    # A teardown may run where no install created the work directories
+    # (app_pre_install), so this cannot assume the directory is already there.
+    - name: "app_keycloak_config | Ensure the work directory exists"
+      ansible.builtin.file:
+        path: "{{ rag_tmp_dir }}"
+        state: directory
+        mode: "0755"
+
     - name: "app_keycloak_config | Generate teardown Job manifest"
       ansible.builtin.template:
         src: teardown-job.yaml.j2
