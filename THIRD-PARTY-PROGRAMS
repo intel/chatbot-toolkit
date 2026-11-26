@@ -7645,6 +7645,10 @@
     * Origin: dockerhub
     * License: collection of licenses
 
+* Component: milvusdb/milvus
+    * Origin: dockerhub
+    * License: collection of licenses
+
 * Component: nats
     * Origin: dockerhub
     * License: collection of licenses
