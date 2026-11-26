@@ -19,10 +19,12 @@ registry: "docker.io/intel"    # Default: public registry
 | Option | Default | Description |
 |--------|---------|-------------|
 | `registry` | `docker.io/intel` | Image registry base URL |
-| `tag` | version from `deployment/version.yaml` | Image tag. Left unset, uses `default_image_tag` from `version.yaml`, which matches the solution version. |
-| `tag_override` | `false` | Set `true` to accept a tag not containing the solution version (e.g. `latest`) |
+| `tag` | `default_image_tag` from `deployment/version.yaml` | Image tag. Left unset, uses `default_image_tag` |
+| `tag_override` | `default_tag_override` from `deployment/version.yaml` | Set `true` to accept a tag not containing the solution version (e.g. `latest`) |
 
-`tag` is optional. Left unset, the deployment uses `default_image_tag` from `deployment/version.yaml`, which matches the solution version. A tag that does not contain the solution version is refused before anything is deployed unless `tag_override: true` is set.
+`tag` is optional. Left unset, the deployment uses `default_image_tag` from `deployment/version.yaml`. A tag that does not contain the solution version is refused before anything is deployed unless `tag_override` resolves to `true`.
+
+Between releases — once `solution_version` moves to the next release but that release's images are not published yet — `default_image_tag` is `"main"` and `default_tag_override` is `true`, so the floating `main` tag is not blocked by default. A release commit sets `default_image_tag` to the release version and `default_tag_override` to `false`, so a mismatched or missing tag is refused again unless `tag_override: true` is set explicitly.
 
 ## Build and push images
 

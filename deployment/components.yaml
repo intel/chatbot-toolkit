@@ -23,6 +23,8 @@ layers:
   - name: erag
     enabled: true
     depends_on: [platform, inference]
+    supports:
+      upgrade: true
 
 components:
   # --- Inference models (deploy via model-manager.sh, wait for readiness) ---

@@ -30,6 +30,9 @@ _VolumeSnapshotClass = kr8s.objects.new_class(
     "VolumeSnapshotClass", "snapshot.storage.k8s.io/v1", asyncio=False, namespaced=False,
     plural="volumesnapshotclasses",
 )
+_PostgresCluster = kr8s.objects.new_class(
+    "Cluster", "postgresql.cnpg.io/v1", asyncio=False, namespaced=True
+)
 _GMConnector = kr8s.objects.new_class(
     "GMConnector", "gmc.erag.intel.com/v1alpha3", asyncio=False, namespaced=True
 )
@@ -132,7 +135,8 @@ class K8sHelper:
             if cm.name == "erag-deployment-manifest":
                 manifest_raw = cm.data.get("manifest.yaml", "")
                 manifest = yaml.safe_load(manifest_raw)
-                return manifest["deployment"]["version"]
+                # Records written by 3.0.0 nest the version under deployment:.
+                return (manifest.get("deployment") or manifest)["version"]
         raise ResourceNotFound("ConfigMap 'erag-deployment-manifest' not found")
 
     def delete_pods_by_label(self, namespace, label_selector):
@@ -207,6 +211,12 @@ class K8sHelper:
             release_name = parts[4] if len(parts) >= 6 else secret.name
             releases.append((secret.namespace, release_name))
         return releases
+
+    def get_postgresql_cluster(self, name, namespace):
+        """Return the PostgreSQL operator's Cluster, or None when it is absent"""
+        for cluster in kr8s.get(_PostgresCluster, namespace=namespace, field_selector=f"metadata.name={name}"):
+            return cluster
+        return None
 
     def list_secrets(self, namespace):
         """List secrets in a namespace"""

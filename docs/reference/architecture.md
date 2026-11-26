@@ -70,7 +70,7 @@ The **Enabled** column is the fallback in `components.yaml`, used only when noth
 | `app_watcher` | Yes | `app_pre_install` | Namespace status watcher for reboot recovery |
 | `app_post_install` | Yes | - | Prints access URLs, credentials, validation summary |
 
-**Helper roles** (included by other roles, not in the registry): `app_audio`, `app_check_pods`, `app_data_consistency`, `app_deployment_manifest`, `app_generate_password`, `app_password_mgmt`.
+**Helper roles** (included by other roles, not in the registry): `app_audio`, `app_check_pods`, `app_data_consistency`, `app_generate_password`, `app_password_mgmt`, `app_postgresql_cluster` (backup profile hooks).
 
 ## Microservices
 

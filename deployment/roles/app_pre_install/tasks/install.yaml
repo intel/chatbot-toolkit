@@ -1,13 +1,4 @@
 ---
-# Runs before anything mutates, so a refused install leaves the deployment as it
-# was. Guarded on the action because upgrade.yaml already runs the check and then
-# delegates here — without the guard every upgrade would check twice.
-- name: "app_pre_install | Version check"
-  ansible.builtin.include_role:
-    name: app_deployment_manifest
-    tasks_from: check_version.yaml
-  when: component_action | default('install') == 'install'
-
 - name: "app_pre_install | Derive the EDP storage type from the ONTAP S3 parameters"
   ansible.builtin.include_role:
     name: app_edp
@@ -16,6 +7,11 @@
 - name: "app_pre_install | Load settings"
   ansible.builtin.include_tasks:
     file: load_settings.yaml
+
+# After load_settings, because the count Jobs need the image tag, and before
+# anything changes.
+- name: "app_pre_install | Count the data stores before a version change"
+  ansible.builtin.include_tasks: version_change.yaml
 
 - name: "app_pre_install | Create log and work directories if they do not exist"
   ansible.builtin.file:
@@ -36,8 +32,3 @@
 - name: "app_pre_install | Load init passwords"
   ansible.builtin.include_role:
     name: app_generate_password
-
-- name: "app_pre_install | Create deployment manifest stub"
-  ansible.builtin.include_role:
-    name: app_deployment_manifest
-    tasks_from: create_stub.yaml

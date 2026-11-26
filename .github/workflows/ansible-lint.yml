@@ -66,11 +66,11 @@ jobs:
       # sentence -- flags on essentially every task. Left enabled it buries
       # the substantive findings.
       #
-      # Only deployment/roles and the backup playbook are ansible content;
-      # the playbooks/ and env/ trees referenced by deployment/backup.yaml are
+      # The playbooks/ and env/ trees referenced by deployment/backup.yaml are
       # supplied per-environment and are not part of this repository.
       - name: Run ansible-lint
         run: >-
           ansible-lint --nocolor
           --skip-list name,var-naming,fqcn,yaml,jinja,key-order
           deployment/roles/ deployment/backup.yaml
+          deployment/upgrade_checks/

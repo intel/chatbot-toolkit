@@ -1,0 +1,56 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# post_restore hook, before every hook that needs the database. The restore deleted
+# the shared PostgreSQL Cluster to replay its volume; the replay brings the volume
+# and its Secrets back but not the Cluster, which belongs to the platform layer.
+# Recreated from the definition tasks/capture.yaml saved, the operator takes over
+# the restored volume. A backup that still held the Cluster itself has restored it
+# already, and only the wait runs.
+# backup_hook_args: namespace, name (the Cluster), secret.
+- name: "app_postgresql_cluster | Look for the shared PostgreSQL cluster"
+  kubernetes.core.k8s_info:
+    api_version: postgresql.cnpg.io/v1
+    kind: Cluster
+    namespace: "{{ backup_hook_args.namespace }}"
+    name: "{{ backup_hook_args.name }}"
+  register: _pgc_now
+
+- name: "app_postgresql_cluster | Recreate the cluster from the backup"
+  when: _pgc_now.resources | length == 0
+  block:
+    - name: "app_postgresql_cluster | Read the saved definition"
+      kubernetes.core.k8s_info:
+        api_version: v1
+        kind: Secret
+        namespace: "{{ backup_hook_args.namespace }}"
+        name: "{{ backup_hook_args.secret }}"
+      register: _pgc_saved
+
+    - name: "app_postgresql_cluster | Require the saved definition"
+      ansible.builtin.assert:
+        that: _pgc_saved.resources | length == 1
+        fail_msg: >-
+          The restore removed PostgreSQL Cluster {{ backup_hook_args.name }} and this backup holds
+          no saved definition of it (Secret {{ backup_hook_args.secret }}). Run
+          ./toolkit_manager.sh install platform --env <name> to recreate it, and restart the identity
+          service so it reads the restored realm: kubectl -n keycloak rollout restart statefulset keycloak.
+
+    - name: "app_postgresql_cluster | Create the cluster"
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ _pgc_saved.resources[0].data['cluster.json'] | b64decode | from_json }}"
+
+- name: "app_postgresql_cluster | Wait until the cluster is healthy"
+  kubernetes.core.k8s_info:
+    api_version: postgresql.cnpg.io/v1
+    kind: Cluster
+    namespace: "{{ backup_hook_args.namespace }}"
+    name: "{{ backup_hook_args.name }}"
+  register: _pgc_wait
+  until: >-
+    _pgc_wait.resources | length == 1
+    and (_pgc_wait.resources[0].status.readyInstances | default(0))
+        == (_pgc_wait.resources[0].spec.instances | default(1))
+  retries: "{{ postgresql_cluster_wait_retries }}"
+  delay: "{{ postgresql_cluster_wait_delay }}"

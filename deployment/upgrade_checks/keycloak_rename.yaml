@@ -1,0 +1,22 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+# A release before 3.1.0 created the Keycloak realm EnterpriseRAG and the erag-*
+# names. This release uses ChatbotToolkit and chattool-* and does not rename them
+# in place: an upgrade would add an empty realm beside the old one. Refuse it before
+# anything changes and point to the reinstall. A dev or rc build of 3.1.0 is not
+# refused. Fresh installs have no record and pass.
+- name: "layer_checks | erag keycloak-rename | Record the verdict"
+  ansible.builtin.set_fact:
+    _upgrade_verdicts: "{{ _upgrade_verdicts + [_verdict] }}"
+  vars:
+    _recorded: "{{ (_layer_records[upgrade_check_layer] | default({})).version | default('', true) | string }}"
+    _verdict: >-
+      {{ {'layer': upgrade_check_layer, 'check': 'keycloak-rename', 'verdict': 'blocking',
+          'reason': upgrade_check_layer ~ ' ' ~ _recorded ~ ' uses the Keycloak realm EnterpriseRAG and the erag-* names;'
+                    ~ ' this release uses ChatbotToolkit and chattool-* and does not rename them in place',
+          'resolve': 'reinstall: tear ' ~ upgrade_check_layer ~ ' down with the release that installed it, then follow'
+                     ~ ' docs/deploy/install_rag.md, "Upgrade from a release before the Chatbot Toolkit rename"'}
+         if _recorded and _recorded is version('3.1.0.dev0', '<', version_type='pep440')
+         else {'layer': upgrade_check_layer, 'check': 'keycloak-rename', 'verdict': 'pass',
+               'reason': 'no record from before the Chatbot Toolkit rename', 'resolve': None} }}

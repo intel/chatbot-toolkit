@@ -142,7 +142,7 @@ Removes components in reverse order; models undeployed automatically.
 
 ## Upgrade from a release before the Chatbot Toolkit rename
 
-The Keycloak realm, clients, roles, users and groups were renamed (realm `EnterpriseRAG` → `ChatbotToolkit`, `erag-*` → `chattool-*`). An upgrade doesn't rename them in place, so reinstall:
+The Keycloak realm, clients, roles, users and groups were renamed (realm `EnterpriseRAG` → `ChatbotToolkit`, `erag-*` → `chattool-*`). An upgrade doesn't rename them in place, so the installer refuses an install of this release over an earlier one (check `keycloak-rename`). Reinstall:
 
 1. Tear down with the **previous** release: `./es_auto_installer.sh teardown erag --env <name>`. The new release's teardown only removes the new realm and the `chattool-credentials` Secret. It would leave the old `EnterpriseRAG` realm, with its users, passwords and client secrets, and the `erag-credentials` Secret in the platform's Keycloak.
 2. In `env/<name>/config.erag.yaml`, rename every `erag_keycloak_*` key to `chattool_keycloak_*`. The installer stops if an old key is still set.

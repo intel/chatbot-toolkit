@@ -62,7 +62,7 @@ version_key: "solution_version"
 #     by the model catalogue; backing up tens of gigabytes of them per backup is
 #     not a trade anyone wants.
 namespace_order:
-  - default                                   # deployment manifest
+  - default                                   # this layer's deployment records (see Selectors)
   - postgresql                                # postgresql_namespace — the shared database, realm included
   - keycloak                                  # keycloak_namespace — identity service config and db credentials
   - system                                    # gmc_namespace — pipeline operator
@@ -79,14 +79,17 @@ namespace_order:
 # -----------------------------------------------------------------------------
 # Selectors
 # -----------------------------------------------------------------------------
-# None. Everything in the namespaces above is solution state, and model serving —
-# the one thing worth excluding — lives in a namespace that is not in the list.
-#
-# The monorepo carried an `app.kubernetes.io/instance notin (...)` selector for
-# exactly that exclusion. Kubernetes NotIn also matches objects without the key,
-# so that selector matched practically everything: it was equivalent to no
-# selector while looking like a filter. Not reproducing it.
-or_label_selectors: []
+# Every layer keeps its deployment records in `default`, labelled
+# toolkit-manager.intel.com/layer=<layer>. Only this layer's are captured: a restore
+# that replayed another layer's would put back that layer's version at backup time.
+# Solution state carries no layer label; the second entry keeps it, and says so
+# explicitly because Kubernetes NotIn would also match objects without the key.
+or_label_selectors:
+  - matchLabels:
+      toolkit-manager.intel.com/layer: erag
+  - matchExpressions:
+      - key: toolkit-manager.intel.com/layer
+        operator: DoesNotExist
 label_selector: {}
 
 # Never restored. Pods and ReplicaSets are recreated by their controllers;
@@ -120,7 +123,9 @@ cleanup:
   # The database is not a Helm release — the platform's PostgreSQL operator owns it
   # through this custom resource, and while the resource exists the operator
   # recreates the volume the restore is about to replay. Deleting the resource takes
-  # its pod and its volume with it, and the restore brings both back.
+  # its pod and its volume with it. The restore brings the volume back; the resource
+  # carries the platform layer's label, so this backup does not hold it, and the
+  # first post_restore hook recreates it from the definition pre_backup saved.
   postgresql:
     - kind: Cluster
       api_version: postgresql.cnpg.io/v1
@@ -151,12 +156,30 @@ cleanup:
 # -----------------------------------------------------------------------------
 # Hooks
 # -----------------------------------------------------------------------------
-# None. Every store in this profile is captured as the volume it sits on, and a
-# snapshot of a single volume is a crash-consistent copy the database recovers from
-# by replaying its own write-ahead log when it starts.
-pre_backup: []
+# Every store in this profile is captured as the volume it sits on, and a snapshot
+# of a single volume is a crash-consistent copy the database recovers from by
+# replaying its own write-ahead log when it starts. No store needs a dump.
+#
+# The one hook pair keeps the shared database's Cluster resource, which the cleanup
+# above deletes but this layer's backup does not capture (see cleanup).
+pre_backup:
+  - kind: role
+    name: "keep the shared database's definition for a restore"
+    role: app_postgresql_cluster
+    tasks_from: capture.yaml
+    args: &postgresql_cluster
+      namespace: postgresql
+      name: "{{ postgresql_cluster_name | default('postgresql') }}"
+      secret: erag-postgresql-cluster
 
 post_restore:
+  # First: every hook after it needs the database.
+  - kind: role
+    name: "bring the shared database back on its restored volume"
+    role: app_postgresql_cluster
+    tasks_from: recreate.yaml
+    args: *postgresql_cluster
+
   # The identity service holds the realm it serves in a local cache. The replay
   # changes the database underneath it without telling it, so it would keep
   # answering from accounts that no longer exist. Restarting it is what makes it

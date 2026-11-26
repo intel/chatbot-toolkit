@@ -9,14 +9,6 @@
     name: app_check_pods
     tasks_from: teardown.yaml
 
-# Last, because teardown runs the components in reverse: this role is the final
-# one, so by now everything the manifest inventories is gone. app_post_install
-# marked it as deleting on the way in.
-- name: "app_pre_install | Delete deployment manifest"
-  ansible.builtin.include_role:
-    name: app_deployment_manifest
-    tasks_from: delete.yaml
-
 - name: "app_pre_install | Remove RAG log and work directories (credentials, certs, temp manifests)"
   ansible.builtin.file:
     path: "{{ item }}"

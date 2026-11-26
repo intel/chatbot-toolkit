@@ -39,3 +39,6 @@ BACKED_UP_DATA_NAMESPACES = [
 ]
 # The shared database the identity realm lives in.
 IDENTITY_DATABASE_NAMESPACE = "postgresql"
+# Its Cluster resource, and the Secret the backup profile's pre_backup hook saves its definition in.
+IDENTITY_DATABASE_CLUSTER = "postgresql"
+IDENTITY_DATABASE_DEFINITION_SECRET = "erag-postgresql-cluster"
