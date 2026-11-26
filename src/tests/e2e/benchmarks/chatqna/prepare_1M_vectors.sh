@@ -12,7 +12,7 @@ if ! python3 -c "import defusedxml, requests, transformers, pandas" 2>/dev/null;
     exit 1
 fi
 
-# Ensure proxy bypass is configured for the eRAG domain
+# Ensure proxy bypass is configured for the Chatbot Toolkit domain
 ERAG_DOMAIN="${ERAG_DOMAIN_NAME:-solutions.ai}"
 proxy_ok=0
 for proxy_var in no_proxy NO_PROXY; do

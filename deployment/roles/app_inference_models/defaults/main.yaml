@@ -15,7 +15,7 @@ inference_namespace: "llm-inference"
 # Stable svc name in envoy-gateway-system, model-aware (routes by path).
 inference_aigw_endpoint: "http://ai-gateway.envoy-gateway-system.svc"
 
-# Path to model-manager CLI (in ai-solutions ext/)
+# Path to model-manager CLI (in Toolkit Manager ext/)
 inference_model_manager_path: "{{ playbook_dir }}/../model-manager"
 
 # Models to deploy — each must exist in model-manager's models.yaml.

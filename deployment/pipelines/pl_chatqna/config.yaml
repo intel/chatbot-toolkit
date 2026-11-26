@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
 # =============================================================================
-# Pipeline defaults - fetched via: ai-solutions installer init rag --pl_chatqna
+# Pipeline defaults - fetched via: toolkit_manager.sh init erag --flavour pl_chatqna
 # =============================================================================
 
 # --- Container images ---

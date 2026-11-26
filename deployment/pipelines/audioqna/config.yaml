@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
 # =============================================================================
-# Pipeline defaults - fetched via: ai-solutions installer init rag --audioqna
+# Pipeline defaults - fetched via: toolkit_manager.sh init erag --flavour audioqna
 # =============================================================================
 # AudioQnA is the ChatQnA graph (pipeline_type: chatqna, base variant) with
 # audio enabled. Only the deltas vs chatqna live here; audio is runtime config,

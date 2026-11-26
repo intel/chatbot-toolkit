@@ -47,7 +47,7 @@ def _in_balloon(pod) -> bool:
     """Return True when the BalloonsPolicy assigns this pod to a balloon.
 
     OpenShift AI cannot annotate the pods of an LLMInferenceService, so there
-    the policy selects them by label instead (ai-solutions sets the tp1 balloon
+    the policy selects them by label instead (Toolkit Manager sets the tp1 balloon
     to match kserve.io/component=workload). The pinning is still asserted from
     the pod's cpuset either way.
     """

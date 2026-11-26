@@ -1,6 +1,6 @@
 ---
 # =============================================================================
-# Pipeline defaults — fetched via: ai-solutions installer init rag --docsum
+# Pipeline defaults — fetched via: toolkit_manager.sh init erag --flavour docsum
 # =============================================================================
 
 # --- Container images ---
