@@ -15,6 +15,8 @@ INGRESS_NGINX_CONTROLLER_NS = "ingress-nginx"
 INGRESS_NGINX_CONTROLLER_POD_LABEL_SELECTOR = {"app.kubernetes.io/name": "ingress-nginx"}
 CHATQNA_NAMESPACE = "chatqna"
 EDP_NAMESPACE = "edp"
+FINGERPRINT_NAMESPACE = "fingerprint"
+KEYCLOAK_NAMESPACE = "keycloak"
 
 # ChatQnA model microservice pod labels — used to assert which model servers are (un)deployed
 # (e.g. the upload variant is embedding-only: LLM + reranking are undeployed).

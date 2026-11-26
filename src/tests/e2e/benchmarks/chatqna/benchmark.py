@@ -18,7 +18,6 @@ from functools import partial
 from queue import Empty, Queue
 import requests
 import urllib3
-from transformers import AutoTokenizer
 
 class QueryPool:
     def __init__(self, file_path, n_tokens, tokenizer):
@@ -79,7 +78,7 @@ class Result:
         self.err = None
         self.code = 0
 
-def parse_args():
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Load testing tool.")
     parser.add_argument("-f", type=str, help="Question File Location")
     parser.add_argument("-s", type=str, default="https://solutions.ai/api/v1/chatqna", help="Server Address format")
@@ -91,7 +90,7 @@ def parse_args():
     parser.add_argument("-b", type=str, default="uat.txt", help="Path to file with UAT")
     parser.add_argument("-x", type=int, default=0, help="Fix length of input query to X tokens (0 means no fixing)")
     parser.add_argument("-w", type=int, default=1, help="Warmup request per thread to skip")
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 def duration_to_seconds(duration_str):
     units = {"s": 1, "m": 60, "h": 3600}
@@ -182,13 +181,15 @@ def call_chatqna(url, question, wid, tokenizer, bearer):
 def signal_handler(var, signal, frame):
     var[0] = var[0] + 1
 
-def main():
-    args = parse_args()
+def run_benchmark(args, output_file=None):
+    """Run one load test and return ``(error, output_file)``."""
     print(' \n'.join(f'{k}: {v}' for k, v in vars(args).items()))
+
+    # Local import due to heavy library
+    from transformers import AutoTokenizer
 
     tokenizer = AutoTokenizer.from_pretrained(args.m)
 
-    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
     stop_event = threading.Event()
     signal.signal(signal.SIGINT, lambda s, f: stop_event.set())
 
@@ -196,7 +197,8 @@ def main():
     num_workers = args.c
     duration = duration_to_seconds(args.d)
     delay_unit = duration_to_seconds(args.u)
-    output_file = f"./bench_{time.strftime('%m%d-%H%M')}_c-{num_workers}_d-{args.u}.result.csv"
+    if output_file is None:
+        output_file = f"./bench_{time.strftime('%m%d-%H%M')}_c-{num_workers}_d-{args.u}.result.csv"
     result_queue = Queue()
 
     failures_allowed = args.e
@@ -231,7 +233,14 @@ def main():
             future.result()
 
         collector_thread.join()
-        sys.exit(error)
+
+    return error, output_file
+
+def main():
+    args = parse_args()
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    error, _ = run_benchmark(args)
+    sys.exit(error)
 
 if __name__ == "__main__":
     main()
