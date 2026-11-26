@@ -25,7 +25,7 @@ def keycloak_base_url():
     """
     fqdn = cfg.get("base_domain_name")
     if cfg.get("routing_mode", "subdomain") == "path":
-        prefix = cfg.get("erag_keycloak_default_path_prefix") or cfg.get("keycloak_path") or "/keycloak"
+        prefix = cfg.get("chattool_keycloak_default_path_prefix") or cfg.get("keycloak_path") or "/keycloak"
         return f"https://{fqdn}{prefix}"
     return f"https://keycloak.{fqdn}"
 

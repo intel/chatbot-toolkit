@@ -188,9 +188,9 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
 
 # -------------- Authorization ------------
 
-KEYCLOAK_BACKEND_CLIENT = "EnterpriseRAG-oidc-backend"
-PRIVILEGED_ROLES = {"ERAG-admin", "ERAG-maintainer"}
-PRODUCT_ROLES = PRIVILEGED_ROLES | {"ERAG-user"}
+KEYCLOAK_BACKEND_CLIENT = "ChatbotToolkit-oidc-backend"
+PRIVILEGED_ROLES = {"CHATTOOL-admin", "CHATTOOL-maintainer"}
+PRODUCT_ROLES = PRIVILEGED_ROLES | {"CHATTOOL-user"}
 # Keycloak signs with the realm default (RS384 as configured by app_keycloak_config); HMAC
 # is excluded so a public JWKS key can never be used as a shared secret.
 TOKEN_ALGORITHMS = ["RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "ES256", "ES384", "ES512"]

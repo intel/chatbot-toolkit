@@ -15,7 +15,7 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def admin_caller():
-    app.dependency_overrides[caller_roles] = lambda: {"ERAG-admin"}
+    app.dependency_overrides[caller_roles] = lambda: {"CHATTOOL-admin"}
     yield
     app.dependency_overrides.pop(caller_roles, None)
 

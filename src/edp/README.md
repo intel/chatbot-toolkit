@@ -405,10 +405,10 @@ This will run the tests and create a code coverage report.
 
 ### PresignedUrl generation
 
-EDP generates presigned URLs that allow users to upload, download, or delete files via the WebUI or directly through the S3 endpoint. Every request needs a valid Keycloak access token, and EDP checks the caller's `EnterpriseRAG-oidc-backend` client roles before it signs anything:
+EDP generates presigned URLs that allow users to upload, download, or delete files via the WebUI or directly through the S3 endpoint. Every request needs a valid Keycloak access token, and EDP checks the caller's `ChatbotToolkit-oidc-backend` client roles before it signs anything:
 
-- `GET` is allowed for any product role (`ERAG-user`, `ERAG-maintainer`, `ERAG-admin`).
-- `PUT` and `DELETE` require `ERAG-maintainer` or `ERAG-admin`.
+- `GET` is allowed for any product role (`CHATTOOL-user`, `CHATTOOL-maintainer`, `CHATTOOL-admin`).
+- `PUT` and `DELETE` require `CHATTOOL-maintainer` or `CHATTOOL-admin`.
 
 EDP first tries to sign with the caller's own storage credentials through STS `AssumeRoleWithWebIdentity`. Storage backends without STS (SeaweedFS without `edp_rbac_enabled`, AWS S3, ONTAP S3) cannot do that, so the installer enables the system credentials fallback by default and EDP signs with its own storage credentials. In that mode the role check above is the only authorization, and URLs are issued only for buckets that match the bucket name filter. To make a missing STS endpoint fail with HTTP 400 instead, set the following in `env/<name>/config.erag.yaml`:
 

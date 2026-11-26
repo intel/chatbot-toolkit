@@ -56,7 +56,7 @@
     msg: >-
       Skipping the MCP edge auth check: no token from {{ mcp_jwt_issuer }}
       (HTTP {{ _mcp_token.status | default('no response') }}). Resolve
-      '{{ erag_keycloak_domain_name }}' from this host to enable it.
+      '{{ chattool_keycloak_domain_name }}' from this host to enable it.
   when: _mcp_token.json.access_token is not defined
 
 - name: "app_mcp_gateway | Verify the edge accepts the agent token"

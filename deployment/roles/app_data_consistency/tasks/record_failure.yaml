@@ -1,0 +1,9 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: "app_data_consistency | Snapshot — {{ dcr_store }}: record failure"
+  ansible.builtin.set_fact:
+    _data_snapshot: >-
+      {{ _data_snapshot | combine({dcr_store: {
+           'count': none, 'status': 'failed', 'method': 'none',
+           'reason': ansible_failed_result.msg | default('the count failed')}}) }}
