@@ -10,7 +10,7 @@ import allure
 import requests
 import yaml
 
-from tests.e2e.validation.buildcfg import cfg, keycloak_base_url
+from tests.e2e.validation.buildcfg import cfg, is_openshift, keycloak_base_url
 from tests.e2e.validation.constants import VITE_KEYCLOAK_REALM
 
 logger = logging.getLogger(__name__)
@@ -78,7 +78,10 @@ def _verify_layer(k8s_helper, layer):
     """
     layer_map = _load_layer_map()
     assert layer in layer_map, f"Unknown layer '{layer}'. Known: {sorted(layer_map)}"
-    spec = layer_map[layer] or {}
+    spec = dict(layer_map[layer] or {})
+    platform_spec = spec.pop("openshift", {})
+    if is_openshift():
+        spec.update(platform_spec)
 
     current_ns = set(k8s_helper.list_namespaces())
     logger.info(f"Verifying uninstall of layer '{layer}'. Namespaces present: {sorted(current_ns)}")

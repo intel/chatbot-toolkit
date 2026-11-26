@@ -14,6 +14,10 @@
 #   retained_namespaces - lower layers that MUST still exist (single-layer teardown in CI:
 #                         full install, then tear down one layer top-down)
 #   allowed_namespaces  - ('all' only) the only namespaces permitted after a full teardown
+#   openshift           - keys that replace the ones above on OpenShift, where the cluster's
+#                         own operators provide what this installer deploys on Kubernetes
+#                         (OpenShift AI's KServe, the LeaderWorkerSet, NFD, cert-manager, Service
+#                         Mesh and CloudNativePG operators, the admin's istio-system and keycloak)
 #
 # NOTE: the map is intentionally strict — it asserts the *fully clean* end-state.
 
@@ -37,6 +41,10 @@ layers:
     retained_namespaces:      # inference + platform still installed below erag
       - kserve
       - istio-system
+    openshift:
+      retained_namespaces:    # KServe is OpenShift AI's, outside the inference layer
+        - llm-inference
+        - istio-system
 
   inference:
     removed_namespaces:
@@ -54,6 +62,13 @@ layers:
       - istio-system
       - cert-manager
       - node-feature-discovery
+    openshift:
+      removed_crd_groups:     # serving.kserve.io and leaderworkerset.x-k8s.io are the operators'
+        - aigateway.envoyproxy.io
+      retained_namespaces:
+        - istio-system
+        - cert-manager
+        - openshift-nfd       # NFD from its OLM operator
 
   platform:
     removed_namespaces:
@@ -79,6 +94,19 @@ layers:
       - telemetry.istio.io
       - nfd.k8s-sigs.io
     retained_namespaces: []   # only infrastructure (bare cluster) remains
+    openshift:
+      removed_namespaces:     # cert-manager is its operator's, istio-system and keycloak the admin's
+        - cnpg-system
+        - envoy-gateway-system
+        - metallb-system
+        - minio
+        - monitoring
+        - node-feature-discovery
+        - postgresql
+      removed_crd_groups:     # the operators' and cluster monitoring's groups stay
+        - metallb.io
+        - config.nri
+        - gateway.envoyproxy.io
 
   all:
     # Full teardown (teardown --all): only base Kubernetes / node namespaces may remain.
