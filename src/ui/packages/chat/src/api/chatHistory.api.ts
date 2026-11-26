@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { KeycloakService } from "@intel-enterprise-rag-ui/auth";
+import { KeycloakService } from "@intel-chatbot-toolkit-ui/auth";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import { CHAT_HISTORY_API_ENDPOINTS } from "@/api/config";

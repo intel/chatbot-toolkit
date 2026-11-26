@@ -383,7 +383,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-namespace-status-watcher-microservice"
+name = "intel-chatbot-toolkit-namespace-status-watcher-microservice"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

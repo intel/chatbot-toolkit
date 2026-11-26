@@ -9,7 +9,7 @@ import {
   IconButton,
   LoadingFallback,
   Tooltip,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import classNames from "classnames";
 import { ReactNode, useCallback, useState } from "react";
 

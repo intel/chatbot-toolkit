@@ -3,7 +3,7 @@
 
 import "./DeleteChatDialog.css";
 
-import { ActionDialog } from "@intel-enterprise-rag-ui/components";
+import { ActionDialog } from "@intel-chatbot-toolkit-ui/components";
 
 export type OnDeleteChatHandler = (chatId: string) => void;
 

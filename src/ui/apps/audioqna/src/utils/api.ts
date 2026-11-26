@@ -1,9 +1,9 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { keycloakService } from "@intel-enterprise-rag-ui/auth";
-import { addNotification } from "@intel-enterprise-rag-ui/components";
-import { NamespaceStatus } from "@intel-enterprise-rag-ui/control-plane";
+import { keycloakService } from "@intel-chatbot-toolkit-ui/auth";
+import { addNotification } from "@intel-chatbot-toolkit-ui/components";
+import { NamespaceStatus } from "@intel-chatbot-toolkit-ui/control-plane";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 
 import { AppDispatch } from "@/store";

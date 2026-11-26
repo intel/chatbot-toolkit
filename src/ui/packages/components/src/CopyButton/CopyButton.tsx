@@ -3,7 +3,7 @@
 
 import "./CopyButton.css";
 
-import { IconName } from "@intel-enterprise-rag-ui/icons";
+import { IconName } from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 import { useState } from "react";
 

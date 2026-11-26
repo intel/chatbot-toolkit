@@ -4,7 +4,7 @@
 import {
   CheckboxInput,
   CheckboxInputChangeHandler,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import { useCallback, useEffect, useState } from "react";
 
 import {

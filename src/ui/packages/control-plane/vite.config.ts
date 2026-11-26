@@ -16,8 +16,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
-      name: "intel-enterprise-rag-ui-control-plane",
-      fileName: "intel-enterprise-rag-ui-control-plane",
+      name: "intel-chatbot-toolkit-ui-control-plane",
+      fileName: "intel-chatbot-toolkit-ui-control-plane",
       cssFileName: "style",
       formats: ["es"],
     },

@@ -4,8 +4,8 @@
 import {
   KeycloakService,
   useTokenRefresh,
-} from "@intel-enterprise-rag-ui/auth";
-import { AppProvider } from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/auth";
+import { AppProvider } from "@intel-chatbot-toolkit-ui/components";
 import { ComponentProps, ReactNode } from "react";
 import { Provider } from "react-redux";
 

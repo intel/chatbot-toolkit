@@ -6,8 +6,8 @@ export { ChatSideMenu } from "@/components/chat-history/ChatSideMenu/ChatSideMen
 export { ConversationFeed } from "@/components/conversation-feed/ConversationFeed/ConversationFeed";
 export { type PlaySpeechButtonState } from "@/components/conversation-feed/PlaySpeechButton/PlaySpeechButton";
 export { PromptInput } from "@/components/conversation-feed/PromptInput/PromptInput";
-export { NewChatButton } from "@intel-enterprise-rag-ui/components";
-export { SideMenuIconButton as ChatSideMenuIconButton } from "@intel-enterprise-rag-ui/layouts";
+export { NewChatButton } from "@intel-chatbot-toolkit-ui/components";
+export { SideMenuIconButton as ChatSideMenuIconButton } from "@intel-chatbot-toolkit-ui/layouts";
 
 // Layouts
 export { ChatConversationLayout } from "@/layouts/ChatConversationLayout/ChatConversationLayout";

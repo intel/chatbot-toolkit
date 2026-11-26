@@ -7,9 +7,9 @@ import {
   addNotification,
   FileInput,
   FileInputHandle,
-} from "@intel-enterprise-rag-ui/components";
-import { getValidationErrorMessage } from "@intel-enterprise-rag-ui/input-validation";
-import { sanitizeFile } from "@intel-enterprise-rag-ui/utils";
+} from "@intel-chatbot-toolkit-ui/components";
+import { getValidationErrorMessage } from "@intel-chatbot-toolkit-ui/input-validation";
+import { sanitizeFile } from "@intel-chatbot-toolkit-ui/utils";
 import { ChangeEvent, DragEvent, useCallback, useRef } from "react";
 
 import { useSummarizeFileMutation } from "@/features/docsum/api";

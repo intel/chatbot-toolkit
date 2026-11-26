@@ -8,8 +8,8 @@ import {
   Button,
   Label,
   TextAreaInput,
-} from "@intel-enterprise-rag-ui/components";
-import { getValidationErrorMessage } from "@intel-enterprise-rag-ui/input-validation";
+} from "@intel-chatbot-toolkit-ui/components";
+import { getValidationErrorMessage } from "@intel-chatbot-toolkit-ui/input-validation";
 import { ChangeEventHandler, useCallback, useEffect, useRef } from "react";
 
 import { useSummarizePlainTextMutation } from "@/features/docsum/api";

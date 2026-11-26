@@ -5,8 +5,8 @@
 import {
   resetChatHistorySlice,
   resetChatSideMenuSlice,
-} from "@intel-enterprise-rag-ui/chat";
-import { edpApi } from "@intel-enterprise-rag-ui/data-ingestion";
+} from "@intel-chatbot-toolkit-ui/chat";
+import { edpApi } from "@intel-chatbot-toolkit-ui/data-ingestion";
 
 import { s3Api } from "@/features/admin-panel/data-ingestion/api/s3Api";
 import { audioQnAApi } from "@/features/chat/api/audioQnA.api";

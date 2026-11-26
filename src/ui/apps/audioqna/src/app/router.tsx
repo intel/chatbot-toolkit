@@ -5,12 +5,12 @@ import {
   AccessGuard,
   AdminPanelGuard,
   keycloakService,
-} from "@intel-enterprise-rag-ui/auth";
+} from "@intel-chatbot-toolkit-ui/auth";
 import {
   LoadingFallback,
   useColorScheme,
-} from "@intel-enterprise-rag-ui/components";
-import { RootLayout } from "@intel-enterprise-rag-ui/layouts";
+} from "@intel-chatbot-toolkit-ui/components";
+import { RootLayout } from "@intel-chatbot-toolkit-ui/layouts";
 import { lazy, Suspense } from "react";
 import {
   createBrowserRouter,

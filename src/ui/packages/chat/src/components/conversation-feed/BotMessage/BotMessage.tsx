@@ -3,10 +3,10 @@
 
 import "./BotMessage.css";
 
-import { CopyButton } from "@intel-enterprise-rag-ui/components";
-import { ChatBotIcon, ErrorIcon } from "@intel-enterprise-rag-ui/icons";
-import { Markdown } from "@intel-enterprise-rag-ui/markdown";
-import { sanitizeString } from "@intel-enterprise-rag-ui/utils";
+import { CopyButton } from "@intel-chatbot-toolkit-ui/components";
+import { ChatBotIcon, ErrorIcon } from "@intel-chatbot-toolkit-ui/icons";
+import { Markdown } from "@intel-chatbot-toolkit-ui/markdown";
+import { sanitizeString } from "@intel-chatbot-toolkit-ui/utils";
 import classNames from "classnames";
 import { memo } from "react";
 

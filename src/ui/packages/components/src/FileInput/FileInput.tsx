@@ -3,7 +3,7 @@
 
 import "./FileInput.css";
 
-import { FileIcon } from "@intel-enterprise-rag-ui/icons";
+import { FileIcon } from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 import {
   DragEvent,

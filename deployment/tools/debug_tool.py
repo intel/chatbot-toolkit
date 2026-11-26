@@ -24,7 +24,7 @@ import shutil
 import yaml
 
 
-class EnterpriseRAGDebugger:
+class ChatbotToolkitDebugger:
     # Line width for error/warning messages
     LINE_WIDTH = 60
 
@@ -80,7 +80,7 @@ class EnterpriseRAGDebugger:
         os.makedirs(self.base_path, exist_ok=True)
 
         # Setup logger
-        self.logger = logging.getLogger("EnterpriseRAGDebugger")
+        self.logger = logging.getLogger("ChatbotToolkitDebugger")
         self.logger.setLevel(logging.DEBUG)
 
         # Console handler with custom formatter
@@ -626,7 +626,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    debugger = EnterpriseRAGDebugger(
+    debugger = ChatbotToolkitDebugger(
         output_dir=args.output_dir,
         config_dir=args.config_dir,
     )

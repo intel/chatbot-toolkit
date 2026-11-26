@@ -40,23 +40,23 @@ pnpm --version
 
 ### Apps
 
-- [@intel-enterprise-rag-ui/chatqna](apps/chatqna)
-- [@intel-enterprise-rag-ui/audioqna](apps/audioqna)
-- [@intel-enterprise-rag-ui/docsum](apps/docsum)
+- [@intel-chatbot-toolkit-ui/chatqna](apps/chatqna)
+- [@intel-chatbot-toolkit-ui/audioqna](apps/audioqna)
+- [@intel-chatbot-toolkit-ui/docsum](apps/docsum)
 
 ### Packages
 
-- [@intel-enterprise-rag-ui/auth](packages/auth)
-- [@intel-enterprise-rag-ui/chat](packages/chat)
-- [@intel-enterprise-rag-ui/components](packages/components)
-- [@intel-enterprise-rag-ui/control-plane](packages/control-plane)
-- [@intel-enterprise-rag-ui/data-ingestion](packages/data-ingestion)
-- [@intel-enterprise-rag-ui/icons](packages/icons)
-- [@intel-enterprise-rag-ui/input-validation](packages/input-validation)
-- [@intel-enterprise-rag-ui/layouts](packages/layouts)
-- [@intel-enterprise-rag-ui/markdown](packages/markdown)
-- [@intel-enterprise-rag-ui/tailwind-theme](packages/tailwind-theme)
-- [@intel-enterprise-rag-ui/utils](packages/utils)
+- [@intel-chatbot-toolkit-ui/auth](packages/auth)
+- [@intel-chatbot-toolkit-ui/chat](packages/chat)
+- [@intel-chatbot-toolkit-ui/components](packages/components)
+- [@intel-chatbot-toolkit-ui/control-plane](packages/control-plane)
+- [@intel-chatbot-toolkit-ui/data-ingestion](packages/data-ingestion)
+- [@intel-chatbot-toolkit-ui/icons](packages/icons)
+- [@intel-chatbot-toolkit-ui/input-validation](packages/input-validation)
+- [@intel-chatbot-toolkit-ui/layouts](packages/layouts)
+- [@intel-chatbot-toolkit-ui/markdown](packages/markdown)
+- [@intel-chatbot-toolkit-ui/tailwind-theme](packages/tailwind-theme)
+- [@intel-chatbot-toolkit-ui/utils](packages/utils)
 
 ## Getting Started
 

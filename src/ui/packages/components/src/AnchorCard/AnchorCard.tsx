@@ -7,8 +7,8 @@ import {
   ExternalLinkIcon,
   IconName,
   icons,
-} from "@intel-enterprise-rag-ui/icons";
-import { isSafeHref, sanitizeHref } from "@intel-enterprise-rag-ui/utils";
+} from "@intel-chatbot-toolkit-ui/icons";
+import { isSafeHref, sanitizeHref } from "@intel-chatbot-toolkit-ui/utils";
 import classNames from "classnames";
 import {
   Link as AriaLink,

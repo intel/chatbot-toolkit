@@ -8,8 +8,8 @@ import {
   Menu,
   MenuItem,
   MenuTrigger,
-} from "@intel-enterprise-rag-ui/components";
-import { DeleteIcon, RefreshIcon } from "@intel-enterprise-rag-ui/icons";
+} from "@intel-chatbot-toolkit-ui/components";
+import { DeleteIcon, RefreshIcon } from "@intel-chatbot-toolkit-ui/icons";
 
 interface BatchActionsDropdownProps {
   /** Total number of selected items */

@@ -1,5 +1,5 @@
 {
-  "name": "@intel-enterprise-rag-ui/tailwind-theme",
+  "name": "@intel-chatbot-toolkit-ui/tailwind-theme",
   "version": "3.0.0",
   "style": "theme.css",
   "files": [

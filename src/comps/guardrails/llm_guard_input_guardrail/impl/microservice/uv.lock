@@ -627,7 +627,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-llm-guard-input-guardrail-microservice"
+name = "intel-chatbot-toolkit-llm-guard-input-guardrail-microservice"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

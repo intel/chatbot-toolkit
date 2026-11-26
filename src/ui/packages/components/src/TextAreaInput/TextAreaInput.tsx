@@ -3,7 +3,7 @@
 
 import "./TextAreaInput.css";
 
-import { InfoIcon } from "@intel-enterprise-rag-ui/icons";
+import { InfoIcon } from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 import { useId } from "react";
 import {

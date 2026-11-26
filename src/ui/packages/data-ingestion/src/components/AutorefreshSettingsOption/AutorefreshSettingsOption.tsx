@@ -1,8 +1,8 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { CheckboxInput } from "@intel-enterprise-rag-ui/components";
-import { titleCaseString } from "@intel-enterprise-rag-ui/utils";
+import { CheckboxInput } from "@intel-chatbot-toolkit-ui/components";
+import { titleCaseString } from "@intel-chatbot-toolkit-ui/utils";
 import { useDispatch, useSelector } from "react-redux";
 
 import DataIngestionSettingsOption from "@/components/DataIngestionSettingsOption/DataIngestionSettingsOption";

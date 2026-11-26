@@ -3,8 +3,8 @@
 
 import "./UserMessage.css";
 
-import { CopyButton } from "@intel-enterprise-rag-ui/components";
-import { Markdown } from "@intel-enterprise-rag-ui/markdown";
+import { CopyButton } from "@intel-chatbot-toolkit-ui/components";
+import { Markdown } from "@intel-chatbot-toolkit-ui/markdown";
 import { memo, useState } from "react";
 
 import { ChatTurn } from "@/types";

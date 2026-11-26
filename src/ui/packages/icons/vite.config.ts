@@ -15,8 +15,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
-      name: "intel-enterprise-rag-ui-icons",
-      fileName: "intel-enterprise-rag-ui-icons",
+      name: "intel-chatbot-toolkit-ui-icons",
+      fileName: "intel-chatbot-toolkit-ui-icons",
       formats: ["es"],
     },
     rollupOptions: {

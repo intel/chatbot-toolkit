@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { addNotification } from "@intel-enterprise-rag-ui/components";
+import { addNotification } from "@intel-chatbot-toolkit-ui/components";
 import type { FetchBaseQueryError } from "@reduxjs/toolkit/query/react";
 
 import type { GetServicesDataResponse } from "@/types/api/responses";

@@ -4,7 +4,7 @@
 import {
   SelectInput,
   SelectInputChangeHandler,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import { useEffect, useState } from "react";
 
 import {

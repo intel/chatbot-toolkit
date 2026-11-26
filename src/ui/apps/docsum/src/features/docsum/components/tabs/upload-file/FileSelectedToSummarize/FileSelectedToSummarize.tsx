@@ -3,7 +3,7 @@
 
 import "./FileSelectedToSummarize.css";
 
-import { Button } from "@intel-enterprise-rag-ui/components";
+import { Button } from "@intel-chatbot-toolkit-ui/components";
 import { useMemo } from "react";
 
 import { getFileIcon } from "@/features/docsum/utils/render";

@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { LinkIcon } from "@intel-enterprise-rag-ui/icons";
+import { LinkIcon } from "@intel-chatbot-toolkit-ui/icons";
 
 import { SourceDialog } from "@/components/sources/SourceDialog/SourceDialog";
 import { LinkSource } from "@/types";

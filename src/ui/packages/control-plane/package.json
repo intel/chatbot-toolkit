@@ -1,17 +1,17 @@
 {
-  "name": "@intel-enterprise-rag-ui/control-plane",
+  "name": "@intel-chatbot-toolkit-ui/control-plane",
   "private": true,
   "version": "3.0.0",
   "type": "module",
   "license": "Apache-2.0",
   "description": "Pipeline graph component for Intel Chatbot Toolkit UI",
-  "module": "./dist/intel-enterprise-rag-ui-control-plane.js",
+  "module": "./dist/intel-chatbot-toolkit-ui-control-plane.js",
   "types": "./dist/index.d.ts",
   "style": "./dist/style.css",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/intel-enterprise-rag-ui-control-plane.js"
+      "import": "./dist/intel-chatbot-toolkit-ui-control-plane.js"
     },
     "./style.css": "./dist/style.css",
     "./style": "./src/style.ts"
@@ -25,13 +25,13 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@intel-enterprise-rag-ui/auth": "workspace:^",
-    "@intel-enterprise-rag-ui/chat": "workspace:^",
-    "@intel-enterprise-rag-ui/components": "workspace:^",
-    "@intel-enterprise-rag-ui/icons": "workspace:^",
-    "@intel-enterprise-rag-ui/input-validation": "workspace:^",
-    "@intel-enterprise-rag-ui/tailwind-theme": "workspace:^",
-    "@intel-enterprise-rag-ui/utils": "workspace:^"
+    "@intel-chatbot-toolkit-ui/auth": "workspace:^",
+    "@intel-chatbot-toolkit-ui/chat": "workspace:^",
+    "@intel-chatbot-toolkit-ui/components": "workspace:^",
+    "@intel-chatbot-toolkit-ui/icons": "workspace:^",
+    "@intel-chatbot-toolkit-ui/input-validation": "workspace:^",
+    "@intel-chatbot-toolkit-ui/tailwind-theme": "workspace:^",
+    "@intel-chatbot-toolkit-ui/utils": "workspace:^"
   },
   "devDependencies": {
     "vitest": "^5.0.0"

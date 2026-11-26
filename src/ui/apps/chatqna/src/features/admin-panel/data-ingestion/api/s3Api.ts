@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { createS3Api } from "@intel-enterprise-rag-ui/data-ingestion";
+import { createS3Api } from "@intel-chatbot-toolkit-ui/data-ingestion";
 
 import { getChatQnAAppEnv } from "@/utils";
 

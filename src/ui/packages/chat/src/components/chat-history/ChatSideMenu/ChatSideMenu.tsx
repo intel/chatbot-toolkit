@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { SideMenu } from "@intel-enterprise-rag-ui/layouts";
+import { SideMenu } from "@intel-chatbot-toolkit-ui/layouts";
 
 import type { OnChatHistoryItemPressHandler } from "@/components/chat-history/ChatHistoryItem/ChatHistoryItem";
 import type { IsItemActiveHandler } from "@/components/chat-history/ChatHistoryList/ChatHistoryList";

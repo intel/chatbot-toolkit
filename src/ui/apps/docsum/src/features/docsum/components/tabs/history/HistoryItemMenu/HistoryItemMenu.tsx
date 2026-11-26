@@ -9,12 +9,12 @@ import {
   MenuItem,
   MenuTrigger,
   Tooltip,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import {
   DeleteIcon,
   EditIcon,
   ExportIcon,
-} from "@intel-enterprise-rag-ui/icons";
+} from "@intel-chatbot-toolkit-ui/icons";
 import { useState } from "react";
 import { Key as AriaKey } from "react-aria-components";
 

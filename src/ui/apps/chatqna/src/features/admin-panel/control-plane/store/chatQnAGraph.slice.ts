@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { createPipelineGraphSlice } from "@intel-enterprise-rag-ui/control-plane";
+import { createPipelineGraphSlice } from "@intel-chatbot-toolkit-ui/control-plane";
 
 import {
   graphEdges,

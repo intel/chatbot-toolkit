@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { ActionDialog } from "@intel-enterprise-rag-ui/components";
+import { ActionDialog } from "@intel-chatbot-toolkit-ui/components";
 
 import { removeHistoryItem } from "@/features/docsum/store/history.slice";
 import { HistoryItemData } from "@/features/docsum/types/history";

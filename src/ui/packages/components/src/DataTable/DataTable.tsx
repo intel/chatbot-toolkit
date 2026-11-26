@@ -8,7 +8,7 @@ import {
   SortDownIcon,
   SortUpDownIcon,
   SortUpIcon,
-} from "@intel-enterprise-rag-ui/icons";
+} from "@intel-chatbot-toolkit-ui/icons";
 import {
   ColumnDef,
   flexRender,

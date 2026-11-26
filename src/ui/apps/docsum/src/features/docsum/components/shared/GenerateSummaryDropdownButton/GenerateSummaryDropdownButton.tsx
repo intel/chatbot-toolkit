@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { DropdownButton } from "@intel-enterprise-rag-ui/components";
+import { DropdownButton } from "@intel-chatbot-toolkit-ui/components";
 
 import { SummaryType } from "@/features/docsum/api/types";
 

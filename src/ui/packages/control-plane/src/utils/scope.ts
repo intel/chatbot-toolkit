@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { getAppEnv } from "@intel-enterprise-rag-ui/utils";
+import { getAppEnv } from "@intel-chatbot-toolkit-ui/utils";
 
 // Tenant dimension of the fingerprint config scope. Held at the shared default
 // until per-user tenants land behind FINGERPRINT_PER_USER_TENANT.

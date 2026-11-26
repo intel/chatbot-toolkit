@@ -461,7 +461,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-embedding-microservice"
+name = "intel-chatbot-toolkit-embedding-microservice"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

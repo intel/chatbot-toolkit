@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { sanitizeString } from "@intel-enterprise-rag-ui/utils";
+import { sanitizeString } from "@intel-chatbot-toolkit-ui/utils";
 import type { Dispatch, UnknownAction } from "@reduxjs/toolkit";
 import { useRef } from "react";
 

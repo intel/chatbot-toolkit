@@ -389,7 +389,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-reranks-microservice"
+name = "intel-chatbot-toolkit-reranks-microservice"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

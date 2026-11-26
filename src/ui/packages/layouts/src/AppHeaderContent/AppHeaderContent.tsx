@@ -1,11 +1,11 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { LogoutButton } from "@intel-enterprise-rag-ui/auth";
+import { LogoutButton } from "@intel-chatbot-toolkit-ui/auth";
 import {
   ColorSchemeSwitch,
   NewChatButton,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import { ReactNode } from "react";
 
 import { AboutDialog } from "@/AboutDialog/AboutDialog";

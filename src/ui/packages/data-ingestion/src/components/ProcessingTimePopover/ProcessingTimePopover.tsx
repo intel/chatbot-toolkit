@@ -7,7 +7,7 @@ import {
   Button,
   Popover,
   usePopover,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import { memo, useEffect, useRef, useState } from "react";
 
 import { END_DATA_STATUSES } from "@/config/api";

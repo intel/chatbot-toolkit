@@ -7,7 +7,7 @@ import {
   ActionDialog,
   Button,
   Tooltip,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import { Fragment, ReactNode } from "react";
 
 const SOURCE_DIALOG_TITLE_CHAR_LIMIT = 50; // used to truncate long source names for dialog title

@@ -1,7 +1,7 @@
 /* Copyright (C) 2024-2026 Intel Corporation */
 /* SPDX-License-Identifier: Apache-2.0 */
 
-@reference "@intel-enterprise-rag-ui/tailwind-theme/theme.css";
+@reference "@intel-chatbot-toolkit-ui/tailwind-theme/theme.css";
 
 .dialog {
   @apply fixed top-0 z-[100];

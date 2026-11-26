@@ -7,7 +7,7 @@ import {
   Dialog,
   IconButton,
   Tooltip,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 
 import AutorefreshSettingsOption from "@/components/AutorefreshSettingsOption/AutorefreshSettingsOption";
 import ProcessingTimeFormatSettingsOption from "@/components/ProcessingTimeFormatSettingsOption/ProcessingTimeFormatSettingsOption";

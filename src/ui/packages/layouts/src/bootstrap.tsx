@@ -4,7 +4,7 @@
 import {
   initializeKeycloak,
   KeycloakEnvKey,
-} from "@intel-enterprise-rag-ui/auth";
+} from "@intel-chatbot-toolkit-ui/auth";
 import { ComponentType, StrictMode } from "react";
 import { Container, createRoot } from "react-dom/client";
 

@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { downloadBlob } from "@intel-enterprise-rag-ui/utils";
+import { downloadBlob } from "@intel-chatbot-toolkit-ui/utils";
 
 import { ExportFormat } from "@/features/docsum/types/export";
 import { createDocxFromSummary } from "@/features/docsum/utils/docx";
