@@ -30,30 +30,6 @@ jobs:
     container: python:3.12-slim-bookworm@sha256:392307d22300de8b5986851a12d9176dfc0fc073e65bf6523ebd7dcbeb23564e
     env:
       DEBIAN_FRONTEND: noninteractive
-      TOX_ENVS: >-
-        asr_unit_tests,
-        chat_history_unit_tests,
-        cores_unit_tests,
-        deployment_scripts_unit_tests,
-        docsum_unit_tests,
-        edp_unit_tests,
-        embeddings_unit_tests,
-        fingerprint_invariants_unit_tests,
-        ingestion_unit_tests,
-        language_detection_unit_tests,
-        llm_guard_dataprep_guardrail_unit_tests,
-        llm_guard_input_guardrail_unit_tests,
-        llm_guard_output_guardrail_unit_tests,
-        llms_unit_tests,
-        prompt_template_unit_tests,
-        reranks_unit_tests,
-        retrievers_unit_tests,
-        system_fingerprint_unit_tests,
-        text_compression_unit_tests,
-        text_extractor_unit_tests,
-        text_splitter_unit_tests,
-        tts_unit_tests,
-        vectorstores_unit_tests
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -75,11 +51,122 @@ jobs:
           cache-python: true
 
       - name: Install tox
+        id: tox
         run: |
           uv tool install tox==4.30.2 --with tox-uv==1.28.0 --with uv==0.8.17
           uv tool dir --bin >> "$GITHUB_PATH"
 
-      - name: Run unit tests
+      - name: asr_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
         working-directory: src
-        run: tox run -e "${TOX_ENVS}"
+        run: tox run -e asr_unit_tests
 
+      - name: chat_history_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e chat_history_unit_tests
+
+      - name: cores_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e cores_unit_tests
+
+      - name: deployment_scripts_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e deployment_scripts_unit_tests
+
+      - name: docsum_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e docsum_unit_tests
+
+      - name: edp_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e edp_unit_tests
+
+      - name: embeddings_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e embeddings_unit_tests
+
+      - name: fingerprint_invariants_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e fingerprint_invariants_unit_tests
+
+      - name: ingestion_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e ingestion_unit_tests
+
+      - name: language_detection_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e language_detection_unit_tests
+
+      - name: llm_guard_dataprep_guardrail_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e llm_guard_dataprep_guardrail_unit_tests
+
+      - name: llm_guard_input_guardrail_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e llm_guard_input_guardrail_unit_tests
+
+      - name: llm_guard_output_guardrail_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e llm_guard_output_guardrail_unit_tests
+
+      - name: llms_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e llms_unit_tests
+
+      - name: prompt_template_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e prompt_template_unit_tests
+
+      - name: reranks_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e reranks_unit_tests
+
+      - name: retrievers_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e retrievers_unit_tests
+
+      - name: system_fingerprint_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e system_fingerprint_unit_tests
+
+      - name: text_compression_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e text_compression_unit_tests
+
+      - name: text_extractor_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e text_extractor_unit_tests
+
+      - name: text_splitter_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e text_splitter_unit_tests
+
+      - name: tts_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e tts_unit_tests
+
+      - name: vectorstores_unit_tests
+        if: ${{ !cancelled() && steps.tox.outcome == 'success' }}
+        working-directory: src
+        run: tox run -e vectorstores_unit_tests
