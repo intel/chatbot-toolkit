@@ -9,7 +9,7 @@
     name: app_check_pods
     tasks_from: teardown.yaml
 
-- name: "app_pre_install | Remove RAG log and work directories (credentials, certs, temp manifests)"
+- name: "app_pre_install | Remove the Chatbot Toolkit log and work directories (credentials, certs, temp manifests)"
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent

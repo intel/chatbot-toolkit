@@ -8,4 +8,4 @@ type: application
 version: 0.1.0
 appVersion: "2.10"
 annotations:
-  app.kubernetes.io/part-of: ERAG
+  app.kubernetes.io/part-of: chatbot-toolkit

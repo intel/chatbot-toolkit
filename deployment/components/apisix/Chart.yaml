@@ -4,7 +4,7 @@ description: A Helm chart for installing a specific version of APISIX API gatewa
 version: 2.0.7
 appVersion: "3.0.0"
 annotations:
-  app.kubernetes.io/part-of: ERAG
+  app.kubernetes.io/part-of: chatbot-toolkit
 
 dependencies:
   - name: apisix

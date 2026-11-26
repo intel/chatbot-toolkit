@@ -8,7 +8,7 @@ type: application
 version: 0.2.0
 appVersion: "3.0.0"
 annotations:
-  app.kubernetes.io/part-of: ERAG
+  app.kubernetes.io/part-of: chatbot-toolkit
 
 dependencies:
   - name: postgresql

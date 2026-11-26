@@ -5,6 +5,6 @@ type: application
 version: 1.0.5
 appVersion: "3.0.0"
 annotations:
-  app.kubernetes.io/part-of: ERAG
+  app.kubernetes.io/part-of: chatbot-toolkit
   dependency-only: "true"
 

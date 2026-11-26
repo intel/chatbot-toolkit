@@ -26,7 +26,7 @@
 
       Skipping pipeline-namespace teardown (routes, GMConnectors, namespace) and
       removing the GMC chart only. If a pipeline was deployed under a different
-      pipeline_type, set it in config.rag.yaml and re-run the teardown.
+      pipeline_type, set it in config.erag.yaml and re-run the teardown.
   when: not pipeline_metadata_check.stat.exists
 
 - name: "app_pipeline | Tear down audio add-on"

@@ -3,10 +3,10 @@
 
 apiVersion: v2
 name: postgresql
-description: A simple PostgreSQL Helm chart for ERAG components
+description: A simple PostgreSQL Helm chart for Chatbot Toolkit components
 type: application
 version: 0.1.6
 appVersion: "3.0.0"
 annotations:
-  app.kubernetes.io/part-of: ERAG
+  app.kubernetes.io/part-of: chatbot-toolkit
   dependency-only: "true"

@@ -61,7 +61,7 @@
 
 # Before the gate below, so a refused run is not also the run that leaves the
 # directory behind.
-- name: "app_post_install | Remove RAG temporary work directory"
+- name: "app_post_install | Remove the Chatbot Toolkit temporary work directory"
   ansible.builtin.file:
     path: "{{ rag_tmp_dir }}"
     state: absent

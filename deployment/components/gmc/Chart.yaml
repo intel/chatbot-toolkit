@@ -26,4 +26,4 @@ version: 0.9.6
 # It is recommended to use it with quotes.
 appVersion: "3.0.0"
 annotations:
-  app.kubernetes.io/part-of: ERAG
+  app.kubernetes.io/part-of: chatbot-toolkit

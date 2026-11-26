@@ -180,7 +180,7 @@
            'reason': _dc_ch_skip_reason | trim}}) }}
   when: _dc_ch_skip_reason | trim | length > 0
 
-# --- Enterprise data platform (file rows in PostgreSQL) ---
+# --- EDP (file rows in PostgreSQL) ---
 - name: "app_data_consistency | Snapshot — data platform: check namespace"
   kubernetes.core.k8s_info:
     api_version: v1

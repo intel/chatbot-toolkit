@@ -56,7 +56,7 @@
 
 - name: "app_inference_models | Load model catalog"
   # Seeded by the first task in this file from deployment/models.yaml (force: false,
-  # so an operator's edits to the env copy survive) — not by es_auto_installer init,
+  # so an operator's edits to the env copy survive) — not by toolkit_manager.sh init,
   # which seeds env/<env>/models.yaml from the inference repo's catalog.
   # Must match MM_CONFIG below so baseline sizing sees the same catalog the
   # deploy step uses.
