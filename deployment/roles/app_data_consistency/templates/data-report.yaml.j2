@@ -16,10 +16,10 @@ metadata:
 stores:
 {% for store, data in _data_snapshot.items() %}
   {{ store }}:
-    count: {{ data.count }}
+    count: {{ data.count | to_json }}
     status: "{{ data.status }}"
     method: "{{ data.method }}"
 {% if data.reason is defined %}
-    reason: "{{ data.reason }}"
+    reason: {{ data.reason | to_json }}
 {% endif %}
 {% endfor %}

@@ -7,8 +7,9 @@
 # deleted by label, the manifest is rendered into rag_tmp_dir, applied without
 # waiting, then polled until it has either succeeded or failed. A Job that fails,
 # never finishes, or prints no count fails this task and names the command that
-# shows why. There is no path that records a count of zero for a query that did
-# not run.
+# shows why; it is kept for `kubectl logs`. A Job whose count is read is deleted
+# with its script ConfigMap. There is no path that records a count of zero for a
+# query that did not run.
 #
 # Expects: dcj_store, dcj_label, dcj_namespace, dcj_image, dcj_script, dcj_env,
 #          optionally dcj_shell, and _snapshot_file_timestamp from snapshot.yaml,
@@ -119,3 +120,23 @@
       The {{ dcj_store }} count query succeeded but printed no count. Inspect it
       with: kubectl logs -n {{ dcj_namespace }} job/{{ _dcj_job_name }}
   when: _dcj_count | length == 0
+
+- name: "app_data_consistency | Query — delete the {{ dcj_store }} Job"
+  kubernetes.core.k8s:
+    api_version: batch/v1
+    kind: Job
+    name: "{{ _dcj_job_name }}"
+    namespace: "{{ dcj_namespace }}"
+    state: absent
+    delete_options:
+      propagationPolicy: Background
+  failed_when: false
+
+- name: "app_data_consistency | Query — delete the {{ dcj_store }} ConfigMap"
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: ConfigMap
+    name: "{{ _dcj_configmap_name }}"
+    namespace: "{{ dcj_namespace }}"
+    state: absent
+  failed_when: false
