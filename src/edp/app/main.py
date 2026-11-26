@@ -1,6 +1,7 @@
 # Copyright (C) 2024-2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+import base64
 import os
 import re
 from typing import List, Union
@@ -731,6 +732,28 @@ def process_minio_event(event: Union[S3EventData, MinioEventData], request: Requ
     raise HTTPException(status_code=501, detail="Event not implemented")
 
 
+def _seaweedfs_etag(entry: dict) -> str:
+    # SeaweedFS encodes the S3 ETag as base64, including any multipart suffix.
+    header = (entry.get('extended') or {}).get('Seaweed-X-Amz-ETag')
+    if header:
+        try:
+            etag = base64.b64decode(header, validate=True).decode('ascii').strip('"')
+            if etag:
+                return etag
+            logger.warning("Empty Seaweed-X-Amz-ETag after decoding %r", header)
+        except (TypeError, ValueError) as exc:
+            logger.warning("Cannot decode Seaweed-X-Amz-ETag %r: %s", header, exc)
+
+    md5 = (entry.get('attributes') or {}).get('md5')
+    if md5:
+        try:
+            return base64.b64decode(md5, validate=True).hex()
+        except (TypeError, ValueError) as exc:
+            logger.warning("Cannot decode SeaweedFS md5 %r: %s", md5, exc)
+
+    return ''
+
+
 @app.post('/seaweedfs_event')
 def process_seaweedfs_event(event: SeaweedFSEventData):
     """
@@ -776,21 +799,18 @@ def process_seaweedfs_event(event: SeaweedFSEventData):
             logger.warning(f"{event.event_type} event missing new_entry")
             raise HTTPException(status_code=400, detail="Missing new_entry")
 
-        # Example new_entry: {'name': 'text.txt', 'attributes': {'file_size': 186, 'mime': 'text/plain', 'md5': '...'}}
-        # For simplicity, we use available md5 provided by seaweedfs as a tag
         new_entry = event.message.new_entry
-        attributes = new_entry.get('attributes', {})
+        attributes = new_entry.get('attributes') or {}
         logger.info(f"Extracted attributes: {attributes}")
         size = attributes.get('file_size', 0)
         content_type = attributes.get('mime', 'application/octet-stream')
-        etag = attributes.get('md5', '')
 
         if is_directory_marker(object_name, size, content_type):
             logger.debug(f"Skipping directory marker: {object_name} in bucket {bucket_name}")
             return JSONResponse(content={'message': 'Directory marker ignored'})
 
         try:
-            add_new_file(object_name, str(etag), content_type, size, bucket_name=bucket_name)
+            add_new_file(object_name, _seaweedfs_etag(new_entry), content_type, size, bucket_name=bucket_name)
             return JSONResponse(content={'message': 'File uploaded successfully'})
         except Exception as e:
             logger.error(f"Error adding file to database: {e}")

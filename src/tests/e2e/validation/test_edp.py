@@ -37,14 +37,20 @@ def test_edp_list_files(edp_helper):
 @pytest.mark.smoke
 @allure.testcase("DSPTV-T56")
 def test_edp_upload_file(edp_helper):
-    """Upload a file using presigned URL. Wait for the file to be in ingested state"""
+    """Upload a file, wait for ingestion, and verify the stored ETag matches S3."""
     with edp_helper.temp_txt_file(size=0.001, prefix=method_name()) as temp_file:
         file_basename = os.path.basename(temp_file.name)
         response = edp_helper.generate_presigned_url(file_basename)
         assert response.status_code == 200, f"Failed to generate presigned URL. Response: {response.text}"
         response = edp_helper.upload_file(temp_file.name, response.json().get("url"))
         assert response.status_code == 200, f"Failed to upload file. Response: {response.text}"
-        edp_helper.wait_for_file_upload(file_basename, "ingested", timeout=60)
+        s3_etag = response.headers.get("ETag", "").strip('"')
+        assert s3_etag, "S3 PUT response did not include an ETag"
+        file = edp_helper.wait_for_file_upload(file_basename, "ingested", timeout=60)
+        assert file["etag"] == s3_etag, (
+            f"Expected stored ETag for {file_basename} to match S3 ETag {s3_etag!r}, "
+            f"got {file['etag']!r}"
+        )
 
 
 @allure.testcase("DSPTV-T94")
