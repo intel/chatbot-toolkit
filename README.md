@@ -70,22 +70,22 @@ See the [Architecture reference](docs/reference/architecture.md) for the compone
 git clone https://github.com/intel/toolkit-manager.git
 cd toolkit-manager
 
-./es_auto_installer.sh configure     # one-time machine prep (Python 3.11+, yq, kubectl, helm)
-./es_auto_installer.sh init erag     # clone this toolkit and its dependencies
-./es_auto_installer.sh install erag  # deploy everything
+./toolkit_manager.sh configure     # one-time machine prep (Python 3.11+, yq, kubectl, helm)
+./toolkit_manager.sh init erag     # clone this toolkit and its dependencies
+./toolkit_manager.sh install erag  # deploy everything
 ```
 
 Settings for this toolkit land in `env/local/config.erag.yaml`. Pick a different pipeline with `--flavour`:
 
 ```bash
-./es_auto_installer.sh init erag --flavour docsum
+./toolkit_manager.sh init erag --flavour docsum
 ```
 
 > [!NOTE]
 > For any parameters, customization options or multinode deployment, refer to [documentation](docs/).
 
 > [!TIP]
-> `--env` defaults to `local`. Tear down with `./es_auto_installer.sh teardown erag`.
+> `--env` defaults to `local`. Tear down with `./toolkit_manager.sh teardown erag`.
 > Install and teardown are environment-scoped: if you installed with `--env prod`, you must
 > tear down with `--env prod`.
 

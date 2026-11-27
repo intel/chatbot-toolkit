@@ -22,14 +22,14 @@ The installer adds `deployment/roles/` to `ANSIBLE_ROLES_PATH`, merges `componen
 
 ```bash
 # Initialize a RAG environment (from Toolkit Manager repo root)
-./es_auto_installer.sh init erag --env myenv
+./toolkit_manager.sh init erag --env myenv
 
 # Install Intel® Chatbot Toolkit (requires Intel® Inference Toolkit already installed)
-./es_auto_installer.sh install erag --env myenv
+./toolkit_manager.sh install erag --env myenv
 
 # Check status
-./es_auto_installer.sh status --env myenv
-./es_auto_installer.sh validate erag --env myenv
+./toolkit_manager.sh status --env myenv
+./toolkit_manager.sh validate erag --env myenv
 ```
 
 ## Installer targets

@@ -40,7 +40,7 @@ pipeline_type: "chatqna"
 pipeline_variant: "query-rewrite"
 ```
 
-Deploy: `./es_auto_installer.sh install erag --env <name>`.
+Deploy: `./toolkit_manager.sh install erag --env <name>`.
 
 ## Pipeline architecture
 
@@ -79,7 +79,7 @@ inference_models:
 mcp_enabled: false
 ```
 
-Deploy: `./es_auto_installer.sh install erag --env <name>`. The install undeploys the dropped LLM and reranking model servers and re-places the embedding one at its upload size - no manual `./model-manager undeploy` step.
+Deploy: `./toolkit_manager.sh install erag --env <name>`. The install undeploys the dropped LLM and reranking model servers and re-places the embedding one at its upload size - no manual `./model-manager undeploy` step.
 
 **Switching back to base:** restore the full model list, set `pipeline_variant: "base"`, re-enable `mcp_enabled` if it was on, re-install. The upload-sized embedding server is undeployed first (it takes the whole machine, so the LLM cannot be placed alongside it), then all three are deployed at base sizes. Weights stay on the `model-store` PVC, so nothing is re-downloaded.
 
@@ -92,7 +92,7 @@ pipeline_type: "docsum"
 pipeline_variant: "base"
 ```
 
-Deploy: `./es_auto_installer.sh install erag --env <name>`. Tears down old pipeline, deploys new. Vector store preserved (separate namespace). Models may be replaced/re-sized.
+Deploy: `./toolkit_manager.sh install erag --env <name>`. Tears down old pipeline, deploys new. Vector store preserved (separate namespace). Models may be replaced/re-sized.
 
 ## Configuration file structure
 

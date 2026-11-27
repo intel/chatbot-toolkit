@@ -126,7 +126,7 @@ Yes, through the Model Context Protocol gateway. It is off by default; set `mcp_
 
 ### How do I check that the deployment is healthy?
 
-`./es_auto_installer.sh status --env <name>` for namespaces, pods, and endpoints, and `./es_auto_installer.sh validate erag --env <name>` for health checks. The pipeline test scripts under `ext/enterprise.ai-erag/deployment/scripts/` send a real request.
+`./toolkit_manager.sh status --env <name>` for namespaces, pods, and endpoints, and `./toolkit_manager.sh validate erag --env <name>` for health checks. The pipeline test scripts under `ext/enterprise.ai-erag/deployment/scripts/` send a real request.
 
 ### Where are the logs?
 

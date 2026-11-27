@@ -6,7 +6,7 @@ Common symptoms, causes, and fixes for Intel® Chatbot Toolkit deployments.
 
 | Symptom | Likely cause / fix |
 |---------|--------------------|
-| `install erag` fails with "inference layer not found" | Intel® Inference Toolkit must be installed first. Run `./es_auto_installer.sh install inference --env <name>` before `install erag`. |
+| `install erag` fails with "inference layer not found" | Intel® Inference Toolkit must be installed first. Run `./toolkit_manager.sh install inference --env <name>` before `install erag`. |
 | Namespace stuck in `Terminating` during teardown | Finalizers or resources not cleaned up. Force-delete: `kubectl delete ns <namespace> --grace-period=0 --force`. |
 | Helm install fails with "release already exists" | Previous install failed mid-way. Uninstall: `helm uninstall <release> -n <namespace>`, then retry. |
 | Models not deployed after `install erag` | Models don't auto-deploy unless both `inference_models_enabled: true` AND the model has `autodeploy: true` in the catalog. Deploy manually: `./model-manager deploy <name> --wait`. |
@@ -85,10 +85,10 @@ This collects pod logs, resource descriptions, config files (redacted), and Helm
 
 ```bash
 # Status of all installed components
-./es_auto_installer.sh status --env <name>
+./toolkit_manager.sh status --env <name>
 
 # Validate Intel® Chatbot Toolkit
-./es_auto_installer.sh validate erag --env <name>
+./toolkit_manager.sh validate erag --env <name>
 
 # Test ChatQnA pipeline
 cd deployment && ./scripts/test_connection.sh

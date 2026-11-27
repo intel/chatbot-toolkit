@@ -107,7 +107,7 @@ Optionally, the environment variables (using the same names as in the legacy bas
 
 Then deploy the application by following the instructions in [Deploy Intel® Chatbot Toolkit](../../docs/deployment/install-rag.md). Deploy from the core installer root:
 ```bash
-./es_auto_installer.sh install erag --env <name>
+./toolkit_manager.sh install erag --env <name>
 ```
 
 After successful deployment, upload files using either WebGUI or cURL:

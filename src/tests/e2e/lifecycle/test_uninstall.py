@@ -165,21 +165,21 @@ def _verify_layer(k8s_helper, layer):
 
 @allure.testcase("DSPTV-T217")
 def test_uninstall_erag(k8s_helper):
-    """After `es_auto_installer.sh teardown erag`, the erag application layer must be fully
+    """After `toolkit_manager.sh teardown erag`, the erag application layer must be fully
     gone while the inference and platform layers below it stay intact."""
     _verify_layer(k8s_helper, "erag")
 
 
 @allure.testcase("DSPTV-T218")
 def test_uninstall_inference(k8s_helper):
-    """After `es_auto_installer.sh teardown inference`, the inference layer must be fully gone
+    """After `toolkit_manager.sh teardown inference`, the inference layer must be fully gone
     while the platform layer below it stays intact."""
     _verify_layer(k8s_helper, "inference")
 
 
 @allure.testcase("DSPTV-T219")
 def test_uninstall_platform(k8s_helper):
-    """After `es_auto_installer.sh teardown platform`, the platform layer must be fully gone,
+    """After `toolkit_manager.sh teardown platform`, the platform layer must be fully gone,
     leaving only the bare Kubernetes cluster (infrastructure layer)."""
     _verify_layer(k8s_helper, "platform")
 

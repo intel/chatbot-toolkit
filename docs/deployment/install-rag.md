@@ -20,7 +20,7 @@ The platform and Intel® Inference Toolkit must be installed first: [Platform Qu
 ### Step 1 - Initialize
 
 ```bash
-./es_auto_installer.sh init erag [--env <name>] [--flavour <name>]
+./toolkit_manager.sh init erag [--env <name>] [--flavour <name>]
 ```
 
 | Flavour | Use case |
@@ -51,7 +51,7 @@ Gated models: `export HF_TOKEN="hf_..."`. Minimum hardware (≤60 cores / 128 GB
 ### Step 3 - Deploy
 
 ```bash
-./es_auto_installer.sh install erag [--env <name>]
+./toolkit_manager.sh install erag [--env <name>]
 ```
 
 Validates, deploys inference models, installs RAG components in dependency order, waits for readiness, writes credentials to `env/<name>/logs/rag/`. Takes 10-15 minutes.
@@ -109,7 +109,7 @@ Secure credentials: `ansible-vault encrypt env/<name>/logs/rag/default_credentia
 
 ## Configure the deployment
 
-Edit `env/<name>/config.erag.yaml` and re-run `./es_auto_installer.sh install erag --env <name>`. Updates only affected components. See: [Pipeline Configuration](pipelines.md), [Advanced Configuration Guide](../configuration/configuration.md).
+Edit `env/<name>/config.erag.yaml` and re-run `./toolkit_manager.sh install erag --env <name>`. Updates only affected components. See: [Pipeline Configuration](pipelines.md), [Advanced Configuration Guide](../configuration/configuration.md).
 
 ## Data ingestion, UI and telemetry
 
@@ -127,12 +127,12 @@ chattool_keycloak_oidc_client_secret: ""
 chattool_keycloak_oidc_tenant_id: ""      # additionally enables SharePoint
 ```
 
-All empty = disabled. Partial config rejected. Apply: `./es_auto_installer.sh install erag --env <name>`. Full procedure: [Single Sign-On and SharePoint Integration](../configuration/sharepoint.md).
+All empty = disabled. Partial config rejected. Apply: `./toolkit_manager.sh install erag --env <name>`. Full procedure: [Single Sign-On and SharePoint Integration](../configuration/sharepoint.md).
 
 ## Remove the installation
 
 ```bash
-./es_auto_installer.sh teardown erag --env <name>
+./toolkit_manager.sh teardown erag --env <name>
 ```
 
 Removes components in reverse order; models undeployed automatically.
@@ -156,7 +156,7 @@ The Keycloak realm, clients, roles, users and groups were renamed (realm `Enterp
 |-------|------------|
 | **Test deployment** | ChatQnA: `cd .../ext/enterprise.ai-erag/deployment && ./scripts/test_connection.sh`. DocSum: `./scripts/test_docsum.sh`. Translation: `./scripts/test_translation.sh`. |
 | **Debug tool** | [Debug Tool Guide](../faq-and-troubleshooting/troubleshooting.md) collects diagnostics. |
-| **Status check** | `./es_auto_installer.sh status --env <name>` |
+| **Status check** | `./toolkit_manager.sh status --env <name>` |
 | **Pods stuck pending** | `kubectl describe pod <name> -n <namespace>`. Minimum hardware: verify [tuning steps](../getting-started/prerequisites.md#deploying-on-minimum-hardware). |
 | **Models not deploying** | Gated models: `export HF_TOKEN="hf_..."` before install. |
 | **Connection test fails** | Wait for all pods `Running` in pipeline namespace. |

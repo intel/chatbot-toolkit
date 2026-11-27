@@ -31,7 +31,7 @@ The catalog name is the `name:` field of an entry in `env/<name>/models-rag.yaml
 Edit `env/<name>/config.erag.yaml` and re-run:
 
 ```bash
-./es_auto_installer.sh install erag --env <name>
+./toolkit_manager.sh install erag --env <name>
 ```
 
 The installer automatically:
@@ -123,7 +123,7 @@ Each entry includes CPU/memory sizing, engine, category, and optional per-model 
 3. Deploy:
 
    ```bash
-   ./es_auto_installer.sh install erag --env <name>
+   ./toolkit_manager.sh install erag --env <name>
    ```
 
 4. Re-ingest all documents so they are embedded with the new multilingual model.
