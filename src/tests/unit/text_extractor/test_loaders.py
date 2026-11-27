@@ -14,6 +14,7 @@ from comps.text_extractor.utils.file_loaders.load_xls import LoadXls
 from comps.text_extractor.utils.file_loaders.load_xml import LoadXml
 from comps.text_extractor.utils.file_loaders.load_yaml import LoadYaml
 from comps.text_extractor.utils.file_loaders.load_with_markitdown import LoadWithMarkitdown
+from comps.text_extractor.utils.file_loaders.load_image import LoadImage
 import os
 import pytest
 
@@ -196,3 +197,42 @@ def test_utf8_encoding_beyond_4kb():
         assert "naïve" in text, "UTF-8 char ï not found"
     finally:
         os.unlink(temp_path)
+
+
+def test_load_image_clean_ocr_noise():
+    """Verify that _clean_ocr_text filters out OCR noise from diagram/image regions (Issue #76)."""
+    loader = LoadImage.__new__(LoadImage)
+
+    noise_samples = [
+        "^~_ | \\ { } / ; : @ # 17",
+        ";; -- _ . / | \\",
+        "xkzpt 78/.. ;;;",
+        "— - _ . : ; ~ ^ \" ' ",
+        "|/\\;:~^",
+        "i;I!| [ ] { }",
+        "!@#$%^&*()",
+        "b c d f g h j k",
+    ]
+    for noise in noise_samples:
+        assert loader._clean_ocr_text(noise) == ""
+
+    # Real text mixed with noise artifacts, numbers/codes, symbols, and standard text
+    valid_samples = [
+        ("Power switch ... ^~| ;: @# 17 ;;-- |/\\;:~^ i;I!| xkzpt", "Power switch ..."),
+        ("2024-01-15", "2024-01-15"),
+        ("12345 67890", "12345 67890"),
+        ("TV", "TV"),
+        ("Cena: 100 €", "Cena: 100 €"),
+        ("Price: $50", "Price: $50"),
+        ("Accuracy: ≥ 95 %", "Accuracy: ≥ 95 %"),
+        ("Temp: 20 °C", "Temp: 20 °C"),
+        ("Figure 1: Power switch", "Figure 1: Power switch"),
+        ("Warning: 220V AC input", "Warning: 220V AC input"),
+        ("Model XYZ-100", "Model XYZ-100"),
+        ("Instrukcja obsługi", "Instrukcja obsługi"),
+        ("START", "START"),
+        ("Part #12345", "Part #12345"),
+        ("USB 3.0 Port", "USB 3.0 Port"),
+    ]
+    for valid, expected in valid_samples:
+        assert loader._clean_ocr_text(valid) == expected
