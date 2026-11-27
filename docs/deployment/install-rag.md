@@ -10,7 +10,7 @@ One command installs: model servers, vector database, NATS, Enhanced Data Prepar
 
 ## Prerequisites
 
-The platform and Intel® Inference Toolkit must be installed first: [Platform Quickstart](https://github.com/intel/toolkit-manager/blob/main/docs/quickstart/quickstart.md). Hardware: [Prerequisites](../quickstart/prerequisites.md).
+The platform and Intel® Inference Toolkit must be installed first: [Platform Quickstart](https://github.com/intel/toolkit-manager/blob/main/docs/getting-started/quickstart.md). Hardware: [Prerequisites](../getting-started/prerequisites.md).
 
 ## Deployment workflow
 
@@ -46,7 +46,7 @@ Edit `env/<name>/config.erag.yaml`:
 | `mcp_enabled` | `true` \| `false` | `false` |
 | `hpa_enabled` | `true` \| `false` | `true` |
 
-Gated models: `export HF_TOKEN="hf_..."`. Minimum hardware (≤60 cores / 128 GB): [Prerequisites - Deploying on Minimum Hardware](../quickstart/prerequisites.md#deploying-on-minimum-hardware).
+Gated models: `export HF_TOKEN="hf_..."`. Minimum hardware (≤60 cores / 128 GB): [Prerequisites - Deploying on Minimum Hardware](../getting-started/prerequisites.md#deploying-on-minimum-hardware).
 
 ### Step 3 - Deploy
 
@@ -109,11 +109,11 @@ Secure credentials: `ansible-vault encrypt env/<name>/logs/rag/default_credentia
 
 ## Configure the deployment
 
-Edit `env/<name>/config.erag.yaml` and re-run `./es_auto_installer.sh install erag --env <name>`. Updates only affected components. See: [Pipeline Configuration](pipelines.md), [Advanced Configuration Guide](../customize/configuration.md).
+Edit `env/<name>/config.erag.yaml` and re-run `./es_auto_installer.sh install erag --env <name>`. Updates only affected components. See: [Pipeline Configuration](pipelines.md), [Advanced Configuration Guide](../configuration/configuration.md).
 
 ## Data ingestion, UI and telemetry
 
-Use **Data Ingestion** tab in **Admin Panel** (admin only; ChatQnA and AudioQnA only). User guides: [AudioQnA](../Intel_Chatbot_Toolkit_AudioQnA_User_Guide.pdf), [ChatQnA](../Intel_Chatbot_Toolkit_ChatQnA_User_Guide.pdf), [DocSum](../Intel_Chatbot_Toolkit_DocSum_User_Guide.pdf). Telemetry: [Telemetry Guide](../operate/telemetry.md).
+Use **Data Ingestion** tab in **Admin Panel** (admin only; ChatQnA and AudioQnA only). User guides: [AudioQnA](../Intel_Chatbot_Toolkit_AudioQnA_User_Guide.pdf), [ChatQnA](../Intel_Chatbot_Toolkit_ChatQnA_User_Guide.pdf), [DocSum](../Intel_Chatbot_Toolkit_DocSum_User_Guide.pdf). Telemetry: [Telemetry Guide](../configuration/telemetry.md).
 
 ## Single sign-on and SharePoint integration
 
@@ -127,7 +127,7 @@ chattool_keycloak_oidc_client_secret: ""
 chattool_keycloak_oidc_tenant_id: ""      # additionally enables SharePoint
 ```
 
-All empty = disabled. Partial config rejected. Apply: `./es_auto_installer.sh install erag --env <name>`. Full procedure: [Single Sign-On and SharePoint Integration](../customize/sharepoint.md).
+All empty = disabled. Partial config rejected. Apply: `./es_auto_installer.sh install erag --env <name>`. Full procedure: [Single Sign-On and SharePoint Integration](../configuration/sharepoint.md).
 
 ## Remove the installation
 
@@ -155,13 +155,13 @@ The Keycloak realm, clients, roles, users and groups were renamed (realm `Enterp
 | Issue | Resolution |
 |-------|------------|
 | **Test deployment** | ChatQnA: `cd .../ext/enterprise.ai-erag/deployment && ./scripts/test_connection.sh`. DocSum: `./scripts/test_docsum.sh`. Translation: `./scripts/test_translation.sh`. |
-| **Debug tool** | [Debug Tool Guide](../operate/troubleshooting.md) collects diagnostics. |
+| **Debug tool** | [Debug Tool Guide](../faq-and-troubleshooting/troubleshooting.md) collects diagnostics. |
 | **Status check** | `./es_auto_installer.sh status --env <name>` |
-| **Pods stuck pending** | `kubectl describe pod <name> -n <namespace>`. Minimum hardware: verify [tuning steps](../quickstart/prerequisites.md#deploying-on-minimum-hardware). |
+| **Pods stuck pending** | `kubectl describe pod <name> -n <namespace>`. Minimum hardware: verify [tuning steps](../getting-started/prerequisites.md#deploying-on-minimum-hardware). |
 | **Models not deploying** | Gated models: `export HF_TOKEN="hf_..."` before install. |
 | **Connection test fails** | Wait for all pods `Running` in pipeline namespace. |
 | **Install fails** | Check `env/<name>/logs/install-erag-*.log`, then re-run (idempotent). |
 
 ## Related documentation
 
-[Prerequisites](../quickstart/prerequisites.md), [Quickstart](../quickstart/quickstart.md), [Pipeline Configuration](pipelines.md), [Configuration Reference](../customize/configuration.md), [Platform Documentation](https://github.com/intel/toolkit-manager/blob/main/docs/README.md).
+[Prerequisites](../getting-started/prerequisites.md), [Quickstart](../getting-started/quickstart.md), [Pipeline Configuration](pipelines.md), [Configuration Reference](../configuration/configuration.md), [Platform Documentation](https://github.com/intel/toolkit-manager/blob/main/docs/README.md).

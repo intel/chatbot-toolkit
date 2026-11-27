@@ -16,7 +16,7 @@
           'reason': upgrade_check_layer ~ ' ' ~ _recorded ~ ' uses the Keycloak realm EnterpriseRAG and the erag-* names;'
                     ~ ' this release uses ChatbotToolkit and chattool-* and does not rename them in place',
           'resolve': 'reinstall: tear ' ~ upgrade_check_layer ~ ' down with the release that installed it, then follow'
-                     ~ ' docs/deploy/install_rag.md, "Upgrade from a release before the Chatbot Toolkit rename"'}
+                     ~ ' docs/deployment/install-rag.md, "Upgrade from a release before the Chatbot Toolkit rename"'}
          if _recorded and _recorded is version('3.1.0.dev0', '<', version_type='pep440')
          else {'layer': upgrade_check_layer, 'check': 'keycloak-rename', 'verdict': 'pass',
                'reason': 'no record from before the Chatbot Toolkit rename', 'resolve': None} }}

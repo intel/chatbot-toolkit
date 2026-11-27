@@ -47,13 +47,13 @@ Deploy: `./es_auto_installer.sh install erag --env <name>`.
 **ChatQnA (base):** Embedding → Retriever → Reranking → PromptTemplate → LLMGuardInput → LLM. Models (llm-inference ns): `llama3-8b-awq`, `nomic-embed`, `bge-reranker-v2-m3`.
 
 <div align="center">
-   <img alt="Intel® Chatbot Toolkit ChatQnA pipeline: the query is embedded, candidate documents are retrieved from the vector database and reranked, input guardrails and prompt templating are applied, and the LLM returns a grounded answer" src="../images/architecture_chatqna.svg" width="880">
+   <img alt="Intel® Chatbot Toolkit ChatQnA pipeline: the query is embedded, candidate documents are retrieved from the vector database and reranked, input guardrails and prompt templating are applied, and the LLM returns a grounded answer" src="../assets/architecture_chatqna.svg" width="880">
 </div>
 
 **DocSum:** TextExtractor → TextCompression → TextSplitter → LLM → DocSum.
 
 <div align="center">
-   <img alt="Intel® Chatbot Toolkit DocSum pipeline: an uploaded document is extracted, compressed, and split before the LLM produces a summary" src="../images/architecture_docsum.svg" width="880">
+   <img alt="Intel® Chatbot Toolkit DocSum pipeline: an uploaded document is extracted, compressed, and split before the LLM produces a summary" src="../assets/architecture_docsum.svg" width="880">
 </div>
 
 **Translation:** LanguageDetection → PromptTemplate → LLM. Model: `alma-7b-r`.
@@ -116,7 +116,7 @@ inference_models:
 | **Keep embedding model consistent** | Changing embedding changes vector dims; index not auto-rebuilt. Re-ingest all documents. |
 
 > [!WARNING]
-> Changing the embedding model invalidates the existing vector index. Retrieval will return nothing useful until every document is re-ingested. See [Models](../customize/models.md#what-changes-the-embedding-model).
+> Changing the embedding model invalidates the existing vector index. Retrieval will return nothing useful until every document is re-ingested. See [Models](../configuration/models.md#what-changes-the-embedding-model).
 
 **When to use variants:**
 
@@ -127,4 +127,4 @@ inference_models:
 
 ## Related documentation
 
-[Install RAG Guide](install_rag.md), [Configuration Reference](../customize/configuration.md), [Modular Pipelines Reference](../../deployment/pipelines/README.md).
+[Install RAG Guide](install-rag.md), [Configuration Reference](../configuration/configuration.md), [Modular Pipelines Reference](../../deployment/pipelines/README.md).

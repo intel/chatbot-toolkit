@@ -244,4 +244,4 @@ With RBAC disabled, every tracked site is returned to every caller.
 | Topic | Link |
 |-------|------|
 | Single Sign-On setup (required for SharePoint) | [Authentication](auth.md) (Part 1) |
-| EDP storage configuration | [object_store.md](object_store.md) |
+| EDP storage configuration | [object-store.md](object-store.md) |

@@ -38,7 +38,7 @@ Edit when:
 
 Types: **chatqna** (RAG with retrieval/rerank/LLM), **docsum** (TextExtractor → TextCompression → TextSplitter → LLM → DocSum), **translation** (ALMA models, preview), **audioqna** (ChatQnA + ASR/TTS).
 
-Variants: **base** (full), **retrieve-rerank** (no LLM, retrieval-only), **upload** (embedding-only, ingestion). See [pipelines.md](../deploy/pipelines.md).
+Variants: **base** (full), **retrieve-rerank** (no LLM, retrieval-only), **upload** (embedding-only, ingestion). See [pipelines.md](../deployment/pipelines.md).
 
 ## Component enablement
 
@@ -58,7 +58,7 @@ Variants: **base** (full), **retrieve-rerank** (no LLM, retrieval-only), **uploa
 | `backup_enabled` | `false` | Arms this toolkit's backup profile. Also needs the platform's `velero_enabled: true` and `storage_backend: nfs` or `ceph` — both switches are independent, and either off makes a run a no-op |
 | `upgrade_backup_max_age_hours` | `6` | How fresh a backup of the installed release an upgrade demands; `install … --force` runs without one, recorded as forced |
 
-See [Backup and Restore](../operate/backup.md) for what is captured, how to run it, and the identity
+See [Backup and Restore](../deployment/backup-and-restore.md) for what is captured, how to run it, and the identity
 realm.
 
 ## Inference models
@@ -136,7 +136,7 @@ See [`src/comps/vectorstores/CONTRIBUTING.md`](../../src/comps/vectorstores/CONT
 | `edp_rbac_enabled` | `false` | Enables retrieval RBAC for Redis or Milvus; must be `false` for ONTAP S3 and MSSQL |
 | `edp_scheduled_sync_enabled` | `false` | For S3-compatible sans SQS |
 
-Backends: **seaweedfs** (in-cluster), **s3** (AWS + SQS), **s3compatible** (ONTAP S3, external MinIO). See [object_store.md](object_store.md).
+Backends: **seaweedfs** (in-cluster), **s3** (AWS + SQS), **s3compatible** (ONTAP S3, external MinIO). See [object-store.md](object-store.md).
 
 ## Authentication and SSO
 
@@ -175,7 +175,7 @@ See [images.md](images.md).
 
 ## Horizontal Pod Autoscaling
 
-`hpa_enabled: true` (default). Scales the guardrails and EDP on Prometheus custom metrics; see [Performance › Horizontal Pod Autoscaling](../operate/performance.md#horizontal-pod-autoscaling). Disable for: fixed workload, manual scaling, resource-constrained.
+`hpa_enabled: true` (default). Scales the guardrails and EDP on Prometheus custom metrics; see [Performance › Horizontal Pod Autoscaling](performance.md#horizontal-pod-autoscaling). Disable for: fixed workload, manual scaling, resource-constrained.
 
 ## UI
 
@@ -258,4 +258,4 @@ Precedence: CLI `-e` > `global_config.yaml` > `config.erag.yaml` > role defaults
 
 ## Related docs
 
-[models.md](models.md) (models, multilingual, tuning), [auth.md](auth.md)/[sharepoint.md](sharepoint.md) (SSO, MFA, AD), [mcp.md](mcp.md) (MCP gateway), [object_store.md](object_store.md) (ONTAP S3), [images.md](images.md) (build images), [pipelines.md](../deploy/pipelines.md) (variants), [performance.md](../operate/performance.md) (tuning), [backup.md](../operate/backup.md) (backup and restore), [platform config](https://github.com/intel/toolkit-manager/blob/main/docs/customize/configuration.md).
+[models.md](models.md) (models, multilingual, tuning), [auth.md](auth.md)/[sharepoint.md](sharepoint.md) (SSO, MFA, AD), [mcp.md](mcp.md) (MCP gateway), [object-store.md](object-store.md) (ONTAP S3), [images.md](images.md) (build images), [pipelines.md](../deployment/pipelines.md) (variants), [performance.md](performance.md) (tuning), [backup-and-restore.md](../deployment/backup-and-restore.md) (backup and restore), [platform config](https://github.com/intel/toolkit-manager/blob/main/docs/configuration/configuration.md).
