@@ -128,6 +128,7 @@ class RunConfig(_StrictModel):
 
     # kr8s/httpx logs a '101 Switching Protocols' line for every port-forwarded request.
     display_kubernetes_client_logs: bool = False
+    metadata: bool = True
 
 
 class SweepConfig(_StrictModel):

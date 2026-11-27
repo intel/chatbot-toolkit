@@ -29,7 +29,7 @@ environment gotchas.
 | `cluster/served_model.py` | `ServedModel`: reads the model the pipeline is **observed** to generate with, out of the running `llm-usvc` pods. Not a knob — the runner uses it to pick the benchmark's tokenizer. |
 | `cluster/vector_db.py` | Reads the vector DB's state from EDP (ingested vectors, files in progress); every run records the observed count as `settings.edp.vector_db.num_vectors`. |
 | `cluster/model_catalog.py` | Reader for the model-manager catalog (`models-rag.yaml` / `models.yaml`): maps a served model name to the HuggingFace repo id the benchmark's tokenizer needs. |
-| `provenance/commit_info.py` | The checked-out commit the results are attributed to. |
+| `provenance/` | The results' `metadata`: `collect_metadata()` in `__init__.py`, `commit_info.py` (the checked-out commit) and `hardware.py` (the CPU, memory and OS of the node serving the model; SPR or GNR only). |
 | `provenance/paths.py` | Where the installed environment's files are looked for (deploy root derived from the checkout's location). |
 | `configs/sweep.yaml` | Sweep config (`--sweep`): what to vary. Keys are described in [`configs/README.md`](./configs/README.md). |
 | `configs/general.yaml` | Run config (`--config`): how to run. |
@@ -273,21 +273,39 @@ finished.
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "date": "2026-11-26T09:02:11Z",
-  "commit_info": {
-    "sha": "9022de7e…",
-    "datetime": "2026-11-25T18:02:44+01:00",
-    "author": "Kurzacz, Kamil",
-    "description": "refactor(benchmarks): …",
-    "branch": "kkurzacz/pysweep-core"
+  "metadata": {
+    "commit_info": {
+      "sha": "9022de7e…",
+      "datetime": "2026-11-25T18:02:44+01:00",
+      "author": "Kurzacz, Kamil",
+      "description": "refactor(benchmarks): …",
+      "branch": "kkurzacz/pysweep-core"
+    },
+    "hardware": {
+      "nodes": ["localhost"],
+      "cpu": {"vendor": "Intel", "model": "Intel(R) Xeon(R) Platinum 8468H", "family": "SPR", "model_id": 143,
+              "sockets": 2, "cores": 96, "threads": 192, "numa_nodes": 2, "amx": true},
+      "memory_gib": 2011,
+      "os": "Ubuntu 24.10",
+      "kernel": "6.11.0-29-generic",
+      "kubernetes": "v1.35.4"
+    }
   },
   "runs": [ { "run": {…}, "settings": {…}, "results": {…} } ]
 }
 ```
 
-`date` is when the sweep started (UTC). `commit_info` is the committed `HEAD` of
-the checkout pysweep runs from; uncommitted changes are not recorded.
+`date` is when the sweep started (UTC). `metadata` describes where the results
+come from, not the benchmark itself, and is collected in the preflight when
+`metadata: true` in `general.yaml` (the default); every part is then mandatory.
+`commit_info` is the committed `HEAD` of the checkout pysweep runs from
+(uncommitted changes are not recorded). `hardware` is the node(s) running the
+served model's model-server pods: CPU facts from Node Feature Discovery and
+`/proc/cpuinfo` in a model-server pod, memory and OS from the node object. Only
+SPR and GNR are recognized; any other CPU fails the preflight with the values it
+found. With `metadata: false` the document has no `metadata` key.
 
 Each record, also logged as YAML when its run finishes:
 
@@ -328,7 +346,7 @@ results:
 
 Percentiles are linearly interpolated (numpy's default), like `parse.py`.
 
-`benchmark_summary_results.csv` has one row per run: `date`, `commit_info.*`, then
+`benchmark_summary_results.csv` has one row per run: `date`, `metadata.*` (lists joined with `;`), then
 every field of the record as a dotted column (`run.index`,
 `settings.deployment.llms.max_new_tokens`, `settings.client.concurrency`,
 `results.ttft_s.p90`, …). Missing values are blank.
@@ -389,7 +407,7 @@ In increasing cost order:
 | Check | What it asserts |
 |---|---|
 | `question_file_verify()` | Every declared `client.question_file` (the knob is sweepable, so a config may name several) resolves to a readable file. A stat per corpus. |
-| `commit_info_verify()` | The checkout pysweep runs from is a git repository with a commit on a branch (not a detached `HEAD`), so the results can name it. A synced copy needs a readable `.git`. |
+| `metadata_verify()` | With `metadata: true`: the checkout pysweep runs from is a git repository with a commit on a branch (not a detached `HEAD`; a synced copy needs a readable `.git`), and the node serving the model has Node Feature Discovery labels, readable `/proc/cpuinfo` and an SPR or GNR CPU. |
 
 ## Requirements
 

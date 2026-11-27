@@ -47,12 +47,22 @@ COMMIT = {
     "description": "feat: something",
     "branch": "kkurzacz/pysweep-core",
 }
+HARDWARE = {
+    "nodes": ["node-1"],
+    "cpu": {"vendor": "Intel", "model": "Intel(R) Xeon(R) Platinum 8468H", "family": "SPR", "model_id": 143,
+            "sockets": 2, "cores": 96, "threads": 192, "numa_nodes": 2, "amx": True},
+    "memory_gib": 2011,
+    "os": "Ubuntu 24.10",
+    "kernel": "6.11.0",
+    "kubernetes": "v1.35.4",
+}
+METADATA = {"commit_info": COMMIT, "hardware": HARDWARE}
 
 
 @pytest.fixture(autouse=True)
 def _committed_checkout(monkeypatch):
     # CI checks out without git, so no test may depend on the real repository.
-    monkeypatch.setattr(psb, "read_commit_info", lambda: dict(COMMIT))
+    monkeypatch.setattr(psb, "collect_metadata", lambda: json.loads(json.dumps(METADATA)))
     monkeypatch.setattr(psb, "edp_enabled", lambda: False)
 
 
@@ -322,7 +332,9 @@ def test_sweep_writes_one_summary_row_per_run(monkeypatch, tmp_path):
     assert {r["results.ttft_s.mean"] for r in rows} == {"0.8"}
     assert {r["results.tpot_s.mean"] for r in rows} == {str(round((6.9 - 0.8) / 127, 6))}
     assert {r["settings.client.tokenizer"] for r in rows} == {"served/model"}
-    assert {r["commit_info.sha"] for r in rows} == {COMMIT["sha"]}
+    assert {r["metadata.commit_info.sha"] for r in rows} == {COMMIT["sha"]}
+    assert {r["metadata.hardware.cpu.family"] for r in rows} == {"SPR"}
+    assert {r["metadata.hardware.nodes"] for r in rows} == {"node-1"}
     # Relative to the summary, so the directory can be copied off the host intact.
     pointers = [r["run.result_file"] for r in rows]
     assert all(not Path(p).is_absolute() for p in pointers)
@@ -330,7 +342,8 @@ def test_sweep_writes_one_summary_row_per_run(monkeypatch, tmp_path):
     assert {Path(p).parent.name for p in pointers} == {results.PER_CASE_DIR_NAME}
 
     document = json.loads((tmp_path / "out" / results.RESULTS_FILE_NAME).read_text())
-    assert document["commit_info"] == COMMIT
+    assert document["schema_version"] == 2
+    assert document["metadata"] == METADATA
     assert [run["run"]["index"] for run in document["runs"]] == ["1.1", "1.2", "2.1", "2.2"]
     assert document["runs"][0]["settings"]["deployment"] == {"llms": {"max_new_tokens": 128}}
 
@@ -816,17 +829,23 @@ def test_summary_records_the_declared_path_not_the_resolved_one(monkeypatch, tmp
 
 @allure.feature("pysweep")
 def test_preflight_returns_the_commit_the_results_are_attributed_to():
-    assert psb.preflight_check(load_config(_client())) == COMMIT
+    assert psb.preflight_check(load_config(_client())) == METADATA
 
 
 @allure.feature("pysweep")
-def test_preflight_fails_without_commit_info(monkeypatch):
+def test_preflight_fails_when_any_metadata_is_missing(monkeypatch):
     def unreadable():
-        raise psb.CommitInfoError("not a git repository")
+        raise psb.MetadataError("hardware: No running model-server pod")
 
-    monkeypatch.setattr(psb, "read_commit_info", unreadable)
-    with pytest.raises(psb.PreflightError, match="commit_info: not a git repository"):
+    monkeypatch.setattr(psb, "collect_metadata", unreadable)
+    with pytest.raises(psb.PreflightError, match="metadata: hardware: No running model-server pod"):
         psb.preflight_check(load_config(_client()))
+
+
+@allure.feature("pysweep")
+def test_metadata_off_collects_and_checks_nothing(monkeypatch):
+    monkeypatch.setattr(psb, "collect_metadata", lambda: pytest.fail("metadata collected"))
+    assert psb.preflight_check(load_config(_client()), metadata=False) is None
 
 
 @allure.feature("pysweep")
@@ -936,9 +955,9 @@ def test_preflight_runs_once_for_the_whole_sweep(monkeypatch, tmp_path):
 
     calls = []
 
-    def counting_preflight(config):
+    def counting_preflight(config, metadata=True):
         calls.append(len(fake.calls))
-        return dict(COMMIT)
+        return METADATA
 
     run_config = psb.load_run_config({})
     monkeypatch.setattr(psb, "preflight_check", counting_preflight)

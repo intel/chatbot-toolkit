@@ -68,7 +68,8 @@ class RequiredAccess:
 
     def describe(self) -> str:
         grp = f"{self.group}/" if self.group else ""
-        return f"{self.verb} {grp}{self.resource} in ns/{self.namespace}"
+        scope = f"in ns/{self.namespace}" if self.namespace else "(cluster-scoped)"
+        return f"{self.verb} {grp}{self.resource} {scope}"
 
 
 @dataclass
@@ -85,6 +86,9 @@ REQUIRED_ACCESS = [
         "get", "llminferenceservices", LLM_INFERENCE_NAMESPACE,
         group="serving.kserve.io", reason="observed model readiness",
     ),
+    RequiredAccess("list", "pods", LLM_INFERENCE_NAMESPACE, reason="locate the model-server pods"),
+    RequiredAccess("create", "pods/exec", LLM_INFERENCE_NAMESPACE, reason="read /proc/cpuinfo on the model server"),
+    RequiredAccess("get", "nodes", "", reason="read the model server node's CPU labels and capacity"),
     RequiredAccess("list", "pods", FINGERPRINT_NAMESPACE, reason="locate fingerprint-svc endpoints"),
     RequiredAccess(
         "create", "pods/portforward", FINGERPRINT_NAMESPACE,

@@ -2,3 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 display_kubernetes_client_logs: false
+metadata: true

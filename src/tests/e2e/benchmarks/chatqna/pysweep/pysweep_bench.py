@@ -42,7 +42,7 @@ from tests.e2e.benchmarks.chatqna.pysweep.config import (
 from tests.e2e.benchmarks.chatqna.pysweep.cluster import model_catalog
 from tests.e2e.benchmarks.chatqna.pysweep.cluster.vector_db import edp_client, edp_enabled, observed_settings
 from tests.e2e.benchmarks.chatqna.pysweep.pre_bench import NUM_VECTORS, run_pre_bench, seed
-from tests.e2e.benchmarks.chatqna.pysweep.provenance.commit_info import CommitInfoError, read_commit_info
+from tests.e2e.benchmarks.chatqna.pysweep.provenance import MetadataError, collect_metadata
 from tests.e2e.benchmarks.chatqna.pysweep.results import (
     DEFAULT_SUMMARIES_DIR,
     SweepResults,
@@ -231,17 +231,21 @@ def question_file_verify(config: SweepConfig) -> None:
         logger.debug("Preflight: question_file '%s' -> %s", value, path)
 
 
-def commit_info_verify() -> dict[str, str]:
-    """Raise PreflightError unless the checked-out commit can be identified; return it."""
+def metadata_verify(enabled: bool) -> dict | None:
+    """Raise PreflightError unless every piece of the results' metadata can be collected; return it."""
+    if not enabled:
+        logger.info("Preflight: metadata collection is off; results will carry no commit_info or hardware.")
+        return None
     try:
-        info = read_commit_info()
-    except CommitInfoError as exc:
-        raise PreflightError(f"commit_info: {exc}") from exc
+        metadata = collect_metadata()
+    except MetadataError as exc:
+        raise PreflightError(f"metadata: {exc}") from exc
+    commit, cpu = metadata["commit_info"], metadata["hardware"]["cpu"]
     logger.info(
-        "Preflight: results are attributed to %s on %s (%s).",
-        info["sha"][:12], info["branch"], info["description"],
+        "Preflight: results are attributed to %s on %s (%s), measured on %s (%s).",
+        commit["sha"][:12], commit["branch"], commit["description"], cpu["model"], cpu["family"],
     )
-    return info
+    return metadata
 
 
 def pre_bench_verify(config: SweepConfig) -> None:
@@ -254,11 +258,11 @@ def pre_bench_verify(config: SweepConfig) -> None:
                 raise PreflightError(f"pre_bench.{NUM_VECTORS} needs {path}, which does not exist.")
 
 
-def preflight_check(config: SweepConfig) -> dict[str, str]:
-    """Run every preflight check; return the commit the results are attributed to."""
+def preflight_check(config: SweepConfig, metadata: bool = True) -> dict | None:
+    """Run every preflight check; return the results' metadata, if collected."""
     question_file_verify(config)
     pre_bench_verify(config)
-    return commit_info_verify()
+    return metadata_verify(metadata)
 
 
 def chatqna_url() -> str:
@@ -475,7 +479,7 @@ def main(argv=None):
     config = load_config(args.sweep)
     bench_argv = resolve_benchmark_argv(config, args.benchmark_args)
 
-    commit_info = preflight_check(config)
+    metadata = preflight_check(config, run_config.metadata)
 
     deployment_combinations = config.deployment_combinations()
     client_combinations = config.client_combinations()
@@ -484,7 +488,7 @@ def main(argv=None):
     run_pre_bench(config.pre_bench_settings(), edp)
 
     layout = prepare_summaries_dir(args.summaries)
-    sweep_results = SweepResults(layout, date=utc_now(), commit_info=commit_info)
+    sweep_results = SweepResults(layout, date=utc_now(), metadata=metadata)
 
     fingerprint_client = FingerprintClient(default_transport())
 

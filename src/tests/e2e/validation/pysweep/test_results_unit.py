@@ -31,6 +31,7 @@ COMMIT = {
     "description": "feat: something",
     "branch": "kkurzacz/pysweep-core",
 }
+METADATA = {"commit_info": COMMIT, "hardware": {"nodes": ["node-1", "node-2"], "cpu": {"family": "SPR"}}}
 
 CLIENT = {
     "question_file": "questions-short.csv",
@@ -176,6 +177,16 @@ def test_edp_settings_sit_next_to_deployment_and_client():
     assert flatten(record)["settings.edp.vector_db.num_vectors"] == 55312
 
 
+@allure.feature("pysweep")
+def test_without_metadata_the_document_has_no_metadata_key(tmp_path):
+    layout = prepare_summaries_dir(tmp_path / "out")
+    sweep = SweepResults(layout, date="d", metadata=None)
+    sweep.add_run(_record())
+    assert "metadata" not in json.loads(layout.results_file.read_text())
+    header = next(csv.reader(layout.summary_file.open()))
+    assert header[:2] == ["date", "run.index"]
+
+
 @pytest.fixture
 def layout(tmp_path):
     return prepare_summaries_dir(tmp_path / "out")
@@ -183,18 +194,18 @@ def layout(tmp_path):
 
 @allure.feature("pysweep")
 def test_results_json_exists_before_the_first_run_finishes(layout):
-    SweepResults(layout, date="2026-11-26T09:02:11Z", commit_info=COMMIT)
+    SweepResults(layout, date="2026-11-26T09:02:11Z", metadata=METADATA)
     assert json.loads(layout.results_file.read_text()) == {
         "schema_version": SCHEMA_VERSION,
         "date": "2026-11-26T09:02:11Z",
-        "commit_info": COMMIT,
+        "metadata": METADATA,
         "runs": [],
     }
 
 
 @allure.feature("pysweep")
 def test_results_json_holds_every_run_after_each_one(layout):
-    sweep = SweepResults(layout, date="2026-11-26T09:02:11Z", commit_info=COMMIT)
+    sweep = SweepResults(layout, date="2026-11-26T09:02:11Z", metadata=METADATA)
     for index in (1, 2):
         sweep.add_run(_record(index=f"1.{index}"))
         document = json.loads(layout.results_file.read_text())
@@ -203,30 +214,33 @@ def test_results_json_holds_every_run_after_each_one(layout):
 
 @allure.feature("pysweep")
 def test_the_csv_has_one_dotted_row_per_run(layout):
-    sweep = SweepResults(layout, date="2026-11-26T09:02:11Z", commit_info=COMMIT)
+    sweep = SweepResults(layout, date="2026-11-26T09:02:11Z", metadata=METADATA)
     sweep.add_run(_record(concurrency=1))
     sweep.add_run(_record(index="1.2", concurrency=16))
 
     rows = list(csv.DictReader(layout.summary_file.open()))
     assert [row["settings.client.concurrency"] for row in rows] == ["1", "16"]
     header = next(csv.reader(layout.summary_file.open()))
-    assert header[:7] == [
+    assert header[:9] == [
         "date",
-        "commit_info.sha",
-        "commit_info.datetime",
-        "commit_info.author",
-        "commit_info.description",
-        "commit_info.branch",
+        "metadata.commit_info.sha",
+        "metadata.commit_info.datetime",
+        "metadata.commit_info.author",
+        "metadata.commit_info.description",
+        "metadata.commit_info.branch",
+        "metadata.hardware.nodes",
+        "metadata.hardware.cpu.family",
         "run.index",
     ]
     assert "settings.deployment.llms.max_new_tokens" in header
     assert "results.ttft_s.p90" in header
-    assert rows[0]["commit_info.branch"] == "kkurzacz/pysweep-core"
+    assert rows[0]["metadata.commit_info.branch"] == "kkurzacz/pysweep-core"
+    assert rows[0]["metadata.hardware.nodes"] == "node-1;node-2"
 
 
 @allure.feature("pysweep")
 def test_missing_values_render_blank_in_the_csv(layout):
-    sweep = SweepResults(layout, date="2026-11-26T09:02:11Z", commit_info=COMMIT)
+    sweep = SweepResults(layout, date="2026-11-26T09:02:11Z", metadata=METADATA)
     sweep.add_run(_record())
     (row,) = csv.DictReader(layout.summary_file.open())
     assert row["results.ttft_s.mean"] == ""
@@ -235,14 +249,14 @@ def test_missing_values_render_blank_in_the_csv(layout):
 
 @allure.feature("pysweep")
 def test_result_file_pointer_is_relative_to_the_summaries_directory(layout):
-    sweep = SweepResults(layout, date="d", commit_info=COMMIT)
+    sweep = SweepResults(layout, date="d", metadata=METADATA)
     inside = layout.per_case_dir / "bench_x.result.csv"
     assert sweep.pointer(inside) == f"{PER_CASE_DIR_NAME}/bench_x.result.csv"
 
 
 @allure.feature("pysweep")
 def test_a_result_file_from_outside_the_directory_is_recorded_verbatim(layout, tmp_path):
-    sweep = SweepResults(layout, date="d", commit_info=COMMIT)
+    sweep = SweepResults(layout, date="d", metadata=METADATA)
     elsewhere = tmp_path / "elsewhere.csv"
     assert sweep.pointer(elsewhere) == str(elsewhere)
 

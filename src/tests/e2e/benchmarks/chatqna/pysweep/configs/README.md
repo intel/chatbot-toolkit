@@ -64,3 +64,4 @@ previous sweep's results there are deleted first.
 | Key | Default | Meaning |
 |---|---|---|
 | `display_kubernetes_client_logs` | `false` | Show the Kubernetes client's per-request and port-forward teardown log noise; for debugging connectivity. |
+| `metadata` | `true` | Collect `metadata.commit_info` and `metadata.hardware` for `results.json` in the preflight; every part is then mandatory and a failure stops the sweep before anything runs. Needed for loading results into Elasticsearch. |

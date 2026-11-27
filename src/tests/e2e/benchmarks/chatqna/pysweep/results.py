@@ -9,7 +9,6 @@ import shutil
 from pathlib import Path
 from typing import Any, Iterable, NamedTuple, Sequence
 
-from .provenance.commit_info import COMMIT_INFO_FIELDS
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ RESULTS_FILE_NAME = "results.json"
 
 PER_CASE_DIR_NAME = "per_case_results"
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 PERCENTILES = (("p50", 0.5), ("p90", 0.9), ("p99", 0.99))
 
 _PRECISION = 6
@@ -267,10 +266,10 @@ def run_record(
 class SweepResults:
     """Accumulates run records and rewrites results.json and the summary CSV after each."""
 
-    def __init__(self, layout: SummariesLayout, date: str, commit_info: dict[str, str]):
+    def __init__(self, layout: SummariesLayout, date: str, metadata: dict[str, Any] | None):
         self.layout = layout
         self.date = date
-        self.commit_info = commit_info
+        self.metadata = metadata
         self.runs: list[dict[str, Any]] = []
         self.write()
 
@@ -286,7 +285,7 @@ class SweepResults:
         return {
             "schema_version": SCHEMA_VERSION,
             "date": self.date,
-            "commit_info": self.commit_info,
+            **({"metadata": self.metadata} if self.metadata else {}),
             "runs": self.runs,
         }
 
@@ -296,10 +295,7 @@ class SweepResults:
         return record
 
     def _csv_rows(self) -> list[dict[str, Any]]:
-        sweep = {
-            "date": self.date,
-            **{f"commit_info.{field}": self.commit_info.get(field) for field in COMMIT_INFO_FIELDS},
-        }
+        sweep = flatten({"date": self.date, **({"metadata": self.metadata} if self.metadata else {})})
         return [{**sweep, **flatten(record)} for record in self.runs]
 
     def write(self) -> Path:
@@ -311,5 +307,13 @@ class SweepResults:
             if columns:
                 writer.writeheader()
             for row in rows:
-                writer.writerow({column: "" if row.get(column) is None else row[column] for column in columns})
+                writer.writerow({column: _csv_value(row.get(column)) for column in columns})
         return self.layout.results_file
+
+
+def _csv_value(value: Any) -> Any:
+    if value is None:
+        return ""
+    if isinstance(value, list):
+        return ";".join(str(item) for item in value)
+    return value
