@@ -89,6 +89,20 @@ class _StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class VectorDbPreBench(_StrictModel):
+    num_vectors: PositiveInt | None = None
+
+
+class EdpPreBench(_StrictModel):
+    vector_db: VectorDbPreBench | None = None
+
+
+class PreBenchConfig(_StrictModel):
+    """Done once before the first run; single values only, never part of the product."""
+
+    edp: EdpPreBench | None = None
+
+
 class LlmsConfig(_StrictModel):
     max_new_tokens: Annotated[MaxTokensValue | None, PropertyBinding(MaxNewTokens)] = None
 
@@ -117,6 +131,7 @@ class RunConfig(_StrictModel):
 
 
 class SweepConfig(_StrictModel):
+    pre_bench: PreBenchConfig | None = None
     llms: LlmsConfig | None = None
     client: ClientConfig
 
@@ -188,6 +203,10 @@ class SweepConfig(_StrictModel):
         """Dotted paths of the knobs declared with more than one value."""
         return {path for path, _, values in _walk_bindings(self) if len(values) > 1}
 
+    def pre_bench_settings(self) -> dict[str, Any]:
+        """Declared pre_bench values as dotted paths, e.g. ``{"edp.vector_db.num_vectors": 50000}``."""
+        return _declared_values(self.pre_bench) if self.pre_bench else {}
+
     def knob_paths(self) -> list[str]:
         """Declared knob paths (minus ``server``/``bearer_file``), deployment first."""
         deployment = sorted(path for path, _, _ in self.iter_settings())
@@ -230,6 +249,17 @@ def _walk_bindings(
                 yield path, binding, _as_list(value)
         elif isinstance(value, BaseModel):
             yield from _walk_bindings(value, prefix=f"{path}.")
+
+
+def _declared_values(model: BaseModel, prefix: str = "") -> dict[str, Any]:
+    values: dict[str, Any] = {}
+    for name in type(model).model_fields:
+        value = getattr(model, name)
+        if isinstance(value, BaseModel):
+            values.update(_declared_values(value, f"{prefix}{name}."))
+        elif value is not None:
+            values[f"{prefix}{name}"] = value
+    return values
 
 
 def _as_list(value: Any) -> list[Any]:

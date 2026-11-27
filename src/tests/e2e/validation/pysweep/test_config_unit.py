@@ -356,3 +356,33 @@ def test_shipped_example_run_config_is_valid():
         / "e2e/benchmarks/chatqna/pysweep/configs/general.yaml"
     )
     assert load_run_config(example).display_kubernetes_client_logs is False
+
+
+def _pre_bench(num_vectors):
+    return {**_sweep(), "pre_bench": {"edp": {"vector_db": {"num_vectors": num_vectors}}}}
+
+
+@allure.feature("pysweep")
+def test_pre_bench_settings_are_dotted_paths():
+    assert load_config(_pre_bench(50000)).pre_bench_settings() == {"edp.vector_db.num_vectors": 50000}
+    assert load_config(_sweep()).pre_bench_settings() == {}
+
+
+@allure.feature("pysweep")
+@pytest.mark.parametrize("bad", [[50000, 100000], 0, -1, "many"])
+def test_num_vectors_is_a_single_positive_integer(bad):
+    with pytest.raises(ConfigError):
+        load_config(_pre_bench(bad))
+
+
+@allure.feature("pysweep")
+def test_pre_bench_rejects_unknown_keys():
+    with pytest.raises(ConfigError):
+        load_config({**_sweep(), "pre_bench": {"edp": {"vector_db": {"vectors": 1}}}})
+
+
+@allure.feature("pysweep")
+def test_pre_bench_is_neither_a_knob_nor_a_dimension():
+    cfg = load_config({**_pre_bench(50000), "llms": {"max_new_tokens": [128, 256]}})
+    assert not any(path.startswith(("pre_bench", "edp")) for path in cfg.knob_paths())
+    assert len(cfg.deployment_combinations()) == 2

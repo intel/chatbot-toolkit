@@ -40,6 +40,7 @@ from tests.e2e.benchmarks.chatqna.pysweep.config import (
     load_run_config,
 )
 from tests.e2e.benchmarks.chatqna.pysweep.cluster import model_catalog
+from tests.e2e.benchmarks.chatqna.pysweep.pre_bench import NUM_VECTORS, run_pre_bench, seed
 from tests.e2e.benchmarks.chatqna.pysweep.provenance.commit_info import CommitInfoError, read_commit_info
 from tests.e2e.benchmarks.chatqna.pysweep.results import (
     DEFAULT_SUMMARIES_DIR,
@@ -242,9 +243,18 @@ def commit_info_verify() -> dict[str, str]:
     return info
 
 
+def pre_bench_verify(config: SweepConfig) -> None:
+    """Raise PreflightError unless the inputs of every declared pre_bench step exist."""
+    if NUM_VECTORS in config.pre_bench_settings():
+        for path in (seed.DOCUMENTS_CSV, seed.WIKIPARSE):
+            if not path.is_file():
+                raise PreflightError(f"pre_bench.{NUM_VECTORS} needs {path}, which does not exist.")
+
+
 def preflight_check(config: SweepConfig) -> dict[str, str]:
     """Run every preflight check; return the commit the results are attributed to."""
     question_file_verify(config)
+    pre_bench_verify(config)
     return commit_info_verify()
 
 
@@ -467,6 +477,9 @@ def main(argv=None):
     deployment_combinations = config.deployment_combinations()
     client_combinations = config.client_combinations()
     varying_paths = config.varying_paths()
+    pre_bench = config.pre_bench_settings()
+    run_pre_bench(pre_bench)
+
     layout = prepare_summaries_dir(args.summaries)
     sweep_results = SweepResults(layout, date=utc_now(), commit_info=commit_info)
 
@@ -522,6 +535,7 @@ def main(argv=None):
                         result_file=sweep_results.pointer(output_file),
                         deployment=snapshot,
                         client={**client, "client.tokenizer": tokenizer},
+                        pre_bench=pre_bench,
                         results=summarize_requests(
                             read_requests(output_file),
                             duration_to_seconds(str(client["client.duration"])),

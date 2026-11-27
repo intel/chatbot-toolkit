@@ -164,6 +164,18 @@ def test_a_record_groups_settings_into_deployment_and_client():
     }
 
 
+@allure.feature("pysweep")
+def test_pre_bench_settings_sit_next_to_deployment_and_client():
+    record = run_record(
+        index="1.1", started_at="s", finished_at="f", exit_code=0, result_file="r.csv",
+        deployment={}, client={"client.concurrency": 1},
+        results=summarize_requests([], duration_s=60),
+        pre_bench={"edp.vector_db.num_vectors": 50000},
+    )
+    assert record["settings"]["edp"] == {"vector_db": {"num_vectors": 50000}}
+    assert flatten(record)["settings.edp.vector_db.num_vectors"] == 50000
+
+
 @pytest.fixture
 def layout(tmp_path):
     return prepare_summaries_dir(tmp_path / "out")

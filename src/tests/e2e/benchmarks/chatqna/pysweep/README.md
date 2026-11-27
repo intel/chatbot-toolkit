@@ -22,6 +22,7 @@ environment gotchas.
 | `config.py` | Pydantic-validated configs: `load_config()` / `SweepConfig` (+ the `deployment_combinations()` and `client_combinations()` cartesian `product` expansions) and `load_run_config()` / `RunConfig`. |
 | `results.py` | Run records, `results.json` and the summary CSV. |
 | `client_args.py` | Adapter mirroring `benchmark.py`'s CLI options as sweep knobs. Not properties — no plane, nothing to apply or read back; see below. |
+| `pre_bench/` | Done once before the first run: `run_pre_bench()` in `__init__.py`, and `seed.py`, which loads the vector DB through EDP up to `pre_bench.edp.vector_db.num_vectors`. |
 | `properties/` | Deployment knobs: `base.py` (the `Property` interface and `Plane` enum) and one module per knob, e.g. `max_tokens.py` (`MaxNewTokens`, LLM `max_new_tokens`, Runtime-API plane). |
 | `cluster/auth.py` | `KubernetesAccess` (side-effect-free RBAC preflight via `SelfSubjectAccessReview`), `load_build_config()` (the installed environment's config), `keycloak_helper()` (the maintained `KeycloakHelper`, for user tokens) and `client_token_lifespan()` (a sweep-long access-token lifespan for the UI client, restored afterwards). |
 | `cluster/fingerprint.py` | `system_fingerprint` client. `HelperFingerprintClient` adapts the suite's `FingerprintApiHelper`; `PortForwardTransport` / `IngressTransport` cover deployments the helper can't reach. |
@@ -156,9 +157,11 @@ to `benchmark.py`'s default (an embedding model's tokenizer).
 
 ## Iteration order
 
-The two products are **nested**, not merged into one:
+The two products are **nested**, not merged into one, and both follow a
+one-off `pre_bench` phase:
 
 ```
+pre_bench (once): seed the vector DB, …   # state every run shares
 for each deployment combination:      # outer — costs a rollout
     apply / wait / verify  (once)
     tokenizer = observed served model  # -m, derived once per combination

@@ -13,7 +13,15 @@ out-of-range value is a `ConfigError`.
 
 ## `sweep.yaml`
 
-Any knob takes a single value (fixed for the whole sweep) or a list (one
+**`pre_bench`** prepares what every run shares, once, before the first run.
+Single values only; it is not part of the product. Each value is recorded in
+every run as `settings.<path>` (e.g. `settings.edp.vector_db.num_vectors`).
+
+| Key | Meaning |
+|---|---|
+| `pre_bench.edp.vector_db.num_vectors` | Load the vector DB through EDP until it holds at least this many vectors: first the documents in `../documents.csv`, then Simple English Wikipedia, split by `../wikiparse.py`, two files at a time. Files already in EDP are not uploaded again; downloads are cached in `$PYSWEEP_SEED_CACHE` (default `~/.cache/pysweep/seed`). Fails if the data runs out first. It never removes vectors: use `../prepare_cleanup_vectors.sh` to start from an empty DB. |
+
+Any other knob takes a single value (fixed for the whole sweep) or a list (one
 dimension of the product). Runs = deployment combinations × client combinations;
 the file here is 2 × (3 × 2) = 12 runs.
 

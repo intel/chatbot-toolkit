@@ -828,6 +828,48 @@ def test_preflight_fails_without_commit_info(monkeypatch):
 
 
 @allure.feature("pysweep")
+def test_pre_bench_runs_once_before_the_summaries_and_the_first_run(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    cfg = load_config({
+        **_client(concurrency=[1, 16]),
+        "pre_bench": {"edp": {"vector_db": {"num_vectors": 50000}}},
+    })
+    events = []
+
+    class _RecordingBenchmark(FakeBenchmark):
+        def run_benchmark(self, args, output_file=None):
+            events.append("run")
+            return super().run_benchmark(args, output_file=output_file)
+
+    real_prepare = psb.prepare_summaries_dir
+    run_config = psb.load_run_config({})
+    monkeypatch.setattr(psb, "load_config", lambda _: cfg)
+    monkeypatch.setattr(psb, "load_run_config", lambda _: run_config)
+    monkeypatch.setattr(psb, "run_pre_bench", lambda settings: events.append(("pre_bench", settings)))
+    monkeypatch.setattr(psb, "prepare_summaries_dir", lambda root: events.append("summaries") or real_prepare(root))
+    monkeypatch.setattr(psb, "FingerprintClient", lambda transport: None)
+    monkeypatch.setattr(psb, "default_transport", lambda: None)
+    monkeypatch.setattr(psb, "apply_combination", lambda c, f: {})
+    monkeypatch.setattr(psb, "resolve_tokenizer", lambda: "served/model")
+    monkeypatch.setattr(psb, "provision_benchmark_target", _passthrough_provision)
+    _install_fake_benchmark(monkeypatch, _RecordingBenchmark())
+
+    assert psb.main(["--sweep", "ignored.yaml", "--summaries", "out"]) == 0
+
+    assert events == [("pre_bench", {"edp.vector_db.num_vectors": 50000}), "summaries", "run", "run"]
+    document = json.loads((tmp_path / "out" / results.RESULTS_FILE_NAME).read_text())
+    assert {run["settings"]["edp"]["vector_db"]["num_vectors"] for run in document["runs"]} == {50000}
+
+
+@allure.feature("pysweep")
+def test_preflight_fails_when_a_seed_input_is_missing(monkeypatch, tmp_path):
+    monkeypatch.setattr(psb.seed, "WIKIPARSE", tmp_path / "missing.py")
+    cfg = load_config({**_client(), "pre_bench": {"edp": {"vector_db": {"num_vectors": 1}}}})
+    with pytest.raises(psb.PreflightError, match="missing.py"):
+        psb.preflight_check(cfg)
+
+
+@allure.feature("pysweep")
 def test_each_run_logs_its_record_as_yaml(monkeypatch, tmp_path, caplog):
     monkeypatch.chdir(tmp_path)
     cfg = load_config(_client())
