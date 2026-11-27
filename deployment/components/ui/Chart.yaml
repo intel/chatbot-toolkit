@@ -7,5 +7,3 @@ description: Helm chart for UI component of Intel® Chatbot Toolkit ChatQnA
 type: application
 version: 1.0.6
 appVersion: "3.0.0"
-annotations:
-  app.kubernetes.io/part-of: chatbot-toolkit

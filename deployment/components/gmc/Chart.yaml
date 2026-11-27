@@ -25,5 +25,3 @@ version: 0.9.6
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
 appVersion: "3.0.0"
-annotations:
-  app.kubernetes.io/part-of: chatbot-toolkit

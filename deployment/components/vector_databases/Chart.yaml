@@ -4,5 +4,3 @@ description: Vector databases for Intel® Chatbot Toolkit
 type: application
 version: 2.0.6
 appVersion: "3.0.0"
-annotations:
-  app.kubernetes.io/part-of: chatbot-toolkit

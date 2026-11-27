@@ -7,5 +7,3 @@ description: MCP Gateway - exposes Intel® Chatbot Toolkit as MCP tools for AI a
 type: application
 version: 0.1.0
 appVersion: "3.0.0"
-annotations:
-  app.kubernetes.io/part-of: chatbot-toolkit

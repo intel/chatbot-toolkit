@@ -7,8 +7,6 @@ description: Chat History Helm chart
 type: application
 version: 0.1.6
 appVersion: "3.0.0"
-annotations:
-  app.kubernetes.io/part-of: chatbot-toolkit
 
 dependencies:
   - name: ferretdb
