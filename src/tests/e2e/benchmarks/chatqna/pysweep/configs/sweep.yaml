@@ -10,7 +10,7 @@ llms:
   max_new_tokens: [128, 256]
 
 client:
-  question_file: ../questions-short.csv
+  question_file: ../questions-pubmed.csv
   concurrency: [1, 16, 128]
   duration: 5m
   worker_startup_delay: 0s
