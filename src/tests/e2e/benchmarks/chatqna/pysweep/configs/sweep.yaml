@@ -9,6 +9,12 @@ pre_bench:
 llms:
   max_new_tokens: [128, 256]
 
+retriever:
+  k: 5
+
+reranker:
+  top_n: 1
+
 client:
   question_file: ../questions-pubmed.csv
   concurrency: [1, 16, 128]

@@ -5,11 +5,11 @@ SPDX-License-Identifier: Apache-2.0
 
 # pysweep — Declarative Configuration Sweeps for ChatQNA Benchmarks
 
-> **Status.** This document covers both config planes. On the Runtime-API plane
-> `llms.max_new_tokens` is implemented; `retriever.k` and `reranker.top_n` are
-> designed and land next. The K8s-spec plane's one designed knob, `llms.model`
-> (`LlmModel`: model-manager + `gmc-config`), is **not implemented yet**; the
-> sections on it describe the design it will follow. Until then the runner only *reads* the served model,
+> **Status.** This document covers both config planes. The Runtime-API plane
+> (`llms.max_new_tokens`, `retriever.k`, `reranker.top_n`) is implemented. The
+> K8s-spec plane's one designed knob, `llms.model` (`LlmModel`: model-manager +
+> `gmc-config`), is **not implemented yet**; the sections on it describe the
+> design it will follow. Until then the runner only *reads* the served model,
 > to derive the benchmark's tokenizer (`cluster/served_model.py`).
 
 ## Problem
@@ -486,8 +486,8 @@ on the next pod start. This is a likely third plane, deferred for now.
 
 | Existing | Plane | Property |
 |---|---|---|
-| `prepare_change_reranker.sh` (`top_n`) | Runtime API | `RerankerTopN` — **designed, not implemented** (`reranker.top_n`) |
-| `prepare_change_retriever.sh` (`k`) | Runtime API | `RetrieverK` — **designed, not implemented** (`retriever.k`) |
+| `prepare_change_reranker.sh` (`top_n`) | Runtime API | `RerankerTopN` — **implemented** (`reranker.top_n`) |
+| `prepare_change_retriever.sh` (`k`) | Runtime API | `RetrieverK` — **implemented** (`retriever.k`) |
 | `prepare_change_max_tokens.sh` (`max_new_tokens`) | Runtime API | `MaxNewTokens` — **implemented** (`llms.max_new_tokens`) |
 | `switch_llm_model.sh` (the served model) | K8s spec | `LlmModel` — **designed, not implemented** (`llms.model`), via `model-manager` + `gmc-config` |
 | `run.bash` model-server replicas / CPU / memory reads | K8s spec | Not ported: these are now per-model facts in model-manager's catalog, so a sweep dimension over them would fight the tool that owns them. Sweep `llms.model` instead. |
@@ -509,6 +509,6 @@ on the next pod start. This is a likely third plane, deferred for now.
       behind the Envoy AI gateway. What lives in the pipeline namespace (`chatqna`)
       is the `llm-usvc` Deployment that *calls* it, and that is where the observed
       model is read from.
-- [ ] Port `RetrieverK` (`prepare_change_retriever.sh`) and `RerankerTopN`
+- [x] Port `RetrieverK` (`prepare_change_retriever.sh`) and `RerankerTopN`
       (`prepare_change_reranker.sh`), the remaining runtime-API knobs from the
       original scripts.
