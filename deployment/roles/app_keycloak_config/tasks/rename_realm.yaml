@@ -1,0 +1,48 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+---
+# Runs files/keycloak_rename_job.sh before the configurator, once per old Secret:
+# erag-credentials is kept, and labelled once the rename has succeeded.
+
+- name: "app_keycloak_config | rename | Look for the credentials of a release before the rename"
+  kubernetes.core.k8s_info:
+    api_version: v1
+    kind: Secret
+    name: erag-credentials
+    namespace: "{{ keycloak_namespace }}"
+  register: _kc_rename_old_secret
+  no_log: "{{ secure_logs }}"
+
+- name: "app_keycloak_config | rename | Rename the Keycloak objects to the new names"
+  when:
+    - _kc_rename_old_secret.resources | length > 0
+    - (_kc_rename_old_secret.resources[0].metadata.labels | default({}))['chatbot-toolkit/keycloak-renamed'] is not defined
+  block:
+    - name: "app_keycloak_config | rename | Set the rename Job variables"
+      ansible.builtin.set_fact:
+        rename_job_name: "keycloak-rename-{{ ansible_date_time.epoch }}"
+
+    - name: "app_keycloak_config | rename | Run the rename Job"
+      ansible.builtin.include_tasks: _run_admin_api_job.yaml
+      vars:
+        _kc_job_app: keycloak-rename
+        _kc_job_name: "{{ rename_job_name }}"
+        _kc_job_template: rename-job.yaml.j2
+        _kc_job_delete_account: true
+        _kc_job_failed_msg: >-
+          Renaming the Keycloak objects failed, so the configurator was not run. Check the output above,
+          then run the install again: it resumes where the rename stopped.
+
+    - name: "app_keycloak_config | rename | Mark the old credentials as renamed"
+      kubernetes.core.k8s:
+        state: patched
+        api_version: v1
+        kind: Secret
+        name: erag-credentials
+        namespace: "{{ keycloak_namespace }}"
+        definition:
+          metadata:
+            labels:
+              chatbot-toolkit/keycloak-renamed: "true"
+      no_log: "{{ secure_logs }}"

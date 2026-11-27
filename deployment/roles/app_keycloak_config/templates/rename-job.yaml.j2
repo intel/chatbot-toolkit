@@ -1,0 +1,32 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+---
+{% from '_admin_api_job.j2' import account, job with context %}
+{{ account('keycloak-rename', 'rename.sh', 'keycloak_rename_job.sh') }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: keycloak-rename
+  namespace: {{ keycloak_namespace }}
+# create cannot be limited to names; reading and deleting can.
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["erag-credentials", "chattool-credentials"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["keycloak-rename-state"]
+    verbs: ["get", "delete"]
+  - apiGroups: [""]
+    resources: ["secrets", "configmaps"]
+    verbs: ["create"]
+---
+{# One pod, kept when it fails, so the install shows why the rename stopped; the next install retries. #}
+{% call job('keycloak-rename', rename_job_name, 'rename', 'rename.sh', 0, 'Never') %}
+            - name: KEYCLOAK_PREVIOUS_REALM
+              value: "{{ chattool_keycloak_previous_realm }}"
+            - name: SECRET_NAMESPACE
+              value: "{{ keycloak_namespace }}"
+{% endcall %}

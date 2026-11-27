@@ -38,5 +38,12 @@
     password_mappings:
       - { key: password, variable: KEYCLOAK_REALM_ADMIN_PASSWORD, user: "{{ keycloak_admin_user }}" }
 
+- name: "app_keycloak_config | Set init container image reference"
+  ansible.builtin.set_fact:
+    init_container_image: "{{ registry }}/chatbot-toolkit-init-container:{{ tag }}"
+
+- name: "app_keycloak_config | Rename the objects of a release before the Chatbot Toolkit rename"
+  ansible.builtin.include_tasks: rename_realm.yaml
+
 - name: "app_keycloak_config | Run Keycloak configurator Job"
   ansible.builtin.include_tasks: configure_keycloak.yaml

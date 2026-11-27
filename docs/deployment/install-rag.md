@@ -142,13 +142,15 @@ Removes components in reverse order; models undeployed automatically.
 
 ## Upgrade from a release before the Chatbot Toolkit rename
 
-The Keycloak realm, clients, roles, users and groups were renamed (realm `EnterpriseRAG` → `ChatbotToolkit`, `erag-*` → `chattool-*`). An upgrade doesn't rename them in place, so the installer refuses an install of this release over an earlier one (check `keycloak-rename`). Reinstall:
+The Keycloak realm, clients, roles, users and groups were renamed (realm `EnterpriseRAG` → `ChatbotToolkit`, clients `EnterpriseRAG-oidc*` → `ChatbotToolkit-oidc*`, roles `ERAG-*` → `CHATTOOL-*`, users and groups `erag-*` → `chattool-*`). An upgrade renames them in place before Keycloak is configured: ids, passwords, role mappings and group memberships are kept, so users keep their accounts, passwords and chat history. The `erag-credentials` Secret is copied to `chattool-credentials` under the new key names (`KEYCLOAK_ERAG_*` → `KEYCLOAK_CHATTOOL_*`), and removed by `teardown erag` once the rename has finished. A run that stops part way resumes on the next install; until then `teardown erag` leaves the `EnterpriseRAG` realm and `erag-credentials` in place.
 
-1. Tear down with the **previous** release: `./es_auto_installer.sh teardown erag --env <name>`. The new release's teardown only removes the new realm and the `chattool-credentials` Secret. It would leave the old `EnterpriseRAG` realm, with its users, passwords and client secrets, and the `erag-credentials` Secret in the platform's Keycloak.
-2. In `env/<name>/config.erag.yaml`, rename every `erag_keycloak_*` key to `chattool_keycloak_*`. The installer stops if an old key is still set.
-3. With LDAP/Active Directory federation, rename the AD groups `erag-{admin,user,maintainer}-group` to `chattool-{admin,user,maintainer}-group`. Keycloak names each mapped role after the group's `cn`, so changing the `chattool_keycloak_federation_*_group_ldap_filter` settings alone doesn't keep the old groups working.
-4. With Entra ID SSO, the app registration's redirect URI becomes `https://<keycloak host>/realms/ChatbotToolkit/broker/<alias>/endpoint`, and an IdP that sends `EnterpriseRAG.*Access` role claims must send `ChatbotToolkit.*Access`.
-5. Install the new release. Users get new accounts (`chattool-admin`, …) and new passwords in `default_credentials.txt`.
+1. In `env/<name>/config.erag.yaml`, rename every `erag_keycloak_*` key to `chattool_keycloak_*`. The installer stops if an old key is still set.
+2. Install the new release: `./es_auto_installer.sh install erag --env <name>`.
+3. Every user signs in once more: the token issuer URL changes with the realm name, so existing sessions end.
+4. With LDAP/Active Directory federation, rename the AD groups `erag-{admin,user,maintainer}-group` to `chattool-{admin,user,maintainer}-group`. The upgrade points the directory mappers at the new names, so directory users get their roles again once the groups are renamed. Users from the directory keep the names they have there.
+5. With Entra ID SSO, change the app registration's redirect URI to `https://<keycloak host>/realms/ChatbotToolkit/broker/<alias>/endpoint`, and make an IdP that sends `EnterpriseRAG.*Access` role claims send `ChatbotToolkit.*Access`. The identity provider alias (`enterprise-sso`) stays as it is.
+
+The installer stops, changing nothing, when both realms exist (for example after an install of the new release beside the old one). Keep the realm that holds the users and delete the other in the Keycloak admin console. If you keep `EnterpriseRAG`, also delete the `chattool-credentials` Secret in the Keycloak namespace (`keycloak` by default), so the upgrade copies the passwords of the kept users into it. Then install again. With a realm name set in the configuration, the installer stops the same way when that realm holds clients under both the old and the new names; the error lists what to delete.
 
 ## Troubleshooting
 

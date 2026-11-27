@@ -95,6 +95,7 @@ keycloak_admin_secret_name: "keycloak-admin-secret"    # app_keycloak_config
 keycloak_admin_user: "admin"                           # app_keycloak_config
 keycloak_service_name: "keycloak-service"              # keycloak, platform layer
 chattool_keycloak_realm: "ChatbotToolkit"                   # app_keycloak_config
+chattool_keycloak_previous_realm: "{{ 'EnterpriseRAG' if chattool_keycloak_realm == 'ChatbotToolkit' else chattool_keycloak_realm }}"  # app_keycloak_config
 chattool_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
 chattool_keycloak_path_prefix: "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
 rag_tmp_dir: "{{ tmp_dir }}/rag"                       # app_pre_install (derived from tmp_dir)

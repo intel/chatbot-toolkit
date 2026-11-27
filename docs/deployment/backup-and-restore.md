@@ -196,11 +196,6 @@ find, so the check refuses too and names the fix:
 
 `--force` bypasses every refusing check of the run, not only this one, and the run is recorded as forced.
 
-This check applies from 3.1.0 on. An installed release before 3.1.0 is not upgraded in place at all: the
-`keycloak-rename` check refuses it and points to
-[the reinstall](install-rag.md#upgrade-from-a-release-before-the-chatbot-toolkit-rename). Do not
-pass that check with `--force`: the run would create a second, empty Keycloak realm.
-
 ## Troubleshooting
 
 | Symptom | Likely cause / fix |

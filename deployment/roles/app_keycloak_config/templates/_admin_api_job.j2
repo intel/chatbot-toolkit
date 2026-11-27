@@ -1,0 +1,116 @@
+{#
+Copyright (C) 2026 Intel Corporation
+SPDX-License-Identifier: Apache-2.0
+
+The parts the Jobs that call the Keycloak admin API share; each Job keeps its own Role.
+#}
+{% macro account(app, script, source) %}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ app }}
+  namespace: {{ keycloak_namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ app }}
+  namespace: {{ keycloak_namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ app }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ app }}
+    namespace: {{ keycloak_namespace }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ app }}-script
+  namespace: {{ keycloak_namespace }}
+data:
+  {{ script }}: |
+{{ lookup('file', role_path + '/files/' + source) | indent(4, first=True) }}
+{% endmacro %}
+
+{% macro job(app, name, container, script, backoff_limit, restart_policy) %}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ name }}
+  namespace: {{ keycloak_namespace }}
+  labels:
+    app.kubernetes.io/name: {{ app }}
+    app.kubernetes.io/component: configuration
+spec:
+  backoffLimit: {{ backoff_limit }}
+  template:
+    metadata:
+{% if istio_pod_annotations | default({}) | length > 0 %}
+      # The Job ends only when its sidecar does: native sidecars do.
+      annotations: {{ istio_pod_annotations | to_json }}
+{% endif %}
+      labels:
+        app.kubernetes.io/name: {{ app }}
+    spec:
+      serviceAccountName: {{ app }}
+      restartPolicy: {{ restart_policy }}
+      securityContext:
+        runAsNonRoot: true
+{% if _keycloak_config_fixed_uids | bool %}
+        runAsUser: 1000
+{% endif %}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: {{ container }}
+          image: {{ init_container_image }}
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          command: ["/bin/bash", "/scripts/{{ script }}"]
+          env:
+            - name: KEYCLOAK_URL
+              value: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ chattool_keycloak_path_prefix }}"
+            - name: KEYCLOAK_REALM
+              value: "{{ chattool_keycloak_realm }}"
+            - name: KEYCLOAK_ADMIN_USER
+              value: "{{ keycloak_admin_user }}"
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ keycloak_admin_secret_name }}
+                  key: password
+{{ caller() }}
+{% if http_proxy is defined and http_proxy != "" %}
+            - name: http_proxy
+              value: "{{ http_proxy }}"
+{% endif %}
+{% if https_proxy is defined and https_proxy != "" %}
+            - name: https_proxy
+              value: "{{ https_proxy }}"
+{% endif %}
+{% if no_proxy is defined and no_proxy != "" %}
+            - name: no_proxy
+              value: "{{ no_proxy }}"
+{% endif %}
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: scripts
+          configMap:
+            name: {{ app }}-script
+            defaultMode: 0555
+        - name: tmp
+          emptyDir: {}
+{% endmacro %}

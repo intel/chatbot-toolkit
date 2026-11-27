@@ -1,0 +1,112 @@
+# Copyright (C) 2026 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+---
+# Runs one Job of templates/_admin_api_job.j2 and fails the play if it fails.
+# Takes _kc_job_app (app label, also the account's name), _kc_job_name, _kc_job_template,
+# _kc_job_failed_msg and _kc_job_delete_account (default false).
+
+# This file runs once per Job in a play; a status left from the previous Job must not count.
+- name: "app_keycloak_config | Forget the status of an earlier Job: {{ _kc_job_app }}"
+  ansible.builtin.set_fact:
+    _kc_job_status: {}
+
+- name: "app_keycloak_config | Find previous Jobs: {{ _kc_job_app }}"
+  kubernetes.core.k8s_info:
+    api_version: batch/v1
+    kind: Job
+    namespace: "{{ keycloak_namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/name={{ _kc_job_app }}"
+  register: _kc_job_previous
+
+- name: "app_keycloak_config | Delete previous Jobs: {{ _kc_job_app }}"
+  kubernetes.core.k8s:
+    api_version: batch/v1
+    kind: Job
+    name: "{{ item.metadata.name }}"
+    namespace: "{{ keycloak_namespace }}"
+    state: absent
+    # Waits for the pods too: a Job left running by an earlier timeout must not overlap the next one.
+    delete_options:
+      propagationPolicy: Foreground
+    wait: true
+  loop: "{{ _kc_job_previous.resources | default([]) }}"
+  loop_control:
+    label: "{{ item.metadata.name }}"
+
+- name: "app_keycloak_config | Generate the Job manifest: {{ _kc_job_app }}"
+  ansible.builtin.template:
+    src: "{{ _kc_job_template }}"
+    dest: "{{ rag_tmp_dir }}/{{ _kc_job_app }}-job.yaml"
+    mode: '0600'
+
+- name: "app_keycloak_config | Run the Job: {{ _kc_job_app }}"
+  block:
+    - name: "app_keycloak_config | Apply the Job: {{ _kc_job_app }}"
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ rag_tmp_dir }}/{{ _kc_job_app }}-job.yaml"
+        wait: false
+
+    - name: "app_keycloak_config | Wait for the Job to complete: {{ _kc_job_app }}"
+      kubernetes.core.k8s_info:
+        api_version: batch/v1
+        kind: Job
+        name: "{{ _kc_job_name }}"
+        namespace: "{{ keycloak_namespace }}"
+      register: _kc_job_status
+      until: >
+        (_kc_job_status.resources | length > 0) and
+        ((_kc_job_status.resources[0].status.succeeded | default(0)) >= 1 or
+         (_kc_job_status.resources[0].status.failed | default(0)) >= 1)
+      retries: 60
+      delay: 10
+  # A timeout is reported by the check below, with the caller's message.
+  rescue:
+    - name: "app_keycloak_config | Report that the Job did not finish: {{ _kc_job_app }}"
+      ansible.builtin.debug:
+        msg: "{{ ansible_failed_result.msg | default('The Job did not finish in time', true) }}"
+  # Also after a timeout, so the output is shown and the account is not left behind.
+  always:
+    - name: "app_keycloak_config | Read the Job status: {{ _kc_job_app }}"
+      ansible.builtin.set_fact:
+        _kc_job_state: "{{ (((_kc_job_status.resources | default([])) + [{}]) | first).status | default({}) }}"
+
+    - name: "app_keycloak_config | Get the Job logs: {{ _kc_job_app }}"
+      kubernetes.core.k8s_log:
+        api_version: batch/v1
+        kind: Job
+        name: "{{ _kc_job_name }}"
+        namespace: "{{ keycloak_namespace }}"
+      register: _kc_job_logs
+      failed_when: false
+
+    - name: "app_keycloak_config | Display the Job output: {{ _kc_job_app }}"
+      ansible.builtin.debug:
+        msg: "{{ _kc_job_logs.log_lines }}"
+      when: _kc_job_logs.log_lines | default([]) | length > 0
+
+    # Its Role may create Secrets in the namespace; the next run creates the account again.
+    # A Job still running after the wait keeps it, so it can finish; the next run deletes both.
+    - name: "app_keycloak_config | Delete the Job's account: {{ _kc_job_app }}"
+      kubernetes.core.k8s:
+        state: absent
+        api_version: "{{ item.api }}"
+        kind: "{{ item.kind }}"
+        name: "{{ _kc_job_app }}"
+        namespace: "{{ keycloak_namespace }}"
+      loop:
+        - { api: rbac.authorization.k8s.io/v1, kind: RoleBinding }
+        - { api: rbac.authorization.k8s.io/v1, kind: Role }
+        - { api: v1, kind: ServiceAccount }
+      loop_control:
+        label: "{{ item.kind }}/{{ _kc_job_app }}"
+      when:
+        - _kc_job_delete_account | default(false) | bool
+        - (_kc_job_state.succeeded | default(0)) >= 1 or (_kc_job_state.failed | default(0)) >= 1
+
+- name: "app_keycloak_config | Check the Job succeeded: {{ _kc_job_app }}"
+  ansible.builtin.fail:
+    msg: "{{ _kc_job_failed_msg }}"
+  when: (_kc_job_state.succeeded | default(0)) < 1

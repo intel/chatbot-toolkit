@@ -1,11 +1,8 @@
 # Copyright (C) 2024-2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: keycloak-configurator
-  namespace: {{ keycloak_namespace }}
+{% from '_admin_api_job.j2' import account, job with context %}
+{{ account('keycloak-configurator', 'configurator.sh', 'keycloak_configurator_job.sh') }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -16,29 +13,6 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "list", "create", "update", "patch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: keycloak-configurator
-  namespace: {{ keycloak_namespace }}
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: keycloak-configurator
-subjects:
-  - kind: ServiceAccount
-    name: keycloak-configurator
-    namespace: {{ keycloak_namespace }}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: keycloak-configurator-script
-  namespace: {{ keycloak_namespace }}
-data:
-  configurator.sh: |
-{{ lookup('file', role_path + '/files/keycloak_configurator_job.sh') | indent(4, first=True) }}
 {% if (chattool_keycloak_oidc_endpoint is defined and chattool_keycloak_oidc_endpoint) or
       (chattool_keycloak_federation_endpoint is defined and chattool_keycloak_federation_endpoint) %}
 ---
@@ -60,57 +34,7 @@ data:
 {% endif %}
 {% endif %}
 ---
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: {{ configurator_job_name }}
-  namespace: {{ keycloak_namespace }}
-  labels:
-    app.kubernetes.io/name: keycloak-configurator
-    app.kubernetes.io/component: configuration
-spec:
-  backoffLimit: 3
-  template:
-    metadata:
-{% if istio_pod_annotations | default({}) | length > 0 %}
-      # The Job ends only when its sidecar does: native sidecars do.
-      annotations: {{ istio_pod_annotations | to_json }}
-{% endif %}
-      labels:
-        app.kubernetes.io/name: keycloak-configurator
-    spec:
-      serviceAccountName: keycloak-configurator
-      restartPolicy: OnFailure
-      securityContext:
-        runAsNonRoot: true
-{% if _keycloak_config_fixed_uids | bool %}
-        runAsUser: 1000
-{% endif %}
-        seccompProfile:
-          type: RuntimeDefault
-      containers:
-        - name: configurator
-          image: {{ init_container_image }}
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop:
-                - ALL
-          command: ["/bin/bash", "/scripts/configurator.sh"]
-          env:
-            - name: KEYCLOAK_URL
-              value: "http://keycloak-service.{{ keycloak_namespace }}.svc:8080{{ chattool_keycloak_path_prefix }}"
-            - name: KEYCLOAK_REALM
-              value: "{{ chattool_keycloak_realm }}"
-            - name: KEYCLOAK_ADMIN_USER
-              value: "{{ keycloak_admin_user }}"
-            - name: KEYCLOAK_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ keycloak_admin_secret_name }}
-                  key: password
+{% call job('keycloak-configurator', configurator_job_name, 'configurator', 'configurator.sh', 3, 'OnFailure') %}
             - name: MINIO_DOMAIN
               value: "{{ minio_domain }}"
             - name: UI_DOMAIN
@@ -175,28 +99,4 @@ spec:
             - name: FEDERATION_ADMIN_GROUP_LDAP_FILTER
               value: "{{ chattool_keycloak_federation_admin_group_ldap_filter | default('(cn=chattool-admin-group)') }}"
 {% endif %}
-{% if http_proxy is defined and http_proxy != "" %}
-            - name: http_proxy
-              value: "{{ http_proxy }}"
-{% endif %}
-{% if https_proxy is defined and https_proxy != "" %}
-            - name: https_proxy
-              value: "{{ https_proxy }}"
-{% endif %}
-{% if no_proxy is defined and no_proxy != "" %}
-            - name: no_proxy
-              value: "{{ no_proxy }}"
-{% endif %}
-          volumeMounts:
-            - name: scripts
-              mountPath: /scripts
-              readOnly: true
-            - name: tmp
-              mountPath: /tmp
-      volumes:
-        - name: scripts
-          configMap:
-            name: keycloak-configurator-script
-            defaultMode: 0555
-        - name: tmp
-          emptyDir: {}
+{% endcall %}
