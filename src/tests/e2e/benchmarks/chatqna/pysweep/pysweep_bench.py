@@ -40,6 +40,7 @@ from tests.e2e.benchmarks.chatqna.pysweep.config import (
     load_run_config,
 )
 from tests.e2e.benchmarks.chatqna.pysweep.cluster import model_catalog
+from tests.e2e.benchmarks.chatqna.pysweep.cluster.vector_db import edp_client, edp_enabled, observed_settings
 from tests.e2e.benchmarks.chatqna.pysweep.pre_bench import NUM_VECTORS, run_pre_bench, seed
 from tests.e2e.benchmarks.chatqna.pysweep.provenance.commit_info import CommitInfoError, read_commit_info
 from tests.e2e.benchmarks.chatqna.pysweep.results import (
@@ -246,6 +247,8 @@ def commit_info_verify() -> dict[str, str]:
 def pre_bench_verify(config: SweepConfig) -> None:
     """Raise PreflightError unless the inputs of every declared pre_bench step exist."""
     if NUM_VECTORS in config.pre_bench_settings():
+        if not edp_enabled():
+            raise PreflightError(f"pre_bench.{NUM_VECTORS} needs EDP, which this deployment does not enable.")
         for path in (seed.DOCUMENTS_CSV, seed.WIKIPARSE):
             if not path.is_file():
                 raise PreflightError(f"pre_bench.{NUM_VECTORS} needs {path}, which does not exist.")
@@ -477,8 +480,8 @@ def main(argv=None):
     deployment_combinations = config.deployment_combinations()
     client_combinations = config.client_combinations()
     varying_paths = config.varying_paths()
-    pre_bench = config.pre_bench_settings()
-    run_pre_bench(pre_bench)
+    edp = edp_client() if edp_enabled() else None
+    run_pre_bench(config.pre_bench_settings(), edp)
 
     layout = prepare_summaries_dir(args.summaries)
     sweep_results = SweepResults(layout, date=utc_now(), commit_info=commit_info)
@@ -505,6 +508,9 @@ def main(argv=None):
             )
 
             tokenizer = resolve_tokenizer()
+            edp_settings = observed_settings(edp) if edp else {}
+            if edp_settings:
+                logger.info("Observed EDP state:\n%s", format_settings_yaml(edp_settings))
             logger.info("Counting tokens with the served model's tokenizer: %s", tokenizer)
 
             for client_index, client_combination in enumerate(client_combinations, start=1):
@@ -535,7 +541,7 @@ def main(argv=None):
                         result_file=sweep_results.pointer(output_file),
                         deployment=snapshot,
                         client={**client, "client.tokenizer": tokenizer},
-                        pre_bench=pre_bench,
+                        edp=edp_settings,
                         results=summarize_requests(
                             read_requests(output_file),
                             duration_to_seconds(str(client["client.duration"])),

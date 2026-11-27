@@ -9,11 +9,12 @@ import shutil
 import subprocess
 import sys
 import time
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Iterable
 
 import requests
+
+from ..cluster.vector_db import VectorDbState, wait_until_idle
 
 logger = logging.getLogger(__name__)
 
@@ -26,8 +27,6 @@ WIKI_DUMP_URL = (
 CACHE_ENV_VAR = "PYSWEEP_SEED_CACHE"
 DEFAULT_CACHE_DIR = Path.home() / ".cache" / "pysweep" / "seed"
 
-POLL_INTERVAL_S = 30.0
-INGEST_TIMEOUT_S = 4 * 3600.0
 DOWNLOAD_TIMEOUT_S = 600
 # EDP processes two files at a time, so pairs keep it busy without queueing.
 WIKI_BATCH = 2
@@ -35,47 +34,6 @@ WIKI_BATCH = 2
 
 class SeedError(Exception):
     """The vector DB could not be seeded to the requested size."""
-
-
-@dataclass
-class VectorDbState:
-    vectors: int = 0
-    in_progress: int = 0
-    failed: int = 0
-    files: set[str] = field(default_factory=set)
-
-
-def read_state(edp) -> VectorDbState:
-    """Ingested vectors (chunks) and files, as EDP reports them."""
-    response = edp.list_files()
-    if response.status_code != 200:
-        raise SeedError(f"EDP /files returned HTTP {response.status_code}: {response.text[:300]}")
-    state = VectorDbState()
-    for item in response.json():
-        status = item.get("status")
-        state.files.add(Path(item.get("object_name", "")).name)
-        if status == "ingested":
-            state.vectors += int(item.get("chunks_processed") or 0)
-        elif status == "error":
-            state.failed += 1
-        else:
-            state.in_progress += 1
-    return state
-
-
-def wait_until_idle(edp, timeout=INGEST_TIMEOUT_S, poll=POLL_INTERVAL_S, sleep=time.sleep, clock=time.monotonic):
-    deadline = clock() + timeout
-    while True:
-        state = read_state(edp)
-        if not state.in_progress:
-            return state
-        if clock() >= deadline:
-            raise SeedError(
-                f"EDP still processes {state.in_progress} file(s) after {timeout:.0f}s "
-                f"({state.vectors} vectors ingested so far)."
-            )
-        logger.info("Waiting for EDP: %d file(s) in progress, %d vectors ingested.", state.in_progress, state.vectors)
-        sleep(poll)
 
 
 def upload(edp, path: Path) -> None:

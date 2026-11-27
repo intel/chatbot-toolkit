@@ -8,13 +8,7 @@ import pytest
 
 from tests.e2e.benchmarks.chatqna.pysweep import pre_bench
 from tests.e2e.benchmarks.chatqna.pysweep.pre_bench import seed as seed_module
-from tests.e2e.benchmarks.chatqna.pysweep.pre_bench.seed import (
-    SeedError,
-    download,
-    read_state,
-    seed,
-    wait_until_idle,
-)
+from tests.e2e.benchmarks.chatqna.pysweep.pre_bench.seed import SeedError, download, seed
 
 
 def _response(status=200, payload=None, text=""):
@@ -67,27 +61,6 @@ def _seed(edp, num_vectors, documents=(), wiki=()):
 
 
 @allure.feature("pysweep")
-def test_read_state_counts_ingested_chunks_and_open_work():
-    edp = FakeEdp({
-        "a.pdf": {"status": "ingested", "chunks_processed": 7},
-        "Docs/b.pdf": {"status": "ingested", "chunks_processed": 5},
-        "c.pdf": {"status": "error", "chunks_processed": 0},
-        "d.pdf": {"status": "embedding", "chunks_processed": 0},
-    })
-    state = read_state(edp)
-    assert (state.vectors, state.failed, state.in_progress) == (12, 1, 1)
-    assert state.files == {"a.pdf", "b.pdf", "c.pdf", "d.pdf"}
-
-
-@allure.feature("pysweep")
-def test_an_edp_error_is_a_seed_error():
-    edp = FakeEdp()
-    edp.list_status = 503
-    with pytest.raises(SeedError, match="HTTP 503"):
-        read_state(edp)
-
-
-@allure.feature("pysweep")
 def test_nothing_is_uploaded_when_the_target_is_already_met(tmp_path):
     edp = FakeEdp({"a.pdf": {"status": "ingested", "chunks_processed": 60}})
     state = _seed(edp, 50, documents=_paths(tmp_path, "doc.pdf"))
@@ -134,26 +107,6 @@ def test_a_failed_upload_stops_seeding(tmp_path, failure):
     setattr(edp, failure, 500)
     with pytest.raises(SeedError, match="HTTP 500"):
         _seed(edp, 10, documents=_paths(tmp_path, "d1.pdf"))
-
-
-@allure.feature("pysweep")
-def test_wait_until_idle_polls_while_files_are_processed():
-    edp = FakeEdp({"a.pdf": {"status": "processing", "chunks_processed": 0}}, chunks=4)
-    sleeps = []
-    state = wait_until_idle(edp, sleep=sleeps.append, clock=lambda: 0.0)
-    assert sleeps == [seed_module.POLL_INTERVAL_S]
-    assert state.vectors == 4
-
-
-@allure.feature("pysweep")
-def test_wait_until_idle_gives_up_after_the_timeout():
-    class Stuck(FakeEdp):
-        def list_files(self):
-            return _response(200, [{"object_name": "a.pdf", "status": "embedding"}])
-
-    now = iter([0.0, 10.0, 20.0])
-    with pytest.raises(SeedError, match="still processes 1 file"):
-        wait_until_idle(Stuck(), timeout=15, sleep=lambda s: None, clock=lambda: next(now))
 
 
 @allure.feature("pysweep")

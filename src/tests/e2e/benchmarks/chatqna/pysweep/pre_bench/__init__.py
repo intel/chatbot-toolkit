@@ -4,6 +4,7 @@
 import logging
 from typing import Any
 
+from ..cluster.vector_db import edp_client
 from . import seed
 from .seed import SeedError
 
@@ -12,14 +13,6 @@ logger = logging.getLogger(__name__)
 NUM_VECTORS = "edp.vector_db.num_vectors"
 
 __all__ = ["NUM_VECTORS", "SeedError", "edp_client", "run_pre_bench", "seed"]
-
-
-def edp_client():
-    from tests.e2e.helpers.edp_helper import EdpHelper
-
-    from ..cluster.auth import keycloak_helper
-
-    return EdpHelper(keycloak_helper())
 
 
 def run_pre_bench(settings: dict[str, Any], edp=None) -> None:

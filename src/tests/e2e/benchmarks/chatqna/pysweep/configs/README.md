@@ -14,8 +14,11 @@ out-of-range value is a `ConfigError`.
 ## `sweep.yaml`
 
 **`pre_bench`** prepares what every run shares, once, before the first run.
-Single values only; it is not part of the product. Each value is recorded in
-every run as `settings.<path>` (e.g. `settings.edp.vector_db.num_vectors`).
+Single values only; it is not part of the product. Like the deployment knobs,
+every run records the observed state, not the declared value: with EDP enabled,
+`settings.edp.vector_db.num_vectors` is the number of vectors EDP holds (read
+after each deployment combination is applied), which is at least the target and
+usually above it, since whole files are loaded.
 
 | Key | Meaning |
 |---|---|

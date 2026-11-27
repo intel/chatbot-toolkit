@@ -53,6 +53,7 @@ COMMIT = {
 def _committed_checkout(monkeypatch):
     # CI checks out without git, so no test may depend on the real repository.
     monkeypatch.setattr(psb, "read_commit_info", lambda: dict(COMMIT))
+    monkeypatch.setattr(psb, "edp_enabled", lambda: False)
 
 
 def _sweep(**sections):
@@ -712,6 +713,7 @@ def test_question_file_absolute_path_is_untouched(tmp_path):
 
 @allure.feature("pysweep")
 def test_preflight_accepts_the_shipped_example_config(monkeypatch):
+    monkeypatch.setattr(psb, "edp_enabled", lambda: True)
     example = psb.PYSWEEP_DIR / "configs" / "sweep.yaml"
     psb.preflight_check(load_config(example))
 
@@ -828,7 +830,7 @@ def test_preflight_fails_without_commit_info(monkeypatch):
 
 
 @allure.feature("pysweep")
-def test_pre_bench_runs_once_before_the_summaries_and_the_first_run(monkeypatch, tmp_path):
+def test_pre_bench_runs_once_before_the_summaries_and_runs_record_the_observed_edp(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     cfg = load_config({
         **_client(concurrency=[1, 16]),
@@ -845,7 +847,11 @@ def test_pre_bench_runs_once_before_the_summaries_and_the_first_run(monkeypatch,
     run_config = psb.load_run_config({})
     monkeypatch.setattr(psb, "load_config", lambda _: cfg)
     monkeypatch.setattr(psb, "load_run_config", lambda _: run_config)
-    monkeypatch.setattr(psb, "run_pre_bench", lambda settings: events.append(("pre_bench", settings)))
+    edp = object()
+    monkeypatch.setattr(psb, "edp_enabled", lambda: True)
+    monkeypatch.setattr(psb, "edp_client", lambda: edp)
+    monkeypatch.setattr(psb, "observed_settings", lambda client: {"vector_db.num_vectors": 55312})
+    monkeypatch.setattr(psb, "run_pre_bench", lambda settings, client: events.append(("pre_bench", settings, client is edp)))
     monkeypatch.setattr(psb, "prepare_summaries_dir", lambda root: events.append("summaries") or real_prepare(root))
     monkeypatch.setattr(psb, "FingerprintClient", lambda transport: None)
     monkeypatch.setattr(psb, "default_transport", lambda: None)
@@ -856,17 +862,44 @@ def test_pre_bench_runs_once_before_the_summaries_and_the_first_run(monkeypatch,
 
     assert psb.main(["--sweep", "ignored.yaml", "--summaries", "out"]) == 0
 
-    assert events == [("pre_bench", {"edp.vector_db.num_vectors": 50000}), "summaries", "run", "run"]
+    assert events == [("pre_bench", {"edp.vector_db.num_vectors": 50000}, True), "summaries", "run", "run"]
     document = json.loads((tmp_path / "out" / results.RESULTS_FILE_NAME).read_text())
-    assert {run["settings"]["edp"]["vector_db"]["num_vectors"] for run in document["runs"]} == {50000}
+    assert {run["settings"]["edp"]["vector_db"]["num_vectors"] for run in document["runs"]} == {55312}
 
 
 @allure.feature("pysweep")
 def test_preflight_fails_when_a_seed_input_is_missing(monkeypatch, tmp_path):
+    monkeypatch.setattr(psb, "edp_enabled", lambda: True)
     monkeypatch.setattr(psb.seed, "WIKIPARSE", tmp_path / "missing.py")
     cfg = load_config({**_client(), "pre_bench": {"edp": {"vector_db": {"num_vectors": 1}}}})
     with pytest.raises(psb.PreflightError, match="missing.py"):
         psb.preflight_check(cfg)
+
+
+@allure.feature("pysweep")
+def test_seeding_without_edp_fails_the_preflight():
+    cfg = load_config({**_client(), "pre_bench": {"edp": {"vector_db": {"num_vectors": 1}}}})
+    with pytest.raises(psb.PreflightError, match="needs EDP"):
+        psb.preflight_check(cfg)
+
+
+@allure.feature("pysweep")
+def test_runs_record_no_edp_settings_without_edp(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    run_config = psb.load_run_config({})
+    cfg = load_config(_client())
+    monkeypatch.setattr(psb, "load_config", lambda _: cfg)
+    monkeypatch.setattr(psb, "load_run_config", lambda _: run_config)
+    monkeypatch.setattr(psb, "FingerprintClient", lambda transport: None)
+    monkeypatch.setattr(psb, "default_transport", lambda: None)
+    monkeypatch.setattr(psb, "apply_combination", lambda c, f: {})
+    monkeypatch.setattr(psb, "resolve_tokenizer", lambda: "served/model")
+    monkeypatch.setattr(psb, "provision_benchmark_target", _passthrough_provision)
+    _install_fake_benchmark(monkeypatch, FakeBenchmark())
+
+    assert psb.main(["--sweep", "ignored.yaml", "--summaries", "out"]) == 0
+    document = json.loads((tmp_path / "out" / results.RESULTS_FILE_NAME).read_text())
+    assert "edp" not in document["runs"][0]["settings"]
 
 
 @allure.feature("pysweep")

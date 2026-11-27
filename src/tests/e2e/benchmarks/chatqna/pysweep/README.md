@@ -27,6 +27,7 @@ environment gotchas.
 | `cluster/auth.py` | `KubernetesAccess` (side-effect-free RBAC preflight via `SelfSubjectAccessReview`), `load_build_config()` (the installed environment's config), `keycloak_helper()` (the maintained `KeycloakHelper`, for user tokens) and `client_token_lifespan()` (a sweep-long access-token lifespan for the UI client, restored afterwards). |
 | `cluster/fingerprint.py` | `system_fingerprint` client. `HelperFingerprintClient` adapts the suite's `FingerprintApiHelper`; `PortForwardTransport` / `IngressTransport` cover deployments the helper can't reach. |
 | `cluster/served_model.py` | `ServedModel`: reads the model the pipeline is **observed** to generate with, out of the running `llm-usvc` pods. Not a knob — the runner uses it to pick the benchmark's tokenizer. |
+| `cluster/vector_db.py` | Reads the vector DB's state from EDP (ingested vectors, files in progress); every run records the observed count as `settings.edp.vector_db.num_vectors`. |
 | `cluster/model_catalog.py` | Reader for the model-manager catalog (`models-rag.yaml` / `models.yaml`): maps a served model name to the HuggingFace repo id the benchmark's tokenizer needs. |
 | `provenance/commit_info.py` | The checked-out commit the results are attributed to. |
 | `provenance/paths.py` | Where the installed environment's files are looked for (deploy root derived from the checkout's location). |

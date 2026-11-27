@@ -244,9 +244,9 @@ def run_record(
     deployment: dict[str, Any],
     client: dict[str, Any],
     results: dict[str, Any],
-    pre_bench: dict[str, Any] | None = None,
+    edp: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """One run's record; ``deployment``/``client``/``pre_bench`` take dotted setting paths."""
+    """One run's record; ``deployment``/``client``/``edp`` take dotted setting paths."""
     return {
         "run": {
             "index": index,
@@ -258,7 +258,7 @@ def run_record(
         "settings": {
             "deployment": nest(deployment),
             "client": nest({path.removeprefix("client."): value for path, value in client.items()}),
-            **nest(pre_bench or {}),
+            **({"edp": nest(edp)} if edp else {}),
         },
         "results": results,
     }
