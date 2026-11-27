@@ -59,7 +59,7 @@
               ingest_file, list_buckets, check_ingestion_status), and EDP reaches the
               pipeline through retriever-svc and reranking-svc.
 
-              Either set mcp_enabled: false in env/<env>/config.rag.yaml, or select a
+              Either set mcp_enabled: false in env/<env>/config.erag.yaml, or select a
               chatqna-based flavour (chatqna, audioqna, pl_chatqna).
           vars:
             _mcp_services: >-

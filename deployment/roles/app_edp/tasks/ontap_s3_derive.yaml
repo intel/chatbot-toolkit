@@ -5,7 +5,7 @@
 # Derives edp_storage_type from the ONTAP S3 parameters, so an ONTAP S3 deployment needs
 # the endpoint and the two access keys and nothing else.
 #
-# Included from app_pre_install, which every RAG component depends on, because a role
+# Included from app_pre_install, which every Chatbot Toolkit component depends on, because a role
 # default cannot do this: role defaults are role-scoped and app_check_pods and app_ui
 # each declare their own edp_storage_type, so they would keep believing 'seaweedfs' and
 # the health check would wait for SeaweedFS pods that do not exist. An explicit

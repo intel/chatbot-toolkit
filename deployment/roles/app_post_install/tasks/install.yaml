@@ -20,7 +20,7 @@
   ansible.builtin.debug:
     msg: |
       ======================================================
-       RAG Deployment — INSTALL {{ 'SUCCEEDED' if check_pods_healthy | default(false) | bool else 'COMPLETED' }}
+       Chatbot Toolkit — INSTALL {{ 'SUCCEEDED' if check_pods_healthy | default(false) | bool else 'COMPLETED' }}
       ======================================================
       UI:        https://{{ ui_domain_name }}
       Keycloak:  https://{{ chattool_keycloak_domain_name }}{{ chattool_keycloak_path_prefix }}

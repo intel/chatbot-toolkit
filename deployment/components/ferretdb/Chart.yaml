@@ -13,5 +13,4 @@ type: application
 version: 0.1.9
 appVersion: "3.0.0"
 annotations:
-  app.kubernetes.io/part-of: ERAG
   dependency-only: "true"

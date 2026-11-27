@@ -7,5 +7,3 @@ description: NATS JetStream server backing the fingerprint config projection
 type: application
 version: 0.1.0
 appVersion: "2.10"
-annotations:
-  app.kubernetes.io/part-of: ERAG

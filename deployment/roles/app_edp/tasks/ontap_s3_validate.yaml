@@ -37,7 +37,7 @@
       endpoint for {{ _edp_ontap_s3_lif }} (found {{ _ready_addresses | default([]) }}).
       Service/{{ edp_ontap_s3_backend_name }} is selectorless, so nothing repopulates it:
       the gateway answers 503 on every upload instead of failing loudly.
-      Re-run: ./es_auto_installer.sh install app_edp --only --env <name>
+      Re-run: ./toolkit_manager.sh install app_edp --only --env <name>
     success_msg: "app_edp: ONTAP S3 endpoint {{ _edp_ontap_s3_lif }}:{{ _edp_ontap_s3_port }} present"
     quiet: true
   vars:

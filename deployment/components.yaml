@@ -4,7 +4,7 @@
 # =============================================================================
 # Loaded by Toolkit Manager preflight in addition to its own
 # configs/components.yaml. Declares the `erag` solution layer and acts as the
-# erag-layer sub-playbook for the rag extension.
+# erag-layer sub-playbook for Chatbot Toolkit.
 #
 # Naming convention: app_* (Q10-1 in migration_plan.md).
 # Each component name maps 1:1 to roles/<name>/.

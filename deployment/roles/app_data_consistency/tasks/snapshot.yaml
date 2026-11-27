@@ -180,8 +180,8 @@
            'reason': _dc_ch_skip_reason | trim}}) }}
   when: _dc_ch_skip_reason | trim | length > 0
 
-# --- Enterprise data platform (file rows in PostgreSQL) ---
-- name: "app_data_consistency | Snapshot — data platform: check namespace"
+# --- EDP (file rows in PostgreSQL) ---
+- name: "app_data_consistency | Snapshot — EDP: check namespace"
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Namespace
@@ -189,7 +189,7 @@
   register: _dc_edp_ns
   failed_when: false
 
-- name: "app_data_consistency | Snapshot — data platform: resolve guards"
+- name: "app_data_consistency | Snapshot — EDP: resolve guards"
   ansible.builtin.set_fact:
     _dc_edp_skip_reason: >-
       {{ ('namespace ' ~ edp_namespace ~ ' is not present')
@@ -200,10 +200,10 @@
            if not (data_consistency_check_edp | bool)
          else '' }}
 
-- name: "app_data_consistency | Snapshot — data platform: count files"
+- name: "app_data_consistency | Snapshot — EDP: count files"
   when: _dc_edp_skip_reason | trim | length == 0
   block:
-    - name: "app_data_consistency | Snapshot — data platform: resolve workload"
+    - name: "app_data_consistency | Snapshot — EDP: resolve workload"
       ansible.builtin.include_tasks: resolve_workload.yaml
       vars:
         dcw_store: edp
@@ -211,7 +211,7 @@
         dcw_workload: "{{ data_consistency_edp_statefulset }}"
         dcw_container: "{{ data_consistency_postgresql_container }}"
 
-    - name: "app_data_consistency | Snapshot — data platform: run query Job"
+    - name: "app_data_consistency | Snapshot — EDP: run query Job"
       ansible.builtin.include_tasks: query_job.yaml
       vars:
         dcj_store: edp
@@ -238,19 +238,19 @@
           - name: COUNT_SQL
             value: "{{ data_consistency_edp_count_sql }}"
 
-    - name: "app_data_consistency | Snapshot — data platform: record"
+    - name: "app_data_consistency | Snapshot — EDP: record"
       ansible.builtin.set_fact:
         _data_snapshot: >-
           {{ _data_snapshot | combine({'edp': {
                'count': _dcj_count | int, 'status': 'ok',
                'method': 'postgresql files table count'}}) }}
   rescue:
-    - name: "app_data_consistency | Snapshot — data platform: record failure"
+    - name: "app_data_consistency | Snapshot — EDP: record failure"
       ansible.builtin.include_tasks: record_failure.yaml
       vars:
         dcr_store: edp
 
-- name: "app_data_consistency | Snapshot — data platform: record skip"
+- name: "app_data_consistency | Snapshot — EDP: record skip"
   ansible.builtin.set_fact:
     _data_snapshot: >-
       {{ _data_snapshot | combine({'edp': {

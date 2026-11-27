@@ -50,7 +50,7 @@
       KEYCLOAK_BROKER_IDP_ALIAS.
       SharePoint ingestion will return 404 "SharePoint integration is not
       configured." Re-run:
-      ./es_auto_installer.sh install app_edp --only --env <name>
+      ./toolkit_manager.sh install app_edp --only --env <name>
     success_msg: "app_edp: SharePoint credentials present"
     quiet: true
   vars:

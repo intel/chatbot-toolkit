@@ -123,7 +123,7 @@
       SharePoint ingestion requires chattool_keycloak_oidc_tenant_id,
       chattool_keycloak_oidc_client_id, chattool_keycloak_oidc_client_secret and
       chattool_keycloak_oidc_endpoint together.
-      Set them in env/<name>/config.rag.yaml, or clear chattool_keycloak_oidc_tenant_id
+      Set them in env/<name>/config.erag.yaml, or clear chattool_keycloak_oidc_tenant_id
       to disable SharePoint.
     success_msg: "app_edp: SharePoint configuration complete"
     quiet: true

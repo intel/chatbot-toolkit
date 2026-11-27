@@ -46,7 +46,7 @@
       No successful Keycloak configurator Job found in {{ keycloak_namespace }},
       so identity provider '{{ chattool_keycloak_oidc_alias }}' may be missing from
       realm '{{ chattool_keycloak_realm }}'. Re-run:
-      ./es_auto_installer.sh install app_keycloak_config --only --env <name>
+      ./toolkit_manager.sh install app_keycloak_config --only --env <name>
     success_msg: "app_keycloak_config: identity provider '{{ chattool_keycloak_oidc_alias }}' configured"
     quiet: true
   when: chattool_keycloak_oidc_endpoint | default('', true) | string | trim | length > 0

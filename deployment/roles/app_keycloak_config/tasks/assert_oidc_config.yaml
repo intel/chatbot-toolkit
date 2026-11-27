@@ -4,7 +4,7 @@
 ---
 - name: "app_keycloak_config | Assert external OIDC configuration is complete"
   vars:
-    _erag_oidc_empty_vars: >-
+    _chattool_oidc_empty_vars: >-
       {{ {'chattool_keycloak_oidc_endpoint': chattool_keycloak_oidc_endpoint | default('', true) | string | trim,
           'chattool_keycloak_oidc_alias': chattool_keycloak_oidc_alias | default('', true) | string | trim,
           'chattool_keycloak_oidc_client_id': chattool_keycloak_oidc_client_id | default('', true) | string | trim,
@@ -13,12 +13,12 @@
   block:
     - name: "app_keycloak_config | Assert Single Sign-On configuration is complete"
       ansible.builtin.assert:
-        that: _erag_oidc_empty_vars | length == 0
+        that: _chattool_oidc_empty_vars | length == 0
         fail_msg: >-
           Incomplete Single Sign-On configuration: chattool_keycloak_oidc_endpoint is set but
-          {{ _erag_oidc_empty_vars | join(', ') }}
-          {{ 'is' if _erag_oidc_empty_vars | length == 1 else 'are' }} empty.
-          Set them in env/<name>/config.rag.yaml, or clear chattool_keycloak_oidc_endpoint
+          {{ _chattool_oidc_empty_vars | join(', ') }}
+          {{ 'is' if _chattool_oidc_empty_vars | length == 1 else 'are' }} empty.
+          Set them in env/<name>/config.erag.yaml, or clear chattool_keycloak_oidc_endpoint
           to disable Single Sign-On.
         success_msg: "app_keycloak_config: Single Sign-On configuration complete"
         quiet: true
@@ -33,13 +33,13 @@
           SharePoint ingestion requires chattool_keycloak_oidc_tenant_id,
           chattool_keycloak_oidc_client_id, chattool_keycloak_oidc_client_secret and
           chattool_keycloak_oidc_endpoint together.
-          Set them in env/<name>/config.rag.yaml, or clear chattool_keycloak_oidc_tenant_id
+          Set them in env/<name>/config.erag.yaml, or clear chattool_keycloak_oidc_tenant_id
           to disable SharePoint.
         success_msg: "app_keycloak_config: SharePoint configuration complete"
         quiet: true
       vars:
         _sp_missing: >-
-          {{ _erag_oidc_empty_vars | intersect(['chattool_keycloak_oidc_endpoint',
+          {{ _chattool_oidc_empty_vars | intersect(['chattool_keycloak_oidc_endpoint',
                                                'chattool_keycloak_oidc_client_id',
                                                'chattool_keycloak_oidc_client_secret']) }}
       when: chattool_keycloak_oidc_tenant_id | default('', true) | string | trim | length > 0
