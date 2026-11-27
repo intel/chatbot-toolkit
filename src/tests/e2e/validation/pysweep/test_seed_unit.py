@@ -139,3 +139,63 @@ def test_run_pre_bench_seeds_the_declared_number_of_vectors(monkeypatch):
     monkeypatch.setattr(pre_bench.seed, "seed", lambda num_vectors, edp: calls.append((num_vectors, edp)))
     pre_bench.run_pre_bench({pre_bench.NUM_VECTORS: 50000}, edp="edp")
     assert calls == [(50000, "edp")]
+
+
+class _Download:
+    """requests.get stand-in: one scripted outcome (status code or exception) per call."""
+
+    def __init__(self, *outcomes):
+        self.outcomes = list(outcomes)
+        self.urls = []
+
+    def __call__(self, url, stream=True, timeout=None):
+        self.urls.append(url)
+        outcome = self.outcomes.pop(0)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return _Body(outcome)
+
+
+class _Body:
+    def __init__(self, status):
+        self.status_code = status
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def iter_content(self, chunk_size):
+        yield b"data"
+
+
+@allure.feature("pysweep")
+def test_a_failed_download_is_retried(tmp_path, monkeypatch):
+    fake = _Download(503, seed_module.requests.ConnectionError("reset"), 200)
+    monkeypatch.setattr(seed_module.requests, "get", fake)
+    sleeps = []
+    target = download("http://example/doc.pdf", tmp_path / "doc.pdf", sleep=sleeps.append)
+    assert target.read_bytes() == b"data"
+    assert len(fake.urls) == 3
+    assert sleeps == [seed_module.DOWNLOAD_RETRY_DELAY_S] * 2
+
+
+@allure.feature("pysweep")
+def test_a_download_failing_every_attempt_is_an_error(tmp_path, monkeypatch):
+    monkeypatch.setattr(seed_module.requests, "get", _Download(503, 503, 503))
+    with pytest.raises(SeedError, match="after 3 attempts: Download of http://example/doc.pdf failed: HTTP 503"):
+        download("http://example/doc.pdf", tmp_path / "doc.pdf", sleep=lambda s: None)
+    assert not (tmp_path / "doc.pdf").exists()
+
+
+@allure.feature("pysweep")
+def test_unavailable_documents_are_skipped(tmp_path, monkeypatch, caplog):
+    listing = tmp_path / "documents.csv"
+    listing.write_text("http://ok/a.pdf;a.pdf\nhttp://blocked/b.txt;b.txt\nhttp://ok/c.pdf;c.pdf\n")
+    monkeypatch.setattr(seed_module, "DOCUMENTS_CSV", listing)
+    monkeypatch.setattr(seed_module.requests, "get", _Download(200, 503, 503, 503, 200))
+    with caplog.at_level("WARNING", logger=seed_module.logger.name):
+        documents = seed_module.relevant_documents(tmp_path / "cache", sleep=lambda s: None)
+    assert [path.name for path in documents] == ["a.pdf", "c.pdf"]
+    assert "Seeding without 1 of 3 documents: b.txt" in caplog.text

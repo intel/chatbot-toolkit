@@ -22,7 +22,7 @@ usually above it, since whole files are loaded.
 
 | Key | Meaning |
 |---|---|
-| `pre_bench.edp.vector_db.num_vectors` | Load the vector DB through EDP until it holds at least this many vectors: first the documents in `../documents.csv`, then Simple English Wikipedia, split by `../wikiparse.py`, two files at a time. Files already in EDP are not uploaded again; downloads are cached in `$PYSWEEP_SEED_CACHE` (default `~/.cache/pysweep/seed`). Fails if the data runs out first. It never removes vectors: use `../prepare_cleanup_vectors.sh` to start from an empty DB. |
+| `pre_bench.edp.vector_db.num_vectors` | Load the vector DB through EDP until it holds at least this many vectors: first the documents in `../documents.csv`, then Simple English Wikipedia, split by `../wikiparse.py`, two files at a time. Files already in EDP are not uploaded again; downloads are cached in `$PYSWEEP_SEED_CACHE` (default `~/.cache/pysweep/seed`) and retried 3 times, 10s apart. A document that still can't be downloaded is skipped with a warning (Project Gutenberg, for one, refuses some proxies); the Wikipedia dump is not, and seeding fails if the data runs out before the target. It never removes vectors: use `../prepare_cleanup_vectors.sh` to start from an empty DB. |
 
 Any other knob takes a single value (fixed for the whole sweep) or a list (one
 dimension of the product). Runs = deployment combinations × client combinations;

@@ -28,6 +28,8 @@ CACHE_ENV_VAR = "PYSWEEP_SEED_CACHE"
 DEFAULT_CACHE_DIR = Path.home() / ".cache" / "pysweep" / "seed"
 
 DOWNLOAD_TIMEOUT_S = 600
+DOWNLOAD_ATTEMPTS = 3
+DOWNLOAD_RETRY_DELAY_S = 10.0
 # EDP processes two files at a time, so pairs keep it busy without queueing.
 WIKI_BATCH = 2
 
@@ -46,27 +48,48 @@ def upload(edp, path: Path) -> None:
     logger.info("Uploaded %s.", path.name)
 
 
-def download(url: str, target: Path) -> Path:
-    if target.is_file() and target.stat().st_size > 0:
-        return target
-    target.parent.mkdir(parents=True, exist_ok=True)
-    partial = target.with_name(target.name + ".part")
-    logger.info("Downloading %s.", url)
+def _fetch(url: str, partial: Path) -> None:
     with requests.get(url, stream=True, timeout=DOWNLOAD_TIMEOUT_S) as response:
         if response.status_code != 200:
             raise SeedError(f"Download of {url} failed: HTTP {response.status_code}")
         with partial.open("wb") as handle:
             for chunk in response.iter_content(chunk_size=1 << 20):
                 handle.write(chunk)
-    partial.rename(target)
-    return target
 
 
-def relevant_documents(cache_dir: Path) -> list[Path]:
-    """The documents the benchmark's questions are about, in documents.csv order."""
+def download(url: str, target: Path, sleep=time.sleep) -> Path:
+    if target.is_file() and target.stat().st_size > 0:
+        return target
+    target.parent.mkdir(parents=True, exist_ok=True)
+    partial = target.with_name(target.name + ".part")
+    for attempt in range(1, DOWNLOAD_ATTEMPTS + 1):
+        logger.info("Downloading %s (attempt %d/%d).", url, attempt, DOWNLOAD_ATTEMPTS)
+        try:
+            _fetch(url, partial)
+        except (SeedError, requests.RequestException) as exc:
+            if attempt == DOWNLOAD_ATTEMPTS:
+                raise SeedError(f"Download of {url} failed after {attempt} attempts: {exc}") from exc
+            logger.warning("Download of %s failed (%s); retrying in %.0fs.", url, exc, DOWNLOAD_RETRY_DELAY_S)
+            sleep(DOWNLOAD_RETRY_DELAY_S)
+        else:
+            partial.rename(target)
+            return target
+
+
+def relevant_documents(cache_dir: Path, sleep=time.sleep) -> list[Path]:
+    """The documents the benchmark's questions are about, in documents.csv order; unavailable ones are skipped."""
     with DOCUMENTS_CSV.open(newline="") as handle:
         rows = [row for row in csv.reader(handle, delimiter=";") if row]
-    return [download(url, cache_dir / "documents" / name) for url, name in rows]
+    documents, skipped = [], []
+    for url, name in rows:
+        try:
+            documents.append(download(url, cache_dir / "documents" / name, sleep=sleep))
+        except SeedError as exc:
+            logger.warning("Skipping %s: %s", name, exc)
+            skipped.append(name)
+    if skipped:
+        logger.warning("Seeding without %d of %d documents: %s", len(skipped), len(rows), ", ".join(skipped))
+    return documents
 
 
 def wikipedia_files(cache_dir: Path) -> list[Path]:
