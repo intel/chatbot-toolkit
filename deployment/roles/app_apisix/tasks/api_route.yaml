@@ -27,6 +27,9 @@
     name: "{{ apisix_api_route_name }}"
     namespace: "{{ apisix_namespace }}"
     definition: "{{ lookup('template', 'api-httproute.yaml.j2') | from_yaml if _apisix_api_route_present | bool else omit }}"
+  register: _apisix_api_route
+  # Removing tolerates a cluster without the Gateway API (the platform is already gone).
+  failed_when: _apisix_api_route is failed and _apisix_api_route_present | bool
 
 - name: "app_apisix | Leave the API route's auth to APISIX"
   ansible.builtin.include_role:
