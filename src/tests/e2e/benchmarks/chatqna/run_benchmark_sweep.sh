@@ -170,7 +170,7 @@ if [[ -z "${MODEL_MANAGER:-}" ]]; then
 fi
 # Name of your env folder under the repo's top-level env/ directory (local,
 # mytest, …). Its models-rag.yaml catalog — seeded/edited by the installer's
-# `install application` path — is read here and passed to model-manager via
+# `install erag` path — is read here and passed to model-manager via
 # MM_CONFIG below.
 ENV_ROOT="${SCRIPT_DIR}/../../../../../../../env"
 ERAG_ENV_NAME="${ERAG_ENV_NAME:-local}"
