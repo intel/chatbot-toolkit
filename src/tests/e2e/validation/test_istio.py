@@ -166,45 +166,30 @@ istio_test_data = {
 }
 
 
-def get_vector_db_endpoints():
-    """Return the vector database endpoints to probe, keyed by the connection type used to reach them.
+VECTOR_DB_SERVICES = [
+    ("vdb-redis-cluster-headless", 6379, ConnectionType.REDIS),
+    ("vdb-redis-headless", 6379, ConnectionType.REDIS),
+    # Milvus serves gRPC; curl only has to open the TCP connection for ztunnel to log the decision.
+    ("milvus", 19530, ConnectionType.HTTP),
+]
 
-    Milvus serves gRPC on 19530. The probe only has to open a TCP connection for ztunnel to log
-    the policy decision, so Milvus is probed with the HTTP client (curl).
-    """
+
+def get_vector_db_endpoints():
     if not cfg.get("vector_databases_enabled"):
         return {}
 
-    # Check for redis-cluster implementation first
-    try:
-        services = list(kr8s.get("services", "vdb-redis-cluster-headless", namespace="vdb"))
-        if len(services) == 1:
-            service = services[0]
-            logger.info("Found redis-cluster vector DB service: %s", service.name)
-            return {ConnectionType.REDIS: [f"{service.name}.vdb.svc.cluster.local:6379"]}
-    except (RuntimeError, ValueError, AttributeError):
-        pass
+    for name, port, connection_type in VECTOR_DB_SERVICES:
+        try:
+            services = list(kr8s.get("services", name, namespace="vdb"))
+            if len(services) == 1:
+                service = services[0]
+                logger.info("Found vector DB service: %s", service.name)
+                return {connection_type: [f"{service.name}.vdb.svc.cluster.local:{port}"]}
+        except (RuntimeError, ValueError, AttributeError):
+            continue
 
-    # Check for redis implementation
-    try:
-        services = list(kr8s.get("services", "vdb-redis-headless", namespace="vdb"))
-        if len(services) == 1:
-            service = services[0]
-            logger.info("Found redis vector DB service: %s", service.name)
-            return {ConnectionType.REDIS: [f"{service.name}.vdb.svc.cluster.local:6379"]}
-    except (RuntimeError, ValueError, AttributeError):
-        pass
-
-    try:
-        services = list(kr8s.get("services", "milvus", namespace="vdb"))
-        if len(services) == 1:
-            service = services[0]
-            logger.info("Found milvus vector DB service: %s", service.name)
-            return {ConnectionType.HTTP: [f"{service.name}.vdb.svc.cluster.local:19530"]}
-    except (RuntimeError, ValueError, AttributeError):
-        pass
-
-    raise RuntimeError("No vector database services found with expected names (vdb-redis-cluster, vdb-redis or milvus)")
+    names = ", ".join(name for name, _, _ in VECTOR_DB_SERVICES)
+    raise RuntimeError(f"No vector database services found with expected names ({names})")
 
 
 def get_edp_redis_endpoints():
@@ -217,7 +202,6 @@ def get_edp_redis_endpoints():
 def prepare_tests(istio_helper):
     logger.info("============= Prepare Istio Authorization tests =====================")
 
-    # Dynamically populate the EDP Redis and vector DB endpoints
     redis_endpoints.extend(get_edp_redis_endpoints())
     for connection_type, endpoints in get_vector_db_endpoints().items():
         istio_test_data[connection_type].extend(endpoints)
