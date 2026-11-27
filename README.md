@@ -94,13 +94,13 @@ Settings for this toolkit land in `env/local/config.erag.yaml`. Pick a different
 The gateway binds ports 80 and 443 on the node, so no port forwarding is needed. Add each subdomain to `/etc/hosts` on the machine you browse from - wildcards do not work there:
 
 ```
-<node-ip> solutions.ai grafana.solutions.ai keycloak.solutions.ai s3.solutions.ai seaweedfs.solutions.ai
+<node-ip> inteltoolkits.ai grafana.inteltoolkits.ai keycloak.inteltoolkits.ai s3.inteltoolkits.ai seaweedfs.inteltoolkits.ai
 ```
 
-Then open `https://solutions.ai`. First-login credentials are written to `env/local/logs/rag/default_credentials.txt`; you will be asked to change the password immediately.
+Then open `https://inteltoolkits.ai`. First-login credentials are written to `env/local/logs/rag/default_credentials.txt`; you will be asked to change the password immediately.
 
 > [!IMPORTANT]
-> With the default self-signed certificates, visit `https://s3.solutions.ai` once and accept
+> With the default self-signed certificates, visit `https://s3.inteltoolkits.ai` once and accept
 > the warning before ingesting documents. Not needed with custom certificates.
 
 ### Step 3 - Ingest a document and ask about it

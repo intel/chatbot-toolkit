@@ -13,7 +13,7 @@ if ! python3 -c "import defusedxml, requests, transformers, pandas" 2>/dev/null;
 fi
 
 # Ensure proxy bypass is configured for the Chatbot Toolkit domain
-ERAG_DOMAIN="${ERAG_DOMAIN_NAME:-solutions.ai}"
+ERAG_DOMAIN="${ERAG_DOMAIN_NAME:-inteltoolkits.ai}"
 proxy_ok=0
 for proxy_var in no_proxy NO_PROXY; do
     if echo "${!proxy_var:-}" | grep -q "${ERAG_DOMAIN}"; then
@@ -200,7 +200,7 @@ fill_with_wikipedia()
 }
 
 export TEMP_DIR="/tmp/ragdocumentsedp"
-export EDP_URL="https://${ERAG_DOMAIN_NAME:-solutions.ai}/api/v1/edp"
+export EDP_URL="https://${ERAG_DOMAIN_NAME:-inteltoolkits.ai}/api/v1/edp"
 export EXPECTED_VECTORS=${1:-1000000}
 if [ -n "$1" ]; then
 	echo "Using non-default value for EXPECTED_VECTORS: $EXPECTED_VECTORS"

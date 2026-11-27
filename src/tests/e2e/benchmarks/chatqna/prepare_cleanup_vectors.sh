@@ -31,6 +31,6 @@ delete_vectors()
 	done < <(echo $upload_stat | jq -c '.[]')
 }
 
-export EDP_URL="https://${ERAG_DOMAIN_NAME:-solutions.ai}/api/v1/edp"
+export EDP_URL="https://${ERAG_DOMAIN_NAME:-inteltoolkits.ai}/api/v1/edp"
 refresh_uat
 delete_vectors

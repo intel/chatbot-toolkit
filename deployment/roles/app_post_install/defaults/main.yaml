@@ -20,11 +20,11 @@ data_consistency_no_fail: false
 data_consistency_install_report: true
 
 # --- Cross-role shared defaults - Owned by other roles; declared here so this role is standalone-runnable. ---
-edp_minio_domain_name: "seaweedfs.{{ base_domain_name | default('solutions.ai') }}"     # app_edp
-chattool_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"  # app_keycloak_config
+edp_minio_domain_name: "seaweedfs.{{ base_domain_name | default('inteltoolkits.ai') }}"     # app_edp
+chattool_keycloak_domain_name: "{{ (base_domain_name | default('inteltoolkits.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('inteltoolkits.ai')) }}"  # app_keycloak_config
 chattool_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
 chattool_keycloak_path_prefix: "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
-ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"  # app_ui
+ui_domain_name: "{{ base_domain_name | default('inteltoolkits.ai') }}"  # app_ui
 rag_tmp_dir: "{{ tmp_dir }}/rag"          # app_pre_install (derived from tmp_dir)
 rag_log_dir: "{{ log_dir }}/rag"
 chat_history_namespace: "chat-history"                       # app_chat_history

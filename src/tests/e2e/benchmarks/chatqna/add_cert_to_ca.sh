@@ -2,7 +2,7 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-domain=${ERAG_DOMAIN_NAME:-solutions.ai}
+domain=${ERAG_DOMAIN_NAME:-inteltoolkits.ai}
 
 # Hostnames whose self-signed certs we want as trusted CAs.
 # Keycloak runs on its own subdomain in the inference stack, so it

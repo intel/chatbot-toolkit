@@ -56,7 +56,7 @@ export default defineConfig({
   server: {
     proxy: {
       "^/api/v1/docsum": {
-        target: "https://solutions.ai",
+        target: "https://inteltoolkits.ai",
         changeOrigin: true,
         secure: false,
       },

@@ -8,13 +8,13 @@ In order to be able to run the e2e performance benchmark you need to:
 ```bash
 pip3 install -r requirements.txt
 ```
-* bash scripts assumes that Intel® Chatbot Toolkit is deployed under `solutions.ai` domain:
-  * if you are using the domain different than `solutions.ai` one you can overwrite it with `ERAG_DOMAIN_NAME` environmental variable
+* bash scripts assumes that Intel® Chatbot Toolkit is deployed under `inteltoolkits.ai` domain:
+  * if you are using the domain different than `inteltoolkits.ai` one you can overwrite it with `ERAG_DOMAIN_NAME` environmental variable
   * this variable has the impact on all the bash helpers
   * for python based benchmark see the relevant section to specify your domain
-* benchmark and the bash helpers rely only on https protocol and can be run from any machine with https connection to the RAG deployment, so you need to ensure that you have network (https) access to `solutions.ai` (or your own domain):
-  * configure `/etc/hosts`, so `solutions.ai` domain and subdomains points to your RAG deployment IP, for example: `127.0.0.1 minio.solutions.ai grafana.solutions.ai s3.solutions.ai solutions.ai keycloak.solutions.ai`
-  * export both `no_proxy` and `NO_PROXY` env variables, so they contain  `solutions.ai` and `.solutions.ai` domains
+* benchmark and the bash helpers rely only on https protocol and can be run from any machine with https connection to the RAG deployment, so you need to ensure that you have network (https) access to `inteltoolkits.ai` (or your own domain):
+  * configure `/etc/hosts`, so `inteltoolkits.ai` domain and subdomains points to your RAG deployment IP, for example: `127.0.0.1 minio.inteltoolkits.ai grafana.inteltoolkits.ai s3.inteltoolkits.ai inteltoolkits.ai keycloak.inteltoolkits.ai`
+  * export both `no_proxy` and `NO_PROXY` env variables, so they contain  `inteltoolkits.ai` and `.inteltoolkits.ai` domains
 * export UI username and password of the account with administrative rights using `KEYCLOAK_CHATTOOL_ADMIN_USERNAME` and `KEYCLOAK_CHATTOOL_ADMIN_PASSWORD` env variables. You can read them directly from the `chattool-credentials` secret in the `keycloak` namespace:
 ```bash
 export KEYCLOAK_CHATTOOL_ADMIN_USERNAME=$(kubectl get secret -n keycloak chattool-credentials -o jsonpath='{.data.KEYCLOAK_CHATTOOL_ADMIN_USERNAME}' | base64 -d)
@@ -58,7 +58,7 @@ After that, you can run the benchmark. You need to specify the following paramet
 * location of file with tokens `-b /tmp/uat.txt`
 * the tokenizer model for benchmark, which would be the same as the deployed LLM model `-m meta-llama/Llama-3.1-8B-Instruct`
 * (if you want to test with fixed number of input question tokens) specify the expected number of tokens `-x 512`
-* (if you are running domain different than 'solutions.ai') specify the RAG url `-s "https://${ERAG_DOMAIN_NAME}/api/v1/chatqna"`
+* (if you are running domain different than 'inteltoolkits.ai') specify the RAG url `-s "https://${ERAG_DOMAIN_NAME}/api/v1/chatqna"`
 ```bash
 python3 benchmark.py -f questions-pubmed.csv -d 30m -c 32 -b /tmp/uat.txt -m meta-llama/Llama-3.1-8B-Instruct
 ```
@@ -121,7 +121,7 @@ SWEEP_MODELS="qwen3-0-6b,llama3-8b-awq" \
 Required env vars (must be exported before running): `KEYCLOAK_CHATTOOL_ADMIN_USERNAME`, `KEYCLOAK_CHATTOOL_ADMIN_PASSWORD`, `KEYCLOAK_REALM_ADMIN_USERNAME`, `KEYCLOAK_REALM_ADMIN_PASSWORD`. See the [Test prerequisites](#test-prerequisites) section above for the exact `kubectl` commands that read them out of the `keycloak` namespace secrets.
 
 Optional env vars (defaults shown):
-* `ERAG_DOMAIN_NAME` – RAG deployment domain (default: `solutions.ai`)
+* `ERAG_DOMAIN_NAME` – RAG deployment domain (default: `inteltoolkits.ai`)
 * `HF_TOKEN` – HuggingFace token, required for gated models
 * `BENCHMARK_DURATION` – duration per run (default: `10m`)
 * `UAT_FILE` – path for the generated user access tokens (default: `/tmp/uat.txt`)

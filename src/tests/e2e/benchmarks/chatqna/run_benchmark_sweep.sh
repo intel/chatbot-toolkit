@@ -15,7 +15,7 @@
 #   KEYCLOAK_REALM_ADMIN_PASSWORD  – Realm admin password
 #
 # Optional environment variables (defaults shown):
-#   ERAG_DOMAIN_NAME             – Chatbot Toolkit domain (default: solutions.ai)
+#   ERAG_DOMAIN_NAME             – Chatbot Toolkit domain (default: inteltoolkits.ai)
 #   HF_TOKEN                     – HuggingFace token, needed for gated models
 #   BENCHMARK_DURATION           – Duration per run      (default: 10m)
 #   UAT_FILE                     – Path for token storage (default: /tmp/uat.txt)
@@ -143,7 +143,7 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 # Runtime settings (override via env vars)
 # ─────────────────────────────────────────────────────────────────────────────
-ERAG_DOMAIN="${ERAG_DOMAIN_NAME:-solutions.ai}"
+ERAG_DOMAIN="${ERAG_DOMAIN_NAME:-inteltoolkits.ai}"
 # Keep ERAG_DOMAIN_NAME exported so helper scripts (generate_uat_to_file.sh,
 # prepare_*.sh, add_cert_to_ca.sh) pick up the same domain when this script
 # only sets the default via ERAG_DOMAIN.

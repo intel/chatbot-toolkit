@@ -25,7 +25,7 @@
       UI:        https://{{ ui_domain_name }}
       Keycloak:  https://{{ chattool_keycloak_domain_name }}{{ chattool_keycloak_path_prefix }}
       {% if telemetry_enabled | default(false) %}
-      Grafana:   https://{{ telemetry_domain_name | default('grafana.solutions.ai') }}
+      Grafana:   https://{{ telemetry_domain_name | default('grafana.inteltoolkits.ai') }}
       {% endif %}
 
       Namespaces: {{ enabled_namespaces | unique | join(', ') }}

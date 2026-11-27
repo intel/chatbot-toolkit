@@ -20,8 +20,8 @@
     kcDomainName: "{{ chattool_keycloak_domain_name }}"
     keycloakRealm: "{{ ui_keycloak_realm | default('ChatbotToolkit') }}"
     clientId: "{{ client_id | default('ChatbotToolkit-oidc-minio') }}"
-    s3_host: "{{ edp_helm_values.s3ApiDomain | default((edp_helm_values.s3DomainPrefix | default('s3')) ~ '.' ~ (base_domain_name | default('solutions.ai'))) }}"
-    admin_host: "{{ edp_helm_values.uiBrowserDomain | default((edp_helm_values.uiBrowserDomainPrefix | default('seaweedfs')) ~ '.' ~ (base_domain_name | default('solutions.ai'))) }}"
+    s3_host: "{{ edp_helm_values.s3ApiDomain | default((edp_helm_values.s3DomainPrefix | default('s3')) ~ '.' ~ (base_domain_name | default('inteltoolkits.ai'))) }}"
+    admin_host: "{{ edp_helm_values.uiBrowserDomain | default((edp_helm_values.uiBrowserDomainPrefix | default('seaweedfs')) ~ '.' ~ (base_domain_name | default('inteltoolkits.ai'))) }}"
 
 - name: "app_edp | Define SeaweedFS S3 config"
   ansible.builtin.set_fact:

@@ -75,14 +75,14 @@ Gateway binds ports 80/443 on the cluster node via `hostPort`.
 **On cluster node:**
 
 ```bash
-echo "127.0.0.1 solutions.ai grafana.solutions.ai keycloak.solutions.ai s3.solutions.ai seaweedfs.solutions.ai" | sudo tee -a /etc/hosts
+echo "127.0.0.1 inteltoolkits.ai grafana.inteltoolkits.ai keycloak.inteltoolkits.ai s3.inteltoolkits.ai seaweedfs.inteltoolkits.ai" | sudo tee -a /etc/hosts
 ```
 
-Base domain from `base_domain_name` in `env/<name>/global_config.yaml` (default: `solutions.ai`). Each subdomain explicit - wildcards unsupported in `/etc/hosts`.
+Base domain from `base_domain_name` in `env/<name>/global_config.yaml` (default: `inteltoolkits.ai`). Each subdomain explicit - wildcards unsupported in `/etc/hosts`.
 
 **From another machine:** `ssh -L 443:localhost:443 user@<cluster-ip>`, then add same line to local `/etc/hosts`.
 
-URLs: `https://solutions.ai` (RAG UI), `https://keycloak.solutions.ai`, `https://grafana.solutions.ai`, `https://seaweedfs.solutions.ai`, `https://s3.solutions.ai`.
+URLs: `https://inteltoolkits.ai` (RAG UI), `https://keycloak.inteltoolkits.ai`, `https://grafana.inteltoolkits.ai`, `https://seaweedfs.inteltoolkits.ai`, `https://s3.inteltoolkits.ai`.
 
 > [!IMPORTANT]
 > With the default self-signed certificates, visit `https://s3.<base_domain_name>` in your browser and accept the warning **before** ingesting documents. Without it, uploads fail in the browser with no error from the cluster.

@@ -4,7 +4,7 @@ Intel® Chatbot Toolkit services emit metrics, logs, and traces to the platform 
 
 ## Login
 
-Visit `https://grafana.<base_domain_name>` (default: `https://grafana.solutions.ai`).
+Visit `https://grafana.<base_domain_name>` (default: `https://grafana.inteltoolkits.ai`).
 
 ![login screenshot](../assets/telemetry/login.png)
 

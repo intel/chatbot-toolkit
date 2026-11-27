@@ -56,27 +56,27 @@ export default defineConfig({
   server: {
     proxy: {
       "^/api/v1/chatqna$": {
-        target: "https://solutions.ai",
+        target: "https://inteltoolkits.ai",
         changeOrigin: true,
         secure: false,
       },
       "^/v1/chat_history": {
-        target: "https://solutions.ai",
+        target: "https://inteltoolkits.ai",
         changeOrigin: true,
         secure: false,
       },
       "^/v1/system_fingerprint": {
-        target: "https://solutions.ai",
+        target: "https://inteltoolkits.ai",
         changeOrigin: true,
         secure: false,
       },
       "^/api/v1/chatqna/status$": {
-        target: "https://solutions.ai",
+        target: "https://inteltoolkits.ai",
         changeOrigin: true,
         secure: false,
       },
       "^/api/v1/edp": {
-        target: "https://solutions.ai",
+        target: "https://inteltoolkits.ai",
         changeOrigin: true,
         secure: false,
       },

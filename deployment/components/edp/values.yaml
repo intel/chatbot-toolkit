@@ -30,7 +30,7 @@ proxy:
   https_proxy: ""
   no_proxy: ""
 
-edpExternalUrl: "https://s3.solutions.ai"
+edpExternalUrl: "https://s3.inteltoolkits.ai"
 edpExternalCertVerify: "false"
 edpInternalUrl: "http://seaweedfs-s3.seaweedfs.svc:8333"
 edpInternalCertVerify: "false"
@@ -56,8 +56,8 @@ keycloakBrokerIdpAlias: ""
 sharepointSyncLockTtlSeconds: "600"
 
 
-s3ApiDomain: "s3.solutions.ai"
-uiBrowserDomain: "seaweedfs.solutions.ai"
+s3ApiDomain: "s3.inteltoolkits.ai"
+uiBrowserDomain: "seaweedfs.inteltoolkits.ai"
 s3DomainPrefix: "s3"
 uiBrowserDomainPrefix: "seaweedfs"
 

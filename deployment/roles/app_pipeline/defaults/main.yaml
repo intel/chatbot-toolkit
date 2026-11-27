@@ -66,7 +66,7 @@ nats_namespace: "nats"             # app_nats
 keycloak_namespace: "keycloak"     # core/keycloak
 chattool_keycloak_realm: "ChatbotToolkit"     # app_keycloak_config
 vector_databases_enabled: false                    # app_vector_databases
-ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"  # app_ui
+ui_domain_name: "{{ base_domain_name | default('inteltoolkits.ai') }}"  # app_ui
 chattool_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
 chattool_keycloak_path_prefix: "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
 ui_keycloak_realm: "ChatbotToolkit"      # app_ui

@@ -67,14 +67,14 @@ Please refer to this [guide](../../../../../../docs/deployment/install-rag.md) t
 If your system uses a proxy, ensure the no_proxy environment variable includes the following to allow local access without proxying:
 
 ```sh
-export no_proxy=localhost,127.0.0.1,solutions.ai,s3.solutions.ai,keycloak.solutions.ai
+export no_proxy=localhost,127.0.0.1,inteltoolkits.ai,s3.inteltoolkits.ai,keycloak.inteltoolkits.ai
 ```
 
 > [!IMPORTANT]
 > **Configure /etc/hosts**: Ensure that the RAG system domains are added to your `/etc/hosts` file to resolve to localhost.
 > For example, the updated file content should resemble the following:
 > ```
-> 127.0.0.1 solutions.ai grafana.solutions.ai keycloak.solutions.ai s3.solutions.ai minio.solutions.ai
+> 127.0.0.1 inteltoolkits.ai grafana.inteltoolkits.ai keycloak.inteltoolkits.ai s3.inteltoolkits.ai minio.inteltoolkits.ai
 > ```
 
 ### Launch Service of LLM-as-a-Judge
@@ -356,7 +356,7 @@ This section outlines how to run MultiHop evaluation of the RAG pipeline using [
     > ```
     > This typically means your `no_proxy` environment variable is not configured correctly. Ensure it includes all required domains:
     > ```bash
-    > export no_proxy=localhost,127.0.0.1,solutions.ai,s3.solutions.ai,keycloak.solutions.ai
+    > export no_proxy=localhost,127.0.0.1,inteltoolkits.ai,s3.inteltoolkits.ai,keycloak.inteltoolkits.ai
     > ```
     > Then retry the evaluation.
 

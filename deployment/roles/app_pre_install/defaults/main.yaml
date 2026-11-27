@@ -18,12 +18,12 @@ reranking_model_name: ""                           # app_inference_models
 # "auto-detect", and load_settings.yaml keys the detection gate off that.
 
 # --- Cross-role shared defaults - declared here for standalone runs. ---
-ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"  # app_ui
-chattool_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"  # app_keycloak_config
+ui_domain_name: "{{ base_domain_name | default('inteltoolkits.ai') }}"  # app_ui
+chattool_keycloak_domain_name: "{{ (base_domain_name | default('inteltoolkits.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('inteltoolkits.ai')) }}"  # app_keycloak_config
 chattool_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
 chattool_keycloak_path_prefix: "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
-edp_minio_domain_name: "seaweedfs.{{ base_domain_name | default('solutions.ai') }}"  # app_edp
-edp_minio_api_domain_name: "s3.{{ base_domain_name | default('solutions.ai') }}"     # app_edp
+edp_minio_domain_name: "seaweedfs.{{ base_domain_name | default('inteltoolkits.ai') }}"  # app_edp
+edp_minio_api_domain_name: "s3.{{ base_domain_name | default('inteltoolkits.ai') }}"     # app_edp
 edp_seaweedfs_path_prefix: ""                                                    # app_edp
 routing_mode: subdomain                            # solution_config (subdomain | path)
 secure_logs: true                                  # global

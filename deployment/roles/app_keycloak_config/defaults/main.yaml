@@ -19,7 +19,7 @@
 
 # --- Realm + domain ---
 chattool_keycloak_realm: "ChatbotToolkit"
-chattool_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"
+chattool_keycloak_domain_name: "{{ (base_domain_name | default('inteltoolkits.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('inteltoolkits.ai')) }}"
 # Must match where the platform serves Keycloak in path mode (keycloak role: keycloak_path,
 # default /keycloak); a different prefix breaks every issuer URL.
 chattool_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"
@@ -62,9 +62,9 @@ chattool_keycloak_federation_maintainer_group_ldap_filter: "(cn=chattool-maintai
 chattool_keycloak_federation_admin_group_ldap_filter: "(cn=chattool-admin-group)"
 
 # --- Cross-role shared defaults - Owned by other roles; declared here so this role is standalone-runnable. ---
-edp_minio_domain_name: "seaweedfs.{{ base_domain_name | default('solutions.ai') }}"      # app_edp
+edp_minio_domain_name: "seaweedfs.{{ base_domain_name | default('inteltoolkits.ai') }}"      # app_edp
 edp_seaweedfs_path_prefix: ""  # app_edp
-ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"      # app_ui
+ui_domain_name: "{{ base_domain_name | default('inteltoolkits.ai') }}"      # app_ui
 rag_log_dir: "{{ log_dir }}/rag"                   # app_pre_install (derived from log_dir)
 rag_tmp_dir: "{{ tmp_dir }}/rag"                   # app_pre_install (derived from tmp_dir)
 secure_logs: true                                  # global
