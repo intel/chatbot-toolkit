@@ -10,9 +10,9 @@ RAG-specific settings in `env/<name>/config.erag.yaml`. This is the file you edi
 ## Overview
 
 ```bash
-./toolkit_manager.sh init erag --env local      # seeds config.erag.yaml
+./toolkit_manager.sh init erag --env local        # seeds config.erag.yaml
 vi env/local/config.erag.yaml                     # (optional) customize
-./toolkit_manager.sh install erag --env local   # deploys
+./toolkit_manager.sh install erag --env local     # deploys
 ```
 
 Defaults: ChatQnA base, all components enabled, three models (LLM, embedding, reranking), Redis cluster vector store.
