@@ -3,7 +3,7 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""Runs after `es_auto_installer.sh backup --env <env>`.
+"""Runs after `run_backup.sh backup erag --env <env>`.
 
 Proves the backup recorded the data created before it, then creates more data
 that the restore has to roll back.
@@ -62,7 +62,7 @@ def latest_profile_backup(k8s_helper):
     )
     assert backups, (
         f"No Backup labelled {BACKUP_PROFILE_LABEL}={BACKUP_PROFILE_NAME} in '{VELERO_NAMESPACE}'. "
-        f"Take one with: ./es_auto_installer.sh backup --env <env>"
+        f"Take one with: ./run_backup.sh backup erag --env <env>"
     )
     # RFC 3339 timestamps sort lexicographically.
     return sorted(backups, key=lambda b: b.metadata["creationTimestamp"])[-1]

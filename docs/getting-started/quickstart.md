@@ -22,7 +22,7 @@ Run from the Toolkit Manager repo root:
 ```bash
 git clone https://github.com/intel/toolkit-manager.git
 cd toolkit-manager
-./es_auto_installer.sh configure
+./toolkit_manager.sh configure
 ```
 
 ## Step 2 - Install the platform (optional)
@@ -32,7 +32,7 @@ cd toolkit-manager
 To stage the platform separately, for example to confirm model serving works before adding the chatbot:
 
 ```bash
-./es_auto_installer.sh install inference --env local
+./toolkit_manager.sh install inference --env local
 ```
 
 For multi-node or bring-your-own-Kubernetes, see the [Platform Quickstart](https://github.com/intel/toolkit-manager/blob/main/docs/getting-started/quickstart.md).
@@ -40,15 +40,15 @@ For multi-node or bring-your-own-Kubernetes, see the [Platform Quickstart](https
 ## Step 3 - Initialize the chatbot
 
 ```bash
-./es_auto_installer.sh init erag --env local
+./toolkit_manager.sh init erag --env local
 ```
 
 Seeds `env/local/config.erag.yaml`. Default flavour is `chatqna`. Others:
 
 ```bash
-./es_auto_installer.sh init erag --env local --flavour docsum        # document summarization
-./es_auto_installer.sh init erag --env local --flavour audioqna      # voice-enabled ChatQnA
-./es_auto_installer.sh init erag --env local --flavour translation   # language translation
+./toolkit_manager.sh init erag --env local --flavour docsum        # document summarization
+./toolkit_manager.sh init erag --env local --flavour audioqna      # voice-enabled ChatQnA
+./toolkit_manager.sh init erag --env local --flavour translation   # language translation
 ```
 
 Available: `chatqna`, `docsum`, `audioqna`, `translation`, `pl_chatqna`.
@@ -81,7 +81,7 @@ For the limited single-user deployment (32 cores / 64 GB RAM), see [Prerequisite
 ## Step 5 - Deploy
 
 ```bash
-./es_auto_installer.sh install erag --env local
+./toolkit_manager.sh install erag --env local
 ```
 
 Installs: model servers, vector database, RAG microservices, EDP pipeline, UI, Keycloak. Takes 15-20 minutes.
@@ -91,7 +91,7 @@ Installs: model servers, vector database, RAG microservices, EDP pipeline, UI, K
 ```bash
 export KUBECONFIG=$(pwd)/env/local/kubeconfig.yaml
 kubectl get pods -n llm-inference; kubectl get pods -n chatqna; kubectl get pods -n edp
-./es_auto_installer.sh status --env local
+./toolkit_manager.sh status --env local
 ```
 
 Test the pipeline:

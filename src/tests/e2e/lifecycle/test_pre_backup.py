@@ -3,7 +3,7 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""Runs before `es_auto_installer.sh backup --env <env>`.
+"""Runs before `run_backup.sh backup erag --env <env>`.
 
 Creates the data the round trip is judged on, and first checks the two engine
 preconditions whose absence would otherwise be diagnosed as data loss: no

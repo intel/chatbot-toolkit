@@ -10,9 +10,9 @@ RAG-specific settings in `env/<name>/config.erag.yaml`. This is the file you edi
 ## Overview
 
 ```bash
-./es_auto_installer.sh init erag --env local      # seeds config.erag.yaml
+./toolkit_manager.sh init erag --env local        # seeds config.erag.yaml
 vi env/local/config.erag.yaml                     # (optional) customize
-./es_auto_installer.sh install erag --env local   # deploys
+./toolkit_manager.sh install erag --env local     # deploys
 ```
 
 Defaults: ChatQnA base, all components enabled, three models (LLM, embedding, reranking), Redis cluster vector store.
@@ -252,7 +252,7 @@ inference_models:
 
 ## Changing values
 
-Edit `env/<name>/config.erag.yaml` and re-install, or override: `./es_auto_installer.sh install erag --env local -- -e mcp_enabled=true`.
+Edit `env/<name>/config.erag.yaml` and re-install, or override: `./toolkit_manager.sh install erag --env local -- -e mcp_enabled=true`.
 
 Precedence: CLI `-e` > `global_config.yaml` > `config.erag.yaml` > role defaults.
 

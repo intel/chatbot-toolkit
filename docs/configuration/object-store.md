@@ -102,7 +102,7 @@ edp_s3_compatible_secret_access_key: "<secret-key>"
 Deploy or redeploy:
 
 ```bash
-./es_auto_installer.sh install erag --env <name>
+./toolkit_manager.sh install erag --env <name>
 ```
 
 The installer prints the derived values at install time so a deployment can be read back from the log.

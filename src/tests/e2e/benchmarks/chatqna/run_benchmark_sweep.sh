@@ -41,7 +41,7 @@
 #                            SWEEP_INPUT_TOKENS=128 SWEEP_OUTPUT_TOKENS=128
 #   SWEEP_TOP_N, SWEEP_K, SWEEP_Q_FILES – edited in-script (top of file)
 #
-# Per LLM switch this script mirrors what `es_auto_installer.sh install application`
+# Per LLM switch this script mirrors what `toolkit_manager.sh install erag`
 # does for the LLM role only:
 #   1. undeploy the currently-served LLM via `model-manager undeploy --wait`
 #      (MM_CONFIG points at ${ERAG_ENV_DIR}/models-rag.yaml so the same catalog
@@ -170,7 +170,7 @@ if [[ -z "${MODEL_MANAGER:-}" ]]; then
 fi
 # Name of your env folder under the repo's top-level env/ directory (local,
 # mytest, …). Its models-rag.yaml catalog — seeded/edited by the installer's
-# `install application` path — is read here and passed to model-manager via
+# `install erag` path — is read here and passed to model-manager via
 # MM_CONFIG below.
 ENV_ROOT="${SCRIPT_DIR}/../../../../../../../env"
 ERAG_ENV_NAME="${ERAG_ENV_NAME:-local}"
@@ -332,7 +332,7 @@ check_prerequisites() {
     elif [[ ! -f "$MODELS_YAML" ]]; then
         log_error "models.yaml not found at: $MODELS_YAML"
         log_error "  Check ERAG_ENV_NAME, or override with: MODELS_YAML=/path/to/models.yaml"
-        log_error "  (default expects env/<ERAG_ENV_NAME>/models-rag.yaml seeded by 'es_auto_installer.sh install application')"
+        log_error "  (default expects env/<ERAG_ENV_NAME>/models-rag.yaml seeded by 'toolkit_manager.sh install erag')"
         errors=$((errors + 1))
     else
         log_ok "env: ${ERAG_ENV_NAME} (${ERAG_ENV_DIR})"

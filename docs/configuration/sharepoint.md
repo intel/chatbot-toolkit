@@ -70,13 +70,13 @@ A partial configuration is rejected at install time.
 Deploy or redeploy:
 
 ```bash
-./es_auto_installer.sh install erag --env <name>
+./toolkit_manager.sh install erag --env <name>
 ```
 
 Re-check the configuration against the live cluster:
 
 ```bash
-./es_auto_installer.sh validate erag --env <name>
+./toolkit_manager.sh validate erag --env <name>
 ```
 
 ## Managing SharePoint sites

@@ -76,8 +76,8 @@ SSH into one of the VMs (for example vm3), clone Toolkit Manager, and let it pre
 git clone https://github.com/intel/toolkit-manager.git
 cd toolkit-manager
 
-./es_auto_installer.sh configure
-./es_auto_installer.sh init erag
+./toolkit_manager.sh configure
+./toolkit_manager.sh init erag
 ```
 
 `init erag` clones this repository and Intel® Inference Toolkit into `ext/` at their pinned revisions. Every command from here runs from this directory.
@@ -91,7 +91,7 @@ If vSphere already provides the cluster, set `existing_kubernetes` in `env/local
 ### 3. Deploy Intel® Chatbot Toolkit
 
 ```bash
-./es_auto_installer.sh install erag
+./toolkit_manager.sh install erag
 ```
 
 This pulls in the `infrastructure`, `platform`, and `inference` installer targets first. Full walkthrough → [Deploy Intel® Chatbot Toolkit](install-rag.md).

@@ -3,7 +3,7 @@
 # Copyright (C) 2025 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""Runs after `es_auto_installer.sh restore --env <env> --force`.
+"""Runs after `run_backup.sh restore erag --env <env> --force`.
 
 Three claims, in the order they can fail:
   the restore itself completed;
@@ -52,7 +52,7 @@ def latest_profile_restore(k8s_helper):
     )
     assert restores, (
         f"No Restore labelled {BACKUP_PROFILE_LABEL}={BACKUP_PROFILE_NAME} in '{VELERO_NAMESPACE}'. "
-        f"Run: ./es_auto_installer.sh restore --env <env> --force"
+        f"Run: ./run_backup.sh restore erag --env <env> --force"
     )
     return sorted(restores, key=lambda r: r.metadata["creationTimestamp"])[-1]
 

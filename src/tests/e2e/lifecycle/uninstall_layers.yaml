@@ -1,7 +1,7 @@
 # Copyright (C) 2026 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
-# Expected cluster state after an es_auto_installer.sh layered teardown.
+# Expected cluster state after a toolkit_manager.sh layered teardown.
 # Consumed by test_uninstall.py, selected via the CLUSTER_STATE env var
 # (erag | inference | platform | all). Driven by run_scenario.py from
 # scenarios.yaml (SCENARIO=uninstall, CLUSTER_STATE=<layer>).

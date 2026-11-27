@@ -37,7 +37,7 @@ You clone **one** repository and run every command from its root. The installer 
 ```
 github.com/intel/toolkit-manager      <- start here; run all commands from this root
   |
-  |-- es_auto_installer.sh      the single entry point (configure / init / install / teardown)
+  |-- toolkit_manager.sh        the single entry point (configure / init / install / teardown)
   |-- env/<name>/               your configuration, kubeconfig, credentials, and logs
   `-- ext/                      cloned automatically by `init erag`
         |-- enterprise.ai-inference    model serving: KServe, vLLM, OpenVINO Model Server
@@ -45,7 +45,7 @@ github.com/intel/toolkit-manager      <- start here; run all commands from this 
 ```
 
 > [!IMPORTANT]
-> Do not clone this repository directly to deploy it. Clone the Toolkit Manager repository, run `./es_auto_installer.sh init erag`, and it will fetch this one into `ext/` at a pinned revision. Every command in this documentation is run from the Toolkit Manager repo root.
+> Do not clone this repository directly to deploy it. Clone the Toolkit Manager repository, run `./toolkit_manager.sh init erag`, and it will fetch this one into `ext/` at a pinned revision. Every command in this documentation is run from the Toolkit Manager repo root.
 
 ## What gets deployed
 
