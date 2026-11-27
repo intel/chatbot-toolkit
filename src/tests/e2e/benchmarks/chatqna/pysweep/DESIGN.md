@@ -10,7 +10,7 @@ SPDX-License-Identifier: Apache-2.0
 > designed and land next. The K8s-spec plane's one designed knob, `llms.model`
 > (`LlmModel`: model-manager + `gmc-config`), is **not implemented yet**; the
 > sections on it describe the design it will follow. Until then the runner only *reads* the served model,
-> to derive the benchmark's tokenizer (`served_model.py`).
+> to derive the benchmark's tokenizer (`cluster/served_model.py`).
 
 ## Problem
 

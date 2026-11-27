@@ -17,7 +17,7 @@ import yaml
 
 from tests.e2e.benchmarks.chatqna import benchmark
 from tests.e2e.benchmarks.chatqna.benchmark import duration_to_seconds
-from tests.e2e.benchmarks.chatqna.pysweep.base import (
+from tests.e2e.benchmarks.chatqna.pysweep.properties.base import (
     Plane,
     Property,
     PropertyApplyError,
@@ -39,8 +39,8 @@ from tests.e2e.benchmarks.chatqna.pysweep.config import (
     load_config,
     load_run_config,
 )
-from tests.e2e.benchmarks.chatqna.pysweep import model_catalog
-from tests.e2e.benchmarks.chatqna.pysweep.commit_info import CommitInfoError, read_commit_info
+from tests.e2e.benchmarks.chatqna.pysweep.cluster import model_catalog
+from tests.e2e.benchmarks.chatqna.pysweep.provenance.commit_info import CommitInfoError, read_commit_info
 from tests.e2e.benchmarks.chatqna.pysweep.results import (
     DEFAULT_SUMMARIES_DIR,
     SweepResults,
@@ -49,11 +49,11 @@ from tests.e2e.benchmarks.chatqna.pysweep.results import (
     run_record,
     summarize_requests,
 )
-from tests.e2e.benchmarks.chatqna.pysweep.runtime_api import (
+from tests.e2e.benchmarks.chatqna.pysweep.cluster.fingerprint import (
     FingerprintClient,
     default_transport,
 )
-from tests.e2e.benchmarks.chatqna.pysweep.served_model import ServedModel
+from tests.e2e.benchmarks.chatqna.pysweep.cluster.served_model import ServedModel
 
 logger = logging.getLogger(__name__)
 
@@ -250,7 +250,7 @@ def preflight_check(config: SweepConfig) -> dict[str, str]:
 
 def chatqna_url() -> str:
     """Return the ChatQNA URL on the deployment's base_domain_name."""
-    from tests.e2e.benchmarks.chatqna.pysweep.authentication import load_build_config
+    from tests.e2e.benchmarks.chatqna.pysweep.cluster.auth import load_build_config
 
     return f"https://{load_build_config()['base_domain_name']}{CHATQNA_PATH}"
 
@@ -291,7 +291,7 @@ def provision_benchmark_target(benchmark_args: list[str], workers: int = 1):
             tmp = stack.enter_context(
                 tempfile.NamedTemporaryFile("w", suffix=".uat", delete=True)
             )
-            from tests.e2e.benchmarks.chatqna.pysweep.authentication import (
+            from tests.e2e.benchmarks.chatqna.pysweep.cluster.auth import (
                 client_token_lifespan,
                 keycloak_helper,
             )

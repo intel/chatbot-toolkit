@@ -4,7 +4,7 @@
 import allure
 import pytest
 
-from tests.e2e.benchmarks.chatqna.pysweep.base import Plane, PropertyReadError
+from tests.e2e.benchmarks.chatqna.pysweep.properties.base import Plane, PropertyReadError
 from tests.e2e.benchmarks.chatqna.pysweep.properties.max_tokens import MaxNewTokens
 
 

@@ -6,9 +6,9 @@ from types import SimpleNamespace
 import allure
 import pytest
 
-from tests.e2e.benchmarks.chatqna.pysweep import served_model
-from tests.e2e.benchmarks.chatqna.pysweep.base import PropertyReadError
-from tests.e2e.benchmarks.chatqna.pysweep.served_model import ServedModel
+from tests.e2e.benchmarks.chatqna.pysweep.cluster import served_model
+from tests.e2e.benchmarks.chatqna.pysweep.properties.base import PropertyReadError
+from tests.e2e.benchmarks.chatqna.pysweep.cluster.served_model import ServedModel
 
 MODEL = "llama3-8b-awq"
 OTHER = "qwen3-5-2b-ovms"

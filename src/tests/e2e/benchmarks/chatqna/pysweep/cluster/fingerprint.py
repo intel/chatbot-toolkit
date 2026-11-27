@@ -76,7 +76,7 @@ class IngressTransport:
         if not self.domain:
             raise ValueError(
                 "No ERAG domain available for the ingress transport; call "
-                "authentication.load_build_config() first or pass domain=."
+                "auth.load_build_config() first or pass domain=."
             )
 
     @contextmanager
@@ -175,7 +175,7 @@ def default_transport(keycloak_helper=None):
     mode = os.getenv("PYSWEEP_FINGERPRINT_TRANSPORT", "portforward").lower()
     if mode == "ingress":
         if keycloak_helper is None:
-            from .authentication import keycloak_helper as build_keycloak_helper
+            from .auth import keycloak_helper as build_keycloak_helper
 
             keycloak_helper = build_keycloak_helper()
         return IngressTransport(keycloak_helper)

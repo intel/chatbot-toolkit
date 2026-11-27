@@ -25,7 +25,7 @@ from tests.e2e.validation.constants import (
     VITE_KEYCLOAK_REALM,
 )
 
-from .paths import deploy_roots, is_dir, is_file
+from ..provenance.paths import deploy_roots, is_dir, is_file
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 

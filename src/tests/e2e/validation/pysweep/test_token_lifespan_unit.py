@@ -4,8 +4,8 @@
 import allure
 import pytest
 
-from tests.e2e.benchmarks.chatqna.pysweep import authentication
-from tests.e2e.benchmarks.chatqna.pysweep.authentication import (
+from tests.e2e.benchmarks.chatqna.pysweep.cluster import auth
+from tests.e2e.benchmarks.chatqna.pysweep.cluster.auth import (
     CLIENT_TOKEN_LIFESPAN_ATTRIBUTE,
     KeycloakConfigError,
     client_token_lifespan,
@@ -66,8 +66,8 @@ class _Helper:
 def keycloak(monkeypatch):
     def install(**kwargs):
         fake = _FakeKeycloak(**kwargs)
-        monkeypatch.setattr(authentication.requests, "get", fake.get)
-        monkeypatch.setattr(authentication.requests, "put", fake.put)
+        monkeypatch.setattr(auth.requests, "get", fake.get)
+        monkeypatch.setattr(auth.requests, "put", fake.put)
         return fake
 
     return install
@@ -75,7 +75,7 @@ def keycloak(monkeypatch):
 
 @allure.feature("pysweep")
 def test_the_sweep_value_is_arbitrary_but_outlasts_a_long_run():
-    assert authentication.SWEEP_TOKEN_LIFESPAN_S == 3600
+    assert auth.SWEEP_TOKEN_LIFESPAN_S == 3600
 
 
 @allure.feature("pysweep")

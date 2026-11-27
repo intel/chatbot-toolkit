@@ -17,7 +17,7 @@ from pydantic import (
     ValidationError,
 )
 
-from .base import Plane, Property
+from .properties.base import Plane, Property
 from .client_args import (
     BEARER_FILE,
     CONCURRENCY,

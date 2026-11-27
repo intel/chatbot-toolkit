@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 from typing import Any, Iterable, NamedTuple, Sequence
 
-from .commit_info import COMMIT_INFO_FIELDS
+from .provenance.commit_info import COMMIT_INFO_FIELDS
 
 logger = logging.getLogger(__name__)
 

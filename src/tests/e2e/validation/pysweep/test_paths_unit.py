@@ -6,8 +6,9 @@ from pathlib import Path
 import allure
 import pytest
 
-from tests.e2e.benchmarks.chatqna.pysweep import authentication, paths
-from tests.e2e.benchmarks.chatqna.pysweep.authentication import (
+from tests.e2e.benchmarks.chatqna.pysweep.cluster import auth
+from tests.e2e.benchmarks.chatqna.pysweep.provenance import paths
+from tests.e2e.benchmarks.chatqna.pysweep.cluster.auth import (
     BUILD_CONFIG_FILES,
     BuildConfigError,
     build_config_dir,
@@ -55,16 +56,16 @@ def test_build_config_dir_skips_an_unreadable_fallback(monkeypatch, tmp_path):
             raise PermissionError(13, "Permission denied", str(self))
         return real_stat(self, *args, **kwargs)
 
-    monkeypatch.delenv(authentication.BUILD_CONFIG_DIR_ENV_VAR, raising=False)
+    monkeypatch.delenv(auth.BUILD_CONFIG_DIR_ENV_VAR, raising=False)
     monkeypatch.setattr(Path, "stat", stat)
-    monkeypatch.setattr(authentication, "BUILD_CONFIG_FALLBACKS", (str(unreadable), str(readable)))
+    monkeypatch.setattr(auth, "BUILD_CONFIG_FALLBACKS", (str(unreadable), str(readable)))
     assert build_config_dir() == readable
 
 
 @allure.feature("pysweep")
 def test_no_build_config_dir_anywhere_is_an_error(monkeypatch):
-    monkeypatch.delenv(authentication.BUILD_CONFIG_DIR_ENV_VAR, raising=False)
-    monkeypatch.setattr(authentication, "BUILD_CONFIG_FALLBACKS", ())
+    monkeypatch.delenv(auth.BUILD_CONFIG_DIR_ENV_VAR, raising=False)
+    monkeypatch.setattr(auth, "BUILD_CONFIG_FALLBACKS", ())
     with pytest.raises(BuildConfigError, match="Cannot find"):
         build_config_dir()
 

@@ -7,8 +7,8 @@ import subprocess
 import allure
 import pytest
 
-from tests.e2e.benchmarks.chatqna.pysweep import commit_info
-from tests.e2e.benchmarks.chatqna.pysweep.commit_info import (
+from tests.e2e.benchmarks.chatqna.pysweep.provenance import commit_info
+from tests.e2e.benchmarks.chatqna.pysweep.provenance.commit_info import (
     COMMIT_INFO_FIELDS,
     CommitInfoError,
     read_commit_info,

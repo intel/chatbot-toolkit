@@ -6,8 +6,8 @@ from pathlib import Path
 import allure
 import pytest
 
-from tests.e2e.benchmarks.chatqna.pysweep import model_catalog
-from tests.e2e.benchmarks.chatqna.pysweep.model_catalog import (
+from tests.e2e.benchmarks.chatqna.pysweep.cluster import model_catalog
+from tests.e2e.benchmarks.chatqna.pysweep.cluster.model_catalog import (
     CatalogError,
     catalog_path,
     known_models,

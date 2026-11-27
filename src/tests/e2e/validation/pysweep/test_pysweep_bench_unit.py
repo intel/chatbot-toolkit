@@ -16,7 +16,7 @@ import pytest
 import yaml
 
 from tests.e2e.benchmarks.chatqna.pysweep import pysweep_bench as psb
-from tests.e2e.benchmarks.chatqna.pysweep.base import (
+from tests.e2e.benchmarks.chatqna.pysweep.properties.base import (
     Plane,
     Property,
     PropertyApplyError,
@@ -26,7 +26,7 @@ from tests.e2e.benchmarks.chatqna.pysweep.client_args import BenchmarkClientArgs
 from tests.e2e.benchmarks.chatqna.pysweep import results
 from tests.e2e.benchmarks.chatqna.pysweep.config import PropertySetting, load_config
 from tests.e2e.benchmarks.chatqna.pysweep.properties.max_tokens import MaxNewTokens
-from tests.e2e.benchmarks.chatqna.pysweep.served_model import ServedModel
+from tests.e2e.benchmarks.chatqna.pysweep.cluster.served_model import ServedModel
 
 # question_file must exist (relative to pysweep_bench.py): main() runs preflight, which stats it.
 CLIENT = {
@@ -521,7 +521,7 @@ def test_count_result_rows_counts_and_tolerates_missing(tmp_path):
 @allure.feature("pysweep")
 def _fake_keycloak(monkeypatch, domain="box.example"):
     """Point provisioning at a fake deployment whose every token mint differs."""
-    from tests.e2e.benchmarks.chatqna.pysweep import authentication
+    from tests.e2e.benchmarks.chatqna.pysweep.cluster import auth
 
     minted = itertools.count(1)
 
@@ -532,22 +532,22 @@ def _fake_keycloak(monkeypatch, domain="box.example"):
             return f"token-{next(minted)}"
 
     monkeypatch.setattr(
-        authentication, "load_build_config", lambda: {"base_domain_name": domain}
+        auth, "load_build_config", lambda: {"base_domain_name": domain}
     )
-    monkeypatch.setattr(authentication, "keycloak_helper", _Helper)
+    monkeypatch.setattr(auth, "keycloak_helper", _Helper)
 
     # Record the lifespan override instead of calling the Keycloak admin API.
     lifespan_calls = []
 
     @contextmanager
-    def _lifespan(helper, seconds=authentication.SWEEP_TOKEN_LIFESPAN_S):
+    def _lifespan(helper, seconds=auth.SWEEP_TOKEN_LIFESPAN_S):
         lifespan_calls.append(("set", seconds))
         try:
             yield
         finally:
             lifespan_calls.append(("restored", seconds))
 
-    monkeypatch.setattr(authentication, "client_token_lifespan", _lifespan)
+    monkeypatch.setattr(auth, "client_token_lifespan", _lifespan)
     return lifespan_calls
 
 

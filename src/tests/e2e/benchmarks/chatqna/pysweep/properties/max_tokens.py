@@ -3,8 +3,8 @@
 
 import logging
 
-from ..base import Plane, Property, PropertyReadError
-from ..runtime_api import FingerprintClient
+from .base import Plane, Property, PropertyReadError
+from ..cluster.fingerprint import FingerprintClient
 
 logger = logging.getLogger(__name__)
 

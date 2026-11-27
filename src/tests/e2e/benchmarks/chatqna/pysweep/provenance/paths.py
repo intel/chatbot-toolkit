@@ -5,8 +5,8 @@ from pathlib import Path
 
 ROOT_DEPLOY_ROOT = Path("/root/ai-solutions")
 
-# parents[6] is the repo root: pysweep/chatqna/benchmarks/e2e/tests/src/<repo>.
-REPO_ROOT = Path(__file__).resolve().parents[6]
+# parents[7] is the repo root: provenance/pysweep/chatqna/benchmarks/e2e/tests/src/<repo>.
+REPO_ROOT = Path(__file__).resolve().parents[7]
 
 
 def deploy_roots() -> tuple[Path, ...]:

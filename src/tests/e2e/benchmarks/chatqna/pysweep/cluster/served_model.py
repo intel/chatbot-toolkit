@@ -8,7 +8,7 @@ from kr8s.objects import APIObject
 
 from tests.e2e.validation.constants import CHATQNA_NAMESPACE, LLM_INFERENCE_NAMESPACE
 
-from .base import PropertyReadError
+from ..properties.base import PropertyReadError
 
 logger = logging.getLogger(__name__)
 

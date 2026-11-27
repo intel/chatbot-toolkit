@@ -18,21 +18,22 @@ environment gotchas.
 
 | Path | What it is |
 |---|---|
-| `base.py` | `Property` interface + `Plane` enum (K8s-spec plane vs Runtime-API plane). |
-| `config.py` | Pydantic-validated configs: `load_config()` / `SweepConfig` (+ the `deployment_combinations()` and `client_combinations()` cartesian `product` expansions) and `load_run_config()` / `RunConfig`. |
-| `client_args.py` | Adapter mirroring `benchmark.py`'s CLI options as sweep knobs. Not properties — no plane, nothing to apply or read back; see below. |
 | `pysweep_bench.py` | Sweep runner: load config → apply/converge/verify each deployment combination → run one load test per client combination, reusing `benchmark.py`. |
+| `config.py` | Pydantic-validated configs: `load_config()` / `SweepConfig` (+ the `deployment_combinations()` and `client_combinations()` cartesian `product` expansions) and `load_run_config()` / `RunConfig`. |
+| `results.py` | Run records, `results.json` and the summary CSV. |
+| `client_args.py` | Adapter mirroring `benchmark.py`'s CLI options as sweep knobs. Not properties — no plane, nothing to apply or read back; see below. |
+| `properties/` | Deployment knobs: `base.py` (the `Property` interface and `Plane` enum) and one module per knob, e.g. `max_tokens.py` (`MaxNewTokens`, LLM `max_new_tokens`, Runtime-API plane). |
+| `cluster/auth.py` | `KubernetesAccess` (side-effect-free RBAC preflight via `SelfSubjectAccessReview`), `load_build_config()` (the installed environment's config), `keycloak_helper()` (the maintained `KeycloakHelper`, for user tokens) and `client_token_lifespan()` (a sweep-long access-token lifespan for the UI client, restored afterwards). |
+| `cluster/fingerprint.py` | `system_fingerprint` client. `HelperFingerprintClient` adapts the suite's `FingerprintApiHelper`; `PortForwardTransport` / `IngressTransport` cover deployments the helper can't reach. |
+| `cluster/served_model.py` | `ServedModel`: reads the model the pipeline is **observed** to generate with, out of the running `llm-usvc` pods. Not a knob — the runner uses it to pick the benchmark's tokenizer. |
+| `cluster/model_catalog.py` | Reader for the model-manager catalog (`models-rag.yaml` / `models.yaml`): maps a served model name to the HuggingFace repo id the benchmark's tokenizer needs. |
+| `provenance/commit_info.py` | The checked-out commit the results are attributed to. |
+| `provenance/paths.py` | Where the installed environment's files are looked for (deploy root derived from the checkout's location). |
 | `configs/sweep.yaml` | Sweep config (`--sweep`): what to vary. Keys are described in [`configs/README.md`](./configs/README.md). |
 | `configs/general.yaml` | Run config (`--config`): how to run. |
-| `authentication.py` | `KubernetesAccess` (side-effect-free RBAC preflight via `SelfSubjectAccessReview`), `load_build_config()` (the installed environment's config), `keycloak_helper()` (the maintained `KeycloakHelper`, for user tokens) and `client_token_lifespan()` (a sweep-long access-token lifespan for the UI client, restored afterwards). |
-| `runtime_api.py` | `system_fingerprint` client. `HelperFingerprintClient` adapts the suite's `FingerprintApiHelper`; `PortForwardTransport` / `IngressTransport` cover deployments the helper can't reach. |
-| `properties/max_tokens.py` | First property: `MaxNewTokens` (LLM `max_new_tokens`, Runtime-API plane). |
-| `served_model.py` | `ServedModel`: reads the model the pipeline is **observed** to generate with, out of the running `llm-usvc` pods. Not a knob — the runner uses it to pick the benchmark's tokenizer. |
-| `model_catalog.py` | Reader for the model-manager catalog (`models-rag.yaml` / `models.yaml`): maps a served model name to the HuggingFace repo id the benchmark's tokenizer needs. |
-| `paths.py` | Where the installed environment's files are looked for (deploy root derived from the checkout's location). |
 
-Only the modules directly under `properties/` define knobs. A file there means a
-`Property` subclass bound to a YAML leaf in `config.py`.
+Every module in `properties/` except `base.py` defines one knob: a `Property`
+subclass bound to a YAML leaf in `config.py`.
 
 The **e2e tests live with the rest of the validation suite** at
 `src/tests/e2e/validation/pysweep/`, not inside this package. That keeps them in

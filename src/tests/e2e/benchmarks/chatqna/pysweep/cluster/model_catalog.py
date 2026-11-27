@@ -7,7 +7,7 @@ from pathlib import Path
 
 import yaml
 
-from .paths import REPO_ROOT, deploy_roots, is_file
+from ..provenance.paths import REPO_ROOT, deploy_roots, is_file
 
 logger = logging.getLogger(__name__)
 

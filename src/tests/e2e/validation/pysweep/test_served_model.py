@@ -6,8 +6,8 @@ import logging
 import allure
 import pytest
 
-from tests.e2e.benchmarks.chatqna.pysweep import model_catalog
-from tests.e2e.benchmarks.chatqna.pysweep.served_model import LLMInferenceService, ServedModel
+from tests.e2e.benchmarks.chatqna.pysweep.cluster import model_catalog
+from tests.e2e.benchmarks.chatqna.pysweep.cluster.served_model import LLMInferenceService, ServedModel
 from tests.e2e.validation.constants import LLM_INFERENCE_NAMESPACE
 
 logger = logging.getLogger(__name__)

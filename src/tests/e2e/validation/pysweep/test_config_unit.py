@@ -9,7 +9,7 @@ import allure
 import pytest
 
 from tests.e2e.benchmarks.chatqna.pysweep import client_args
-from tests.e2e.benchmarks.chatqna.pysweep.base import Plane
+from tests.e2e.benchmarks.chatqna.pysweep.properties.base import Plane
 from tests.e2e.benchmarks.chatqna.pysweep.config import (
     ConfigError,
     SweepConfig,

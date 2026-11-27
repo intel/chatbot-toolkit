@@ -5,11 +5,11 @@ import logging
 
 import pytest
 
-from tests.e2e.benchmarks.chatqna.pysweep.authentication import (
+from tests.e2e.benchmarks.chatqna.pysweep.cluster.auth import (
     AccessError,
     KubernetesAccess,
 )
-from tests.e2e.benchmarks.chatqna.pysweep.runtime_api import (
+from tests.e2e.benchmarks.chatqna.pysweep.cluster.fingerprint import (
     HelperFingerprintClient,
     PortForwardTransport,
     FingerprintClient,
