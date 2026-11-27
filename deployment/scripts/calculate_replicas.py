@@ -52,7 +52,7 @@ def verify_memory_requirements(current_vllm_size, reranking_size, embedding_size
     # model count from inference_models in config.erag.yaml.
     ROUTERS_MEMORY = num_routers * router_memory_gib
 
-    # Set Chatbot Toolkit core services memory request. Covers the platform + Chatbot Toolkit namespaces
+    # Set core services memory request. Covers the platform + Chatbot Toolkit namespaces
     # that ship in every install (chatqna usvcs, istio, keycloak, envoy-gateway, kube-system,
     # auth-apisix, minio, postgresql, plus solutions-only additions kserve, lws-system,
     # cert-manager, metallb-system, envoy-ai-gateway-system, cnpg-system).
