@@ -32,7 +32,7 @@ textExtractor:
 
 embedding_model_name: &embedding_model_name {{ embedding_model_name }}
 
-{% set base_domain_name = base_domain_name | default('solutions.ai') %}
+{% set base_domain_name = base_domain_name | default('inteltoolkits.ai') %}
 {% set s3_prefix = edp_s3_domain_prefix if edp_s3_domain_prefix is defined else 's3' %}
 {% set ui_prefix = edp_ui_browser_domain_prefix if edp_ui_browser_domain_prefix is defined else 'seaweedfs' %}
 {% if routing_mode | default('subdomain') == 'path' %}

@@ -79,11 +79,11 @@ mcp_enabled: false                                 # pipelines/<flavour>/config.
 edp_enabled: false                                 # app_edp
 edp_namespace: "edp"                               # app_edp
 routing_mode: "subdomain"                          # global
-ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"  # app_ui
+ui_domain_name: "{{ base_domain_name | default('inteltoolkits.ai') }}"  # app_ui
 keycloak_namespace: "keycloak"                     # core/keycloak
 credentials_secret_name: "chattool-credentials"        # app_keycloak_config
 chattool_keycloak_realm: "ChatbotToolkit"               # app_keycloak_config
-chattool_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"  # app_keycloak_config
+chattool_keycloak_domain_name: "{{ (base_domain_name | default('inteltoolkits.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('inteltoolkits.ai')) }}"  # app_keycloak_config
 chattool_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
 chattool_keycloak_path_prefix: "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
 rag_tmp_dir: "{{ tmp_dir }}/rag"                   # app_pre_install (derived from tmp_dir)

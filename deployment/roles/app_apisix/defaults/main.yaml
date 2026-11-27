@@ -31,4 +31,4 @@ apisix_api_paths:
 
 # --- Cross-role shared defaults ---
 pipeline_type: "chatqna"                                         # app_pipeline
-ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"  # app_ui
+ui_domain_name: "{{ base_domain_name | default('inteltoolkits.ai') }}"  # app_ui

@@ -14,9 +14,9 @@ generate_uat_to_file()
 	VITE_KEYCLOAK_REALM="ChatbotToolkit"
 	VITE_KEYCLOAK_CLIENT_ID="ChatbotToolkit-oidc"
 	if [[ "${ERAG_ROUTING_MODE:-subdomain}" == "path" ]]; then
-		VITE_KEYCLOAK_URL="https://${ERAG_DOMAIN_NAME:-solutions.ai}${KEYCLOAK_PATH:-/keycloak}"
+		VITE_KEYCLOAK_URL="https://${ERAG_DOMAIN_NAME:-inteltoolkits.ai}${KEYCLOAK_PATH:-/keycloak}"
 	else
-		VITE_KEYCLOAK_URL="https://keycloak.${ERAG_DOMAIN_NAME:-solutions.ai}"
+		VITE_KEYCLOAK_URL="https://keycloak.${ERAG_DOMAIN_NAME:-inteltoolkits.ai}"
 	fi
 
 	if [[ -z "${KEYCLOAK_REALM_ADMIN_PASSWORD}" ]]; then

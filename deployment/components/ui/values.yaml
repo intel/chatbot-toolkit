@@ -8,7 +8,7 @@ proxy:
   https_proxy: ""
   no_proxy: ""
 
-domainName: &dname "solutions.ai"
+domainName: &dname "inteltoolkits.ai"
 type: chatqna
 
 extraNginxVars:
@@ -26,15 +26,15 @@ extraNginxVars:
   statusEndpoint: "http://auth-apisix-gateway.auth-apisix.svc"
 
 extraUiConfigVars:
-  keycloakDomainName: "keycloak.solutions.ai"
+  keycloakDomainName: "keycloak.inteltoolkits.ai"
   keycloakRealm: "ChatbotToolkit"
   keycloakClientId: "ChatbotToolkit-oidc"
   adminResourceRole: "CHATTOOL-admin"
   userResourceRole: "CHATTOOL-user"
   maintainerResourceRole: "CHATTOOL-maintainer"
-  grafanaDomainName: "grafana.solutions.ai"
-  keycloakAdminPanelDomainName: "keycloak.solutions.ai"
-  s3DomainName: "s3.solutions.ai"
+  grafanaDomainName: "grafana.inteltoolkits.ai"
+  keycloakAdminPanelDomainName: "keycloak.inteltoolkits.ai"
+  s3DomainName: "s3.inteltoolkits.ai"
   chatDisclaimerText: "Responses from this solution may require further verification. You are solely responsible for verifying the accuracy of the information provided and how you choose to use it."
   chatMaintenanceMode: "false"
   # Why chat is unavailable, when chatMaintenanceMode is "true": "" for planned

@@ -28,10 +28,10 @@ _ROLES_DIR = Path(__file__).resolve().parents[4] / "deployment" / "roles"
 
 # The one accepted definition of each shared default.
 CANONICAL = {
-    "ui_domain_name": "{{ base_domain_name | default('solutions.ai') }}",
+    "ui_domain_name": "{{ base_domain_name | default('inteltoolkits.ai') }}",
     "chattool_keycloak_domain_name": (
-        "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path'"
-        " else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"
+        "{{ (base_domain_name | default('inteltoolkits.ai')) if (routing_mode | default('subdomain')) == 'path'"
+        " else 'keycloak.' ~ (base_domain_name | default('inteltoolkits.ai')) }}"
     ),
     "chattool_keycloak_default_path_prefix": "{{ keycloak_path | default('/keycloak') }}",
     "data_consistency_report_dir": "{{ env_dir }}/reports",

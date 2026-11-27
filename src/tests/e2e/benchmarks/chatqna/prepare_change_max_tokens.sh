@@ -15,7 +15,7 @@ else
 	tokens=$1
 fi
 
-url="https://${ERAG_DOMAIN_NAME:-solutions.ai}/v1/system_fingerprint/change_arguments?pipeline=chatqna&tenant=_global"
+url="https://${ERAG_DOMAIN_NAME:-inteltoolkits.ai}/v1/system_fingerprint/change_arguments?pipeline=chatqna&tenant=_global"
 curl -H "Content-Type: application/json" -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" -vkL ${url} -d '[
     {
         "name": "llm",

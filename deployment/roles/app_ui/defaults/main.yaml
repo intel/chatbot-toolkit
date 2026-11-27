@@ -8,7 +8,7 @@
 
 # --- Deployment target ---
 ui_namespace: "rag-ui"
-ui_domain_name: "{{ base_domain_name | default('solutions.ai') }}"
+ui_domain_name: "{{ base_domain_name | default('inteltoolkits.ai') }}"
 
 # --- Helm ---
 ui_helm_version: "{{ helm_version }}"
@@ -36,15 +36,15 @@ ui_chat_maintenance_mode: "{{ ui_chat_no_llm_pipeline }}"
 ui_path_prefix: ""
 
 # --- Cross-role shared defaults - Owned by other roles; declared here so this role is standalone-runnable. ---
-edp_minio_api_domain_name: "s3.{{ base_domain_name | default('solutions.ai') }}"  # app_edp
+edp_minio_api_domain_name: "s3.{{ base_domain_name | default('inteltoolkits.ai') }}"  # app_edp
 edp_storage_type: "seaweedfs"                   # app_edp — gates UI useBearerTokenAuth (S3_SEND_BEARER_TOKEN)
 edp_rbac_enabled: false                         # app_edp — gates UI useBearerTokenAuth (S3_SEND_BEARER_TOKEN)
-chattool_keycloak_domain_name: "{{ (base_domain_name | default('solutions.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('solutions.ai')) }}"  # app_keycloak_config
+chattool_keycloak_domain_name: "{{ (base_domain_name | default('inteltoolkits.ai')) if (routing_mode | default('subdomain')) == 'path' else 'keycloak.' ~ (base_domain_name | default('inteltoolkits.ai')) }}"  # app_keycloak_config
 chattool_keycloak_default_path_prefix: "{{ keycloak_path | default('/keycloak') }}"  # app_keycloak_config
 chattool_keycloak_path_prefix: "{{ chattool_keycloak_default_path_prefix if (routing_mode | default('subdomain')) == 'path' else '' }}"  # app_keycloak_config
 istio_enabled: false                               # global
 enforce_pss: false                                 # global
-telemetry_domain_name: "grafana.solutions.ai"      # app_pre_install (solution_config)
+telemetry_domain_name: "grafana.inteltoolkits.ai"  # app_pre_install (solution_config)
 telemetry_path_prefix: ""                          # app_pre_install (solution_config); "/grafana" with routing_mode: path
 edp_s3_path_prefix: "/s3"                         # app_pre_install (solution_config)
 rag_tmp_dir: "{{ tmp_dir }}/rag"                   # app_pre_install (derived from tmp_dir)

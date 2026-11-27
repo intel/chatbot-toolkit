@@ -82,7 +82,7 @@ class Result:
 def parse_args():
     parser = argparse.ArgumentParser(description="Load testing tool.")
     parser.add_argument("-f", type=str, help="Question File Location")
-    parser.add_argument("-s", type=str, default="https://solutions.ai/api/v1/chatqna", help="Server Address format")
+    parser.add_argument("-s", type=str, default="https://inteltoolkits.ai/api/v1/chatqna", help="Server Address format")
     parser.add_argument("-c", type=int, default=32, help="Concurrency Number")
     parser.add_argument("-d", type=str, default="30m", help="Execute Duration, when to stop the test")
     parser.add_argument("-u", type=str, default="0s", help="Worker startup delay time")
