@@ -7,7 +7,7 @@
 NAMESPACE="${1:-default}"
 LABEL_SELECTOR="toolkit-manager.intel.com/layer=erag,toolkit-manager.intel.com/record=deployment-manifest"
 
-echo "=== ERAG Deployment Manifest ==="
+echo "=== Chatbot Toolkit Deployment Manifest ==="
 echo
 
 # Check if kubectl can connect to cluster

@@ -3,12 +3,10 @@
 
 apiVersion: v2
 name: helm-edp
-description: Enchanced dataprep pipeline chart
+description: Enhanced dataprep pipeline chart
 type: application
 version: 0.1.6
 appVersion: "3.0.0"
-annotations:
-  app.kubernetes.io/part-of: ERAG
 
 dependencies:
   - name: edp-redis
