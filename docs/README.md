@@ -69,6 +69,7 @@ How the toolkit is built and what it exposes.
 | [Architecture](reference/architecture.md) | Components, roles, namespaces, pipeline composition, and request flow |
 | [Container Images](reference/container-images.md) | Every image the deployment pulls, with its build context |
 | [Service Mesh](reference/service-mesh.md) | How RAG namespaces join the Istio ambient mesh, and the current mTLS posture |
+| [Notices](reference/notices.md) | Third-party software, model card guidance, and Intel's Human Rights Principles |
 
 ## User guides
 
@@ -79,3 +80,12 @@ Feature and usage walkthroughs for each app, with screenshots.
 | [AudioQnA User Guide](Intel_Chatbot_Toolkit_AudioQnA_User_Guide.pdf) | Voice question answering |
 | [ChatQnA User Guide](Intel_Chatbot_Toolkit_ChatQnA_User_Guide.pdf) | Conversational retrieval |
 | [DocSum User Guide](Intel_Chatbot_Toolkit_DocSum_User_Guide.pdf) | Document summarization |
+
+## Publications
+
+- [Lenovo Validated Design: AI POD Mini for Enterprise RAG Implementation](https://lenovopress.lenovo.com/lp2417-lenovo-validated-design-ai-pod-mini-for-enterprise-rag-implementation)
+- [Accelerate AI Value Creation with Nutanix and Intel® AI for Enterprise RAG](https://www.youtube.com/watch?v=7ghQiKXrzew)
+- [Converging Paradigms: Architecting a Hybrid and Open Platform for Unified HPC and AI Workloads](https://www.intel.com/content/www/us/en/content-details/913576/converging-paradigms-architecting-a-hybrid-and-open-platform-for-unified-hpc-and-ai-workloads.html)
+- [Starting With the End in Mind: Intel and Nutanix's Blueprint for an Enterprise-Grade RAG Chatbot](https://www.intel.com/content/www/us/en/content-details/898778/starting-with-the-end-in-mind-intel-and-nutanix-s-blueprint-for-an-enterprise-grade-rag-chatbot.html)
+- [Securing Enterprise RAG Deployments](https://www.intel.com/content/www/us/en/content-details/870124/securing-enterprise-rag-deployments.html)
+- [NetApp AIPod Mini - Deployment Automation](https://community.netapp.com/t5/Tech-ONTAP-Blogs/NetApp-AIPod-Mini-Deployment-Automation/ba-p/463257)
