@@ -402,7 +402,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-retriever-ner-ovms"
+name = "intel-chatbot-toolkit-retriever-ner-ovms"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

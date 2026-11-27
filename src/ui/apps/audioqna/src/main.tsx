@@ -3,7 +3,7 @@
 
 import "./index.css";
 
-import { bootstrapApp } from "@intel-enterprise-rag-ui/layouts";
+import { bootstrapApp } from "@intel-chatbot-toolkit-ui/layouts";
 
 import App from "@/app";
 import { paths } from "@/config/paths";

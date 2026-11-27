@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 [project]
-name = "Intel-Enterprise-RAG-Text_Extractor_Microservice"
+name = "Intel-Chatbot-Toolkit-Text_Extractor_Microservice"
 version = "3.0.0"
 requires-python = ">=3.11.5,<3.12"
 

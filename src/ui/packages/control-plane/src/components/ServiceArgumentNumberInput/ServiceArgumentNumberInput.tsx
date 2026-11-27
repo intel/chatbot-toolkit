@@ -1,12 +1,12 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { TextInput } from "@intel-enterprise-rag-ui/components";
+import { TextInput } from "@intel-chatbot-toolkit-ui/components";
 import {
   getValidationErrorMessage,
   NumberInputRange,
-} from "@intel-enterprise-rag-ui/input-validation";
-import { sanitizeString } from "@intel-enterprise-rag-ui/utils";
+} from "@intel-chatbot-toolkit-ui/input-validation";
+import { sanitizeString } from "@intel-chatbot-toolkit-ui/utils";
 import { ChangeEvent, FocusEvent, useEffect, useRef, useState } from "react";
 
 import {

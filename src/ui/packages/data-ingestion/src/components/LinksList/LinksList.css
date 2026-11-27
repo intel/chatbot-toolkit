@@ -1,7 +1,7 @@
 /* Copyright (C) 2024-2026 Intel Corporation */
 /* SPDX-License-Identifier: Apache-2.0 */
 
-@reference "@intel-enterprise-rag-ui/tailwind-theme/theme.css";
+@reference "@intel-chatbot-toolkit-ui/tailwind-theme/theme.css";
 
 .link-list-item {
   @apply mb-3 grid h-10 grid-cols-[1fr_2.5rem] items-center gap-2;

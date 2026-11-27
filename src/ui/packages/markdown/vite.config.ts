@@ -16,8 +16,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
-      name: "intel-enterprise-rag-ui-markdown",
-      fileName: "intel-enterprise-rag-ui-markdown",
+      name: "intel-chatbot-toolkit-ui-markdown",
+      fileName: "intel-chatbot-toolkit-ui-markdown",
       cssFileName: "style",
       formats: ["es"],
     },

@@ -3,7 +3,7 @@
 
 import "./ServiceCard.css";
 
-import { useDebug } from "@intel-enterprise-rag-ui/utils";
+import { useDebug } from "@intel-chatbot-toolkit-ui/utils";
 import { Node } from "@xyflow/react";
 
 import { DocsumCard } from "@/components/cards/DocsumCard";

@@ -3,7 +3,7 @@
 
 import "./LoadingFallback.css";
 
-import { LoadingIcon } from "@intel-enterprise-rag-ui/icons";
+import { LoadingIcon } from "@intel-chatbot-toolkit-ui/icons";
 
 interface LoadingFallbackProps {
   /** Message to display while loading */

@@ -3,7 +3,11 @@
 
 import "./BatchDeleteDialog.css";
 
-import { Button, Dialog, DialogRef } from "@intel-enterprise-rag-ui/components";
+import {
+  Button,
+  Dialog,
+  DialogRef,
+} from "@intel-chatbot-toolkit-ui/components";
 import { useRef } from "react";
 
 interface BatchDeleteDialogProps {

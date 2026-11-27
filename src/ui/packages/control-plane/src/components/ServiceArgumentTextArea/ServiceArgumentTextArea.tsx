@@ -1,8 +1,8 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { TextAreaInput } from "@intel-enterprise-rag-ui/components";
-import { formatSnakeCaseToTitleCase } from "@intel-enterprise-rag-ui/utils";
+import { TextAreaInput } from "@intel-chatbot-toolkit-ui/components";
+import { formatSnakeCaseToTitleCase } from "@intel-chatbot-toolkit-ui/utils";
 import { ChangeEventHandler } from "react";
 
 interface ServiceArgumentTextAreaProps {

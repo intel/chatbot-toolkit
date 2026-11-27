@@ -21,10 +21,10 @@ COPY ./ui/packages/ ./packages/
 COPY ./ui/apps/docsum/ ./apps/docsum/
 
 # Install dependencies for this app and its workspace dependencies only
-RUN pnpm install --frozen-lockfile --filter @intel-enterprise-rag-ui/docsum...
+RUN pnpm install --frozen-lockfile --filter @intel-chatbot-toolkit-ui/docsum...
 
 # Build the app and all its dependencies in correct order
-RUN pnpm --filter @intel-enterprise-rag-ui/docsum... build
+RUN pnpm --filter @intel-chatbot-toolkit-ui/docsum... build
 
 FROM nginx:alpine
 

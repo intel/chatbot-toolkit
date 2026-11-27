@@ -2,7 +2,7 @@
 /* Copyright (C) 2024-2026 Intel Corporation */
 /* SPDX-License-Identifier: Apache-2.0 */
 
-@reference "@intel-enterprise-rag-ui/tailwind-theme/theme.css";
+@reference "@intel-chatbot-toolkit-ui/tailwind-theme/theme.css";
 
 .files-data-table-wrapper {
   @apply flex flex-col justify-center gap-2;

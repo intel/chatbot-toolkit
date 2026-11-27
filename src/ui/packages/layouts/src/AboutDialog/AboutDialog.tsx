@@ -8,8 +8,8 @@ import {
   DialogRef,
   IconButton,
   Tooltip,
-} from "@intel-enterprise-rag-ui/components";
-import { ExternalLinkIcon } from "@intel-enterprise-rag-ui/icons";
+} from "@intel-chatbot-toolkit-ui/components";
+import { ExternalLinkIcon } from "@intel-chatbot-toolkit-ui/icons";
 import { useRef } from "react";
 
 const SUPPORT_URL = "https://supporttickets.intel.com/s/supportrequest";

@@ -3,7 +3,7 @@
 
 import "./dataTableCells.css";
 
-import { Button, Tooltip } from "@intel-enterprise-rag-ui/components";
+import { Button, Tooltip } from "@intel-chatbot-toolkit-ui/components";
 import { ColumnDef } from "@tanstack/react-table";
 
 import ChunksProgressBar from "@/components/ChunksProgressBar/ChunksProgressBar";

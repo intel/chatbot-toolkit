@@ -6,7 +6,7 @@ import "./ScrollToBottomButton.css";
 import {
   IconButton,
   IconButtonProps,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import classNames from "classnames";
 
 interface ScrollToBottomButtonProps extends Omit<

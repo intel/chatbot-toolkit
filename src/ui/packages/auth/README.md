@@ -1,4 +1,4 @@
-# @intel-enterprise-rag-ui/auth
+# @intel-chatbot-toolkit-ui/auth
 
 This package provides logic for handling authentication and session, along with a custom React hook for automatic token refresh. Both utilities are built as a wrapper around the `keycloak-js` package and are tailored for use in Intel® Chatbot Toolkit UI applications.
 
@@ -16,7 +16,7 @@ Add the package as a dependency in `package.json`:
 ```json
 {
   "dependencies": {
-    "@intel-enterprise-rag-ui/auth": "workspace:*"
+    "@intel-chatbot-toolkit-ui/auth": "workspace:*"
   }
 }
 ```
@@ -30,7 +30,7 @@ pnpm install && pnpm build
 Import authentication utilities into your code:
 
 ```js
-import { KeycloakService } from "@intel-enterprise-rag-ui/auth";
+import { KeycloakService } from "@intel-chatbot-toolkit-ui/auth";
 
 // Usage example
 const keycloakService = new KeycloakService();

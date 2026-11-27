@@ -332,7 +332,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-ingestion-microservice"
+name = "intel-chatbot-toolkit-ingestion-microservice"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [
@@ -340,7 +340,7 @@ dependencies = [
     { name = "docarray", extra = ["image", "proto"] },
     { name = "fastapi" },
     { name = "h11" },
-    { name = "intel-enterprise-rag-vectorstores" },
+    { name = "intel-chatbot-toolkit-vectorstores" },
     { name = "jinja2" },
     { name = "numpy" },
     { name = "opentelemetry-api" },
@@ -380,7 +380,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.136.3,<1.0.0" },
     { name = "fastapi", marker = "extra == 'test'", specifier = ">=0.136.3,<1.0.0" },
     { name = "h11", specifier = ">=0.16.0,<1.0.0" },
-    { name = "intel-enterprise-rag-vectorstores", directory = "../../../vectorstores/impl/requirements" },
+    { name = "intel-chatbot-toolkit-vectorstores", directory = "../../../vectorstores/impl/requirements" },
     { name = "jinja2", specifier = ">=3.1.6,<4.0.0" },
     { name = "numpy", specifier = ">=2.1.0,<3.0.0" },
     { name = "opentelemetry-api", specifier = ">=1.40.0,<2.0.0" },
@@ -404,7 +404,7 @@ provides-extras = ["test"]
 security-overrides = [{ name = "protobuf", specifier = ">=6.33.5,<7.0.0" }]
 
 [[package]]
-name = "intel-enterprise-rag-vectorstores"
+name = "intel-chatbot-toolkit-vectorstores"
 version = "3.0.0"
 source = { directory = "../../../vectorstores/impl/requirements" }
 dependencies = [

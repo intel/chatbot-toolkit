@@ -1,4 +1,4 @@
-# @intel-enterprise-rag-ui/layouts
+# @intel-chatbot-toolkit-ui/layouts
 
 This package provides reusable layout components for the Intel® Chatbot Toolkit UI.
 
@@ -16,7 +16,7 @@ Add the package as a dependency in `package.json`:
 ```json
 {
   "dependencies": {
-    "@intel-enterprise-rag-ui/layouts": "workspace:*"
+    "@intel-chatbot-toolkit-ui/layouts": "workspace:*"
   }
 }
 ```
@@ -30,13 +30,13 @@ pnpm install && pnpm -r build
 Import `style.scss` from this package into your main SCSS file:
 
 ```scss
-@import "@intel-enterprise-rag-ui/layouts/style.scss";
+@import "@intel-chatbot-toolkit-ui/layouts/style.scss";
 ```
 
 Import layouts from this package into your code:
 
 ```js
-import { PageLayout } from "@intel-enterprise-rag-ui/layouts";
+import { PageLayout } from "@intel-chatbot-toolkit-ui/layouts";
 
 // Usage in a React component
 function MyPage() {

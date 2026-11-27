@@ -4,7 +4,7 @@
 import {
   containsSupportedCommaSeparatedValues,
   noEmpty,
-} from "@intel-enterprise-rag-ui/input-validation";
+} from "@intel-chatbot-toolkit-ui/input-validation";
 import { z } from "zod";
 
 const createValidationSchema = (

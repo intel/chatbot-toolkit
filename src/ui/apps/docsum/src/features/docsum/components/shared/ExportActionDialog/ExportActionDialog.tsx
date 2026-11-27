@@ -5,7 +5,7 @@ import {
   ActionDialog,
   addNotification,
   SelectInput,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import { memo, useState } from "react";
 
 import { ExportFormat } from "@/features/docsum/types/export";

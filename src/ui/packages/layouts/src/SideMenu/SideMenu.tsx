@@ -3,8 +3,8 @@
 
 import "./SideMenu.css";
 
-import { IconButton, Tooltip } from "@intel-enterprise-rag-ui/components";
-import { IconName } from "@intel-enterprise-rag-ui/icons";
+import { IconButton, Tooltip } from "@intel-chatbot-toolkit-ui/components";
+import { IconName } from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 import { PropsWithChildren, ReactNode } from "react";
 

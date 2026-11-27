@@ -3,7 +3,7 @@
 
 import "./ErrorRoute.css";
 
-import { Anchor } from "@intel-enterprise-rag-ui/components";
+import { Anchor } from "@intel-chatbot-toolkit-ui/components";
 import { isRouteErrorResponse, useRouteError } from "react-router-dom";
 
 import { paths } from "@/config/paths";

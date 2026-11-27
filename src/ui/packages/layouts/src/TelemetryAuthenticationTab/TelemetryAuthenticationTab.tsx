@@ -3,7 +3,7 @@
 
 import "./TelemetryAuthenticationTab.css";
 
-import { AnchorCard } from "@intel-enterprise-rag-ui/components";
+import { AnchorCard } from "@intel-chatbot-toolkit-ui/components";
 
 type TelemetryAuthenticationTabProps = {
   grafanaDashboardUrl: string;

@@ -16,8 +16,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
-      name: "intel-enterprise-rag-ui-data-ingestion",
-      fileName: "intel-enterprise-rag-ui-data-ingestion",
+      name: "intel-chatbot-toolkit-ui-data-ingestion",
+      fileName: "intel-chatbot-toolkit-ui-data-ingestion",
       cssFileName: "style",
       formats: ["es"],
     },
@@ -27,7 +27,7 @@ export default defineConfig({
         "react-dom",
         "react-redux",
         "react-router-dom",
-        "@intel-enterprise-rag-ui/auth",
+        "@intel-chatbot-toolkit-ui/auth",
       ],
       output: {
         globals: {

@@ -4,7 +4,7 @@
 import {
   formatSnakeCaseToTitleCase,
   titleCaseString,
-} from "@intel-enterprise-rag-ui/utils";
+} from "@intel-chatbot-toolkit-ui/utils";
 
 import { GetServicesDetailsResponse } from "@/types/api/responses";
 import { FetchedServiceDetails } from "@/types/api/services";

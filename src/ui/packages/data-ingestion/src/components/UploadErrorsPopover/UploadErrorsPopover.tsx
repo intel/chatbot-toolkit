@@ -7,9 +7,9 @@ import {
   Anchor,
   Popover,
   usePopover,
-} from "@intel-enterprise-rag-ui/components";
-import { ErrorIcon } from "@intel-enterprise-rag-ui/icons";
-import { titleCaseString } from "@intel-enterprise-rag-ui/utils";
+} from "@intel-chatbot-toolkit-ui/components";
+import { ErrorIcon } from "@intel-chatbot-toolkit-ui/icons";
+import { titleCaseString } from "@intel-chatbot-toolkit-ui/utils";
 
 import { UploadErrors } from "@/types";
 

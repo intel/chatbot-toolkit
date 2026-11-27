@@ -229,7 +229,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-mcp-gateway"
+name = "intel-chatbot-toolkit-mcp-gateway"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

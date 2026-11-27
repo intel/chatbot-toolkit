@@ -3,7 +3,7 @@
 
 import "./S3CertificateAlertBanner.css";
 
-import { Anchor, Button } from "@intel-enterprise-rag-ui/components";
+import { Anchor, Button } from "@intel-chatbot-toolkit-ui/components";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 

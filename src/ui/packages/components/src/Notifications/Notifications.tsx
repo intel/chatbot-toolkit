@@ -3,7 +3,7 @@
 
 import "./Notifications.css";
 
-import { ErrorIcon, SuccessIcon } from "@intel-enterprise-rag-ui/icons";
+import { ErrorIcon, SuccessIcon } from "@intel-chatbot-toolkit-ui/icons";
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";

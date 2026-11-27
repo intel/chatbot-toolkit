@@ -11,11 +11,11 @@ import {
   Label,
   SelectInput,
   Tooltip,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import {
   S3BucketIcon,
   SharePointSiteIcon,
-} from "@intel-enterprise-rag-ui/icons";
+} from "@intel-chatbot-toolkit-ui/icons";
 import { useMemo, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 

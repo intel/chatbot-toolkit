@@ -3,7 +3,7 @@
 
 import "./DropdownButton.css";
 
-import { SelectInputArrowDown } from "@intel-enterprise-rag-ui/icons";
+import { SelectInputArrowDown } from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 import { Button as AriaButton, Selection } from "react-aria-components";
 

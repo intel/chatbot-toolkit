@@ -6,8 +6,8 @@ import "./PromptInputButton.css";
 import {
   IconButton,
   IconButtonProps,
-} from "@intel-enterprise-rag-ui/components";
-import { IconName } from "@intel-enterprise-rag-ui/icons";
+} from "@intel-chatbot-toolkit-ui/components";
+import { IconName } from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 
 interface PromptInputButtonProps extends Omit<IconButtonProps, "color"> {

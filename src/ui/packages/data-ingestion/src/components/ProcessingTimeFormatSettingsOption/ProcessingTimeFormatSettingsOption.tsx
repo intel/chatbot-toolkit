@@ -3,7 +3,7 @@
 
 import "./ProcessingTimeFormatSettingsOption.css";
 
-import { Switch } from "@intel-enterprise-rag-ui/components";
+import { Switch } from "@intel-chatbot-toolkit-ui/components";
 
 import DataIngestionSettingsOption from "@/components/DataIngestionSettingsOption/DataIngestionSettingsOption";
 import useProcessingTimeFormat from "@/hooks/useProcessingTimeFormat";

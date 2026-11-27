@@ -3,7 +3,7 @@
 
 import "./ColorSchemeSwitch.css";
 
-import { DarkModeIcon, LightModeIcon } from "@intel-enterprise-rag-ui/icons";
+import { DarkModeIcon, LightModeIcon } from "@intel-chatbot-toolkit-ui/icons";
 import classNames from "classnames";
 
 import { Button } from "@/Button/Button";

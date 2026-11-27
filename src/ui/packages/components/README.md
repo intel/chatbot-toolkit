@@ -1,4 +1,4 @@
-# @intel-enterprise-rag-ui/components
+# @intel-chatbot-toolkit-ui/components
 
 This package provides reusable UI components and color scheme management utilities for the Intel® Chatbot Toolkit UI.
 
@@ -16,7 +16,7 @@ Add the package as a dependency in `package.json`:
 ```json
 {
   "dependencies": {
-    "@intel-enterprise-rag-ui/components": "workspace:*"
+    "@intel-chatbot-toolkit-ui/components": "workspace:*"
   }
 }
 ```
@@ -30,13 +30,13 @@ pnpm install && pnpm -r build
 Import `style.scss` from this package into your main SCSS file:
 
 ```scss
-@import "@intel-enterprise-rag-ui/components/style.scss";
+@import "@intel-chatbot-toolkit-ui/components/style.scss";
 ```
 
 Import components from this package into your code:
 
 ```js
-import { Button } from "@intel-enterprise-rag-ui/components";
+import { Button } from "@intel-chatbot-toolkit-ui/components";
 
 // Usage in a React component
 function MyComponent() {

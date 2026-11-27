@@ -389,7 +389,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-tts-microservice"
+name = "intel-chatbot-toolkit-tts-microservice"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

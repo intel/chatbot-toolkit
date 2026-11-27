@@ -7,13 +7,13 @@ import {
   ChatTurn,
   ConversationFeed,
   PromptInput,
-} from "@intel-enterprise-rag-ui/chat";
+} from "@intel-chatbot-toolkit-ui/chat";
 import {
   Button,
   CheckboxInput,
   CheckboxInputChangeHandler,
   Dialog,
-} from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/components";
 import { ChangeEventHandler, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 

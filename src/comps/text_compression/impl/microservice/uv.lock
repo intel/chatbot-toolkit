@@ -341,7 +341,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-text-compression-microservice"
+name = "intel-chatbot-toolkit-text-compression-microservice"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

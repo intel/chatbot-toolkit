@@ -3,7 +3,7 @@
 
 import "./RenameChatDialog.css";
 
-import { ActionDialog, TextInput } from "@intel-enterprise-rag-ui/components";
+import { ActionDialog, TextInput } from "@intel-chatbot-toolkit-ui/components";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 
 const CHAT_NAME_CHAR_LIMIT = 250;

@@ -1,11 +1,11 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { keycloakService } from "@intel-enterprise-rag-ui/auth";
+import { keycloakService } from "@intel-chatbot-toolkit-ui/auth";
 import {
   AppHeaderLeftSideContent as SharedAppHeaderLeftSideContent,
   AppHeaderRightSideContent as SharedAppHeaderRightSideContent,
-} from "@intel-enterprise-rag-ui/layouts";
+} from "@intel-chatbot-toolkit-ui/layouts";
 
 import ViewSwitchButton from "@/components/ViewSwitchButton/ViewSwitchButton";
 import { resetStore } from "@/store/utils";

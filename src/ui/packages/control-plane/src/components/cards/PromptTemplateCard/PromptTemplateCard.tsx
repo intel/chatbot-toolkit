@@ -3,8 +3,8 @@
 
 import "./PromptTemplateCard.css";
 
-import { getValidationErrorMessage } from "@intel-enterprise-rag-ui/input-validation";
-import { sanitizeString } from "@intel-enterprise-rag-ui/utils";
+import { getValidationErrorMessage } from "@intel-chatbot-toolkit-ui/input-validation";
+import { sanitizeString } from "@intel-chatbot-toolkit-ui/utils";
 import { ChangeEventHandler, useEffect, useState } from "react";
 
 import { SelectedServiceCard } from "@/components/SelectedServiceCard/SelectedServiceCard";

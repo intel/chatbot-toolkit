@@ -3,8 +3,8 @@
 
 import "./EmbeddingModelIndicator.css";
 
-import { Tooltip } from "@intel-enterprise-rag-ui/components";
-import { WarningIcon } from "@intel-enterprise-rag-ui/icons";
+import { Tooltip } from "@intel-chatbot-toolkit-ui/components";
+import { WarningIcon } from "@intel-chatbot-toolkit-ui/icons";
 
 interface EmbeddingModelIndicatorProps {
   itemEmbeddingModel: string | null;

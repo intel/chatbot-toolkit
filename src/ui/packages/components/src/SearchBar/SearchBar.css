@@ -1,7 +1,7 @@
 /* Copyright (C) 2024-2026 Intel Corporation */
 /* SPDX-License-Identifier: Apache-2.0 */
 
-@reference "@intel-enterprise-rag-ui/tailwind-theme/theme.css";
+@reference "@intel-chatbot-toolkit-ui/tailwind-theme/theme.css";
 
 .search-bar {
   @apply flex h-8 w-full max-w-[350px] items-center gap-2 rounded-lg border border-light-border px-[10px] py-[6px] dark:border-dark-border;

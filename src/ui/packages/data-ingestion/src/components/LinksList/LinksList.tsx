@@ -3,7 +3,7 @@
 
 import "./LinksList.css";
 
-import { IconButton } from "@intel-enterprise-rag-ui/components";
+import { IconButton } from "@intel-chatbot-toolkit-ui/components";
 import classNames from "classnames";
 import { Dispatch, SetStateAction } from "react";
 

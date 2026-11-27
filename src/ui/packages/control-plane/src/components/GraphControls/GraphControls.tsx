@@ -7,8 +7,8 @@ import {
   Button,
   CheckboxInput,
   CheckboxInputChangeHandler,
-} from "@intel-enterprise-rag-ui/components";
-import { ConfigurableServiceIcon } from "@intel-enterprise-rag-ui/icons";
+} from "@intel-chatbot-toolkit-ui/components";
+import { ConfigurableServiceIcon } from "@intel-chatbot-toolkit-ui/icons";
 
 import { ServiceStatusIndicator } from "@/components/ServiceStatusIndicator/ServiceStatusIndicator";
 import { ServiceStatus } from "@/types/index";

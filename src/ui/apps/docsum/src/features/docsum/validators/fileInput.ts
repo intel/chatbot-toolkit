@@ -10,7 +10,7 @@ import {
   isFileExtensionSupported,
   isMIMETypeSupported,
   noInvalidCharactersInFileName,
-} from "@intel-enterprise-rag-ui/input-validation";
+} from "@intel-chatbot-toolkit-ui/input-validation";
 import { z } from "zod";
 
 import { CLIENT_MAX_BODY_SIZE } from "@/config/api";

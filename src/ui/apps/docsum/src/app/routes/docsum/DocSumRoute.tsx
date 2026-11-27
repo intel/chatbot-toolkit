@@ -1,8 +1,8 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { TabId, Tabs } from "@intel-enterprise-rag-ui/components";
-import { PageLayout } from "@intel-enterprise-rag-ui/layouts";
+import { TabId, Tabs } from "@intel-chatbot-toolkit-ui/components";
+import { PageLayout } from "@intel-chatbot-toolkit-ui/layouts";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 

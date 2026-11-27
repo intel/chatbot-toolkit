@@ -3,7 +3,7 @@
 
 import "./SelectedServiceCard.css";
 
-import { Button } from "@intel-enterprise-rag-ui/components";
+import { Button } from "@intel-chatbot-toolkit-ui/components";
 import classNames from "classnames";
 import { Fragment, PropsWithChildren, ReactNode } from "react";
 import { PressEvent } from "react-aria-components";

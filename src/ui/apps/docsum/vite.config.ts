@@ -30,24 +30,24 @@ export default defineConfig({
       output: {
         manualChunks: {
           react: ["react", "react-dom"],
-          "intel-enterprise-rag-ui-auth": ["@intel-enterprise-rag-ui/auth"],
-          "intel-enterprise-rag-ui-components": [
-            "@intel-enterprise-rag-ui/components",
+          "intel-chatbot-toolkit-ui-auth": ["@intel-chatbot-toolkit-ui/auth"],
+          "intel-chatbot-toolkit-ui-components": [
+            "@intel-chatbot-toolkit-ui/components",
           ],
-          "intel-enterprise-rag-ui-control-plane": [
-            "@intel-enterprise-rag-ui/control-plane",
+          "intel-chatbot-toolkit-ui-control-plane": [
+            "@intel-chatbot-toolkit-ui/control-plane",
           ],
-          "intel-enterprise-rag-ui-icons": ["@intel-enterprise-rag-ui/icons"],
-          "intel-enterprise-rag-ui-input-validation": [
-            "@intel-enterprise-rag-ui/input-validation",
+          "intel-chatbot-toolkit-ui-icons": ["@intel-chatbot-toolkit-ui/icons"],
+          "intel-chatbot-toolkit-ui-input-validation": [
+            "@intel-chatbot-toolkit-ui/input-validation",
           ],
-          "intel-enterprise-rag-ui-layouts": [
-            "@intel-enterprise-rag-ui/layouts",
+          "intel-chatbot-toolkit-ui-layouts": [
+            "@intel-chatbot-toolkit-ui/layouts",
           ],
-          "intel-enterprise-rag-ui-markdown": [
-            "@intel-enterprise-rag-ui/markdown",
+          "intel-chatbot-toolkit-ui-markdown": [
+            "@intel-chatbot-toolkit-ui/markdown",
           ],
-          "intel-enterprise-rag-ui-utils": ["@intel-enterprise-rag-ui/utils"],
+          "intel-chatbot-toolkit-ui-utils": ["@intel-chatbot-toolkit-ui/utils"],
           "docx-vendor": ["docx"],
         },
       },

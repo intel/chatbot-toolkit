@@ -16,8 +16,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
-      name: "intel-enterprise-rag-ui-chat",
-      fileName: "intel-enterprise-rag-ui-chat",
+      name: "intel-chatbot-toolkit-ui-chat",
+      fileName: "intel-chatbot-toolkit-ui-chat",
       cssFileName: "style",
       formats: ["es"],
     },

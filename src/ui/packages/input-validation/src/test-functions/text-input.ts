@@ -1,7 +1,7 @@
 // Copyright (C) 2024-2026 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-import { isPunycodeSafe } from "@intel-enterprise-rag-ui/utils";
+import { isPunycodeSafe } from "@intel-chatbot-toolkit-ui/utils";
 
 import { containsNullCharacters } from "@/utils";
 

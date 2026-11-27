@@ -11,7 +11,7 @@ import {
   promptTemplateArgumentsDefault,
   rerankerArgumentsDefault,
   retrieverArgumentsDefault,
-} from "@intel-enterprise-rag-ui/control-plane";
+} from "@intel-chatbot-toolkit-ui/control-plane";
 import { Position } from "@xyflow/react";
 
 export const llmNodePositionNoGuards = { x: 840, y: 144 };

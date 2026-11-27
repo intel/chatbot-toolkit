@@ -14,8 +14,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
-      name: "intel-enterprise-rag-ui-auth",
-      fileName: "intel-enterprise-rag-ui-auth",
+      name: "intel-chatbot-toolkit-ui-auth",
+      fileName: "intel-chatbot-toolkit-ui-auth",
     },
     rollupOptions: {
       external: ["react", "react-dom", "react-router-dom"],

@@ -2951,103 +2951,103 @@
     * Origin: apt
     * License: gpl-2.0-or-later and gpl-2.0-only and bsd-3-clause
 
-* Component: intel-enterprise-rag-asr-microservice
+* Component: intel-chatbot-toolkit-asr-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-chat-history-microservice
+* Component: intel-chatbot-toolkit-chat-history-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-docsum-microservice
+* Component: intel-chatbot-toolkit-docsum-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-edp-microservice
+* Component: intel-chatbot-toolkit-edp-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-embedding-microservice
+* Component: intel-chatbot-toolkit-embedding-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-ingestion-microservice
+* Component: intel-chatbot-toolkit-ingestion-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-language-detection-microservice
+* Component: intel-chatbot-toolkit-language-detection-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-llm-guard-dataprep-guardrail-microservice
+* Component: intel-chatbot-toolkit-llm-guard-dataprep-guardrail-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-llm-guard-input-guardrail-microservice
+* Component: intel-chatbot-toolkit-llm-guard-input-guardrail-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-llm-guard-output-guardrail-microservice
+* Component: intel-chatbot-toolkit-llm-guard-output-guardrail-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-llm-microservice
+* Component: intel-chatbot-toolkit-llm-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-mcp-gateway
+* Component: intel-chatbot-toolkit-mcp-gateway
     * Origin: pypi
     * License: apache 2.0
 
-* Component: intel-enterprise-rag-namespace-status-watcher-microservice
+* Component: intel-chatbot-toolkit-namespace-status-watcher-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-prompt-template-microservice
+* Component: intel-chatbot-toolkit-prompt-template-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-queryrewrite-microservice
+* Component: intel-chatbot-toolkit-queryrewrite-microservice
     * Origin: pypi
     * License: apache 2.0
 
-* Component: intel-enterprise-rag-reranks-microservice
+* Component: intel-chatbot-toolkit-reranks-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-retriever-microservice
+* Component: intel-chatbot-toolkit-retriever-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-retriever-ner-ovms
+* Component: intel-chatbot-toolkit-retriever-ner-ovms
     * Origin: pypi
     * License: apache 2.0
 
-* Component: intel-enterprise-rag-system-fingerprint-microservice
+* Component: intel-chatbot-toolkit-system-fingerprint-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-text-compression-microservice
+* Component: intel-chatbot-toolkit-text-compression-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-text-extractor-microservice
+* Component: intel-chatbot-toolkit-text-extractor-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-text-splitter-microservice
+* Component: intel-chatbot-toolkit-text-splitter-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-tts-fastapi-modelserver
+* Component: intel-chatbot-toolkit-tts-fastapi-modelserver
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-tts-microservice
+* Component: intel-chatbot-toolkit-tts-microservice
     * Origin: pypi
     * License: apache2.0
 
-* Component: intel-enterprise-rag-vectorstores
+* Component: intel-chatbot-toolkit-vectorstores
     * Origin: pypi
     * License: apache2.0
 

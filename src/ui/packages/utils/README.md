@@ -1,4 +1,4 @@
-# @intel-enterprise-rag-ui/utils
+# @intel-chatbot-toolkit-ui/utils
 
 This package provides utility functions for the Intel® Chatbot Toolkit UI.
 
@@ -16,7 +16,7 @@ Add the package as a dependency in `package.json`:
 ```json
 {
   "dependencies": {
-    "@intel-enterprise-rag-ui/utils": "workspace:*"
+    "@intel-chatbot-toolkit-ui/utils": "workspace:*"
   }
 }
 ```
@@ -30,7 +30,7 @@ pnpm install && pnpm -r build
 Import utility functions from this package into your code:
 
 ```js
-import { sanitizeString } from "@intel-enterprise-rag-ui/utils";
+import { sanitizeString } from "@intel-chatbot-toolkit-ui/utils";
 
 // Usage example
 const clean = sanitizeString("<b>unsafe</b>");

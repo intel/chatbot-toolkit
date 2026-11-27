@@ -4,8 +4,8 @@
 import {
   resetChatHistorySlice,
   resetChatSideMenuSlice,
-} from "@intel-enterprise-rag-ui/chat";
-import { edpApi } from "@intel-enterprise-rag-ui/data-ingestion";
+} from "@intel-chatbot-toolkit-ui/chat";
+import { edpApi } from "@intel-chatbot-toolkit-ui/data-ingestion";
 
 import { controlPlaneApi } from "@/features/admin-panel/control-plane/api";
 import { resetChatQnAGraphSlice } from "@/features/admin-panel/control-plane/store/chatQnAGraph.slice";

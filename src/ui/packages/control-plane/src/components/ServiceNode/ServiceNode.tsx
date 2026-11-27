@@ -3,7 +3,7 @@
 
 import "./ServiceNode.css";
 
-import { ConfigurableServiceIcon } from "@intel-enterprise-rag-ui/icons";
+import { ConfigurableServiceIcon } from "@intel-chatbot-toolkit-ui/icons";
 import { Handle } from "@xyflow/react";
 import classNames from "classnames";
 import { memo } from "react";

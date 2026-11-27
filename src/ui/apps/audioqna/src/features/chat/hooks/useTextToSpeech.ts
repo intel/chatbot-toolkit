@@ -4,8 +4,8 @@
 import {
   PlaySpeechButtonState,
   selectChatById,
-} from "@intel-enterprise-rag-ui/chat";
-import { addNotification } from "@intel-enterprise-rag-ui/components";
+} from "@intel-chatbot-toolkit-ui/chat";
+import { addNotification } from "@intel-chatbot-toolkit-ui/components";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useParams } from "react-router-dom";

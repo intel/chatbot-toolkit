@@ -8,7 +8,7 @@ import {
   PdfFileIcon,
   PlainTextIcon,
   TextFileIcon,
-} from "@intel-enterprise-rag-ui/icons";
+} from "@intel-chatbot-toolkit-ui/icons";
 
 import { HistoryItemData } from "@/features/docsum/types/history";
 

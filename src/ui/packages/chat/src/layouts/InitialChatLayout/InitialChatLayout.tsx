@@ -3,7 +3,7 @@
 
 import "./InitialChatLayout.css";
 
-import { ChatBotIcon } from "@intel-enterprise-rag-ui/icons";
+import { ChatBotIcon } from "@intel-chatbot-toolkit-ui/icons";
 import { ChangeEventHandler } from "react";
 
 import { ChatDisclaimer } from "@/components/conversation-feed/ChatDisclaimer/ChatDisclaimer";

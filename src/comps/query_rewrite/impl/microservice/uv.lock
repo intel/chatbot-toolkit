@@ -380,7 +380,7 @@ wheels = [
 ]
 
 [[package]]
-name = "intel-enterprise-rag-queryrewrite-microservice"
+name = "intel-chatbot-toolkit-queryrewrite-microservice"
 version = "3.0.0"
 source = { virtual = "." }
 dependencies = [

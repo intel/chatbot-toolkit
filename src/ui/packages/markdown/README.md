@@ -1,6 +1,6 @@
-# @intel-enterprise-rag-ui/markdown
+# @intel-chatbot-toolkit-ui/markdown
 
-This package provides a React component for markdown parsing and rendering in the Intel® Chatbot Toolkit UI. It is based on `marked` and `highlight.js` packages along with components and styles that are a part of `@intel-enterprise-rag-ui` pnpm workspace.
+This package provides a React component for markdown parsing and rendering in the Intel® Chatbot Toolkit UI. It is based on `marked` and `highlight.js` packages along with components and styles that are a part of `@intel-chatbot-toolkit-ui` pnpm workspace.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ Add the package as a dependency in `package.json`:
 ```json
 {
   "dependencies": {
-    "@intel-enterprise-rag-ui/markdown": "workspace:*"
+    "@intel-chatbot-toolkit-ui/markdown": "workspace:*"
   }
 }
 ```
@@ -30,13 +30,13 @@ pnpm install && pnpm -r build
 Import `style.scss` from this package into your main SCSS file:
 
 ```scss
-@import "@intel-enterprise-rag-ui/markdown/style.scss";
+@import "@intel-chatbot-toolkit-ui/markdown/style.scss";
 ```
 
 Import `Markdown` component into your code:
 
 ```js
-import { Markdown } from "@intel-enterprise-rag-ui/markdown";
+import { Markdown } from "@intel-chatbot-toolkit-ui/markdown";
 
 // Usage in a React component
 function MyMarkdown() {
