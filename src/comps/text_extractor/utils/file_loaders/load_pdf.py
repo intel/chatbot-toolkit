@@ -500,16 +500,17 @@ def _extract_page(doc, page_num, log_identifier=""):
     # Calculate optimal OCR parameters based on page dimensions
     ocr_dpi, use_ocr = _calculate_ocr_params(page, page_num, log_identifier)
 
-    result = _parse_to_text(
-        doc, page_num,
-        header=False,
-        footer=False,
+    parse_args = dict(
         use_ocr=use_ocr,
         force_text=True,
         ocr_dpi=ocr_dpi,
         ocr_language="+".join(AVAILABLE_LANGUAGES),
         ocr_function=_PYMUPDF_OCR_FUNCTION
     )
+    result = _parse_to_text(doc, page_num, header=False, footer=False, **parse_args)
+    # The layout model can tag a page's only text as header/footer; keep it rather than return an empty page.
+    if not result.strip() and page.get_text().strip():
+        result = _parse_to_text(doc, page_num, **parse_args)
 
     # https://pymupdf.readthedocs.io/en/latest/page.html#description-of-get-links-entries
     for link in page.links():

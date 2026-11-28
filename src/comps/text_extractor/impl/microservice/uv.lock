@@ -339,7 +339,7 @@ name = "contourpy"
 version = "1.3.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy" },
+    { name = "numpy", marker = "sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/58/01/1253e6698a07380cd31a736d248a3f2a50a7c88779a1813da27503cadc2a/contourpy-1.3.3.tar.gz", hash = "sha256:083e12155b210502d0bca491432bb04d56dc3432f95a979b429f2848c3dbe880", size = 13466174, upload-time = "2025-07-26T12:03:12.549Z" }
 wheels = [
@@ -1185,9 +1185,9 @@ requires-dist = [
     { name = "pillow", specifier = ">=13.0.0,<14.0.0" },
     { name = "prometheus-fastapi-instrumentator", specifier = ">=8.0.0,<9.0.0" },
     { name = "pyasn1", specifier = ">=0.6.4,<1.0.0" },
-    { name = "pymupdf", specifier = ">=1.28.2,<2.0.0" },
-    { name = "pymupdf-layout", specifier = ">=1.28.2,<2.0.0" },
-    { name = "pymupdf4llm", specifier = ">=1.28.2,<2.0.0" },
+    { name = "pymupdf", specifier = ">=1.27.2.2,<1.28" },
+    { name = "pymupdf-layout", specifier = ">=1.27.2.2,<1.28" },
+    { name = "pymupdf4llm", specifier = ">=1.27.2.2,<1.28" },
     { name = "pypdf", specifier = ">=6.19.0,<7.0.0" },
     { name = "pytesseract", specifier = ">=0.3.13,<1.0.0" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=9.0.3,<10.0.0" },
@@ -1748,15 +1748,15 @@ name = "matplotlib"
 version = "3.11.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "contourpy" },
-    { name = "cycler" },
-    { name = "fonttools" },
-    { name = "kiwisolver" },
-    { name = "numpy" },
-    { name = "packaging" },
-    { name = "pillow" },
-    { name = "pyparsing" },
-    { name = "python-dateutil" },
+    { name = "contourpy", marker = "sys_platform != 'win32'" },
+    { name = "cycler", marker = "sys_platform != 'win32'" },
+    { name = "fonttools", marker = "sys_platform != 'win32'" },
+    { name = "kiwisolver", marker = "sys_platform != 'win32'" },
+    { name = "numpy", marker = "sys_platform != 'win32'" },
+    { name = "packaging", marker = "sys_platform != 'win32'" },
+    { name = "pillow", marker = "sys_platform != 'win32'" },
+    { name = "pyparsing", marker = "sys_platform != 'win32'" },
+    { name = "python-dateutil", marker = "sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/e7/c8/9aa712a0afb882649424dd8de8ad9aa6235e796e84c6052e8f6dc1598d0d/matplotlib-3.11.2.tar.gz", hash = "sha256:cec596316640f2b394b8f0daa0ea61a8eae82d017b620b9f202befb972a59ea4", size = 32660610, upload-time = "2026-09-11T19:05:31.214Z" }
 wheels = [
@@ -1784,7 +1784,7 @@ name = "ml-dtypes"
 version = "0.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy" },
+    { name = "numpy", marker = "sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/12/72/307d7c4bd0600601c7133fba5cb78af7db968152951c1cd473abb1cda782/ml_dtypes-0.6.0.tar.gz", hash = "sha256:5e60251d32ced5598972e4d5e06a2f044341f9291402551a3f6f0ec44f9299b0", size = 3032327, upload-time = "2026-08-13T14:14:40.215Z" }
 wheels = [
@@ -2040,10 +2040,10 @@ name = "onnx"
 version = "1.23.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ml-dtypes" },
-    { name = "numpy" },
-    { name = "protobuf" },
-    { name = "typing-extensions" },
+    { name = "ml-dtypes", marker = "sys_platform != 'win32'" },
+    { name = "numpy", marker = "sys_platform != 'win32'" },
+    { name = "protobuf", marker = "sys_platform != 'win32'" },
+    { name = "typing-extensions", marker = "sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/3f/62/bc2dfadb63ecf04cb2d65a6b17751863039d36c65de51d6a3128ab35f1e7/onnx-1.23.2.tar.gz", hash = "sha256:008cb0467b2bbee41448acc7da8b6f4e704624cb0d327a2d5adafc7ce19bc5b8", size = 6023090, upload-time = "2026-10-06T04:25:58.681Z" }
 wheels = [
@@ -2720,24 +2720,22 @@ wheels = [
 
 [[package]]
 name = "pymupdf"
-version = "1.28.2"
+version = "1.27.2.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a3/fb/b6761fa2d5266f2cdb24c3b91f4023070ab7848381417678e7a289a1d52a/pymupdf-1.28.2.tar.gz", hash = "sha256:5e0be7908a715aa20333caddd73f1d6f01e4cd0c26e869fa2dd0b7f344da2249", size = 87903557, upload-time = "2026-08-06T21:43:23.321Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/22/32/708bedc9dde7b328d45abbc076091769d44f2f24ad151ad92d56a6ec142b/pymupdf-1.27.2.3.tar.gz", hash = "sha256:7a92faa25129e8bbec5e50eeb9214f187665428c31b05c4ef6e36c58c0b1c6d2", size = 85759618, upload-time = "2026-04-24T14:13:14.42Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b4/51/550c9a75c4ff3245cb4ecb7bb95cbe2ab7374230b8e2b7a1f7259444150b/pymupdf-1.28.2-cp310-abi3-macosx_10_15_x86_64.whl", hash = "sha256:5fc315b425ff1f7afdd1ea2f348205cb19b806767daae7ce4d64115799c2bae1", size = 24645079, upload-time = "2026-08-06T21:37:25.001Z" },
-    { url = "https://files.pythonhosted.org/packages/fa/01/3591f781b417b382a8487a2356e927acfe858b1043bab0ec47f6805bb109/pymupdf-1.28.2-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:7113846b35dbf0a033f088e4f4fb543dabeb4b0b12c112966a1ca1ee2d5eacae", size = 23875605, upload-time = "2026-08-06T21:37:40.369Z" },
-    { url = "https://files.pythonhosted.org/packages/d2/86/4a68f080b71b46802178346af46486e1697508e760855ff5f3b218a6dff7/pymupdf-1.28.2-cp310-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:3050a233dde1211efe89ada74e2add6238436434159f46097a1423aad2842545", size = 25095554, upload-time = "2026-08-06T21:37:58.485Z" },
-    { url = "https://files.pythonhosted.org/packages/c7/06/dace3e27af26690cb20bead80dbac42941b0841eb689b8aabbd67dde16f0/pymupdf-1.28.2-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:397d6715c1f0df7548a92d0afd8ce370fc48fa47aeefac16be2bc04a16a8227f", size = 25762500, upload-time = "2026-08-06T21:38:17.438Z" },
-    { url = "https://files.pythonhosted.org/packages/e5/61/4146dfa1d8172a1ce8d59f0eed94896ddefb8deb2274534d0522fbb8abf5/pymupdf-1.28.2-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:f89fb2d86d07d643a269f17a093105057e20c79c1d06c103b53600067b6d2b01", size = 25986309, upload-time = "2026-08-06T21:38:35.472Z" },
-    { url = "https://files.pythonhosted.org/packages/52/60/1fb6e64676f7500ebe89054b9e5bbbe14d3101c92d5f1a40ac9a35227673/pymupdf-1.28.2-cp310-abi3-win32.whl", hash = "sha256:530ef543a3885b3b81cb72a854e7c5a625a9233201221132bb6c31698c6a2bdb", size = 18525353, upload-time = "2026-08-06T21:38:47.697Z" },
-    { url = "https://files.pythonhosted.org/packages/4a/61/d563bbccba262f9dd6d2d35ccb72593648184d886188efb12d9ce8f34dd6/pymupdf-1.28.2-cp310-abi3-win_amd64.whl", hash = "sha256:ebd244918798502d7b4504c90410d1711a4d7675a32584ca30f1bab419ecbffe", size = 19826532, upload-time = "2026-08-06T21:39:00.213Z" },
-    { url = "https://files.pythonhosted.org/packages/e2/93/08f404a1f0155fe24137cf2d3aabd3e2b4b08c62053ed89c60f2611be3e9/pymupdf-1.28.2-cp310-abi3-win_arm64.whl", hash = "sha256:ffe91a24edc75c80da2a4b62f50fc0f54632d34fc8fe4cbc48e5c7ff07cf8fb4", size = 19759252, upload-time = "2026-08-06T21:39:12.937Z" },
-    { url = "https://files.pythonhosted.org/packages/58/8c/d897dcd32a25b58186c968b15ce4324ca029e9d96460de12325314e390be/pymupdf-1.28.2-cp313-abi3-pyemscripten_2025_0_wasm32.whl", hash = "sha256:2e1b574c0fd2cb238021033fd3c0f9c4388816638df064e4bfb56d9d81736dc8", size = 18399403, upload-time = "2026-08-06T21:39:25.008Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/09/ddbdfa7ee91fbabd6f63d7d744884cbdfe3e7ff9b8604749fb38bddf5c5d/pymupdf-1.27.2.3-cp310-abi3-macosx_10_9_x86_64.whl", hash = "sha256:fc1bc3cae6e9e150b0dbb0a9221bdfd411d65f0db2fe359eaa22467d7cc2a05f", size = 24002636, upload-time = "2026-04-24T14:09:17.459Z" },
+    { url = "https://files.pythonhosted.org/packages/01/89/3f8edd6c4f50ca370e2a2f2a3011face36f3760728ffe76dffec91c0fca0/pymupdf-1.27.2.3-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:660d93cb6da5bbddf11d3982ae27745dd3a9902d9f24cdb69adab83962294b5a", size = 23278238, upload-time = "2026-04-24T14:09:32.882Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/26/b7e5a70eb83bd189f8b5df87ec442746b992f2f632662839b288170d357d/pymupdf-1.27.2.3-cp310-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:1dd460a3ae4597a755f00a3bd9771f5ebf1531dc111f6a36bf05dd00a6b84425", size = 24333923, upload-time = "2026-04-24T14:09:47.341Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/a0/aa1ee2240f29481a04a827c313333b4ecd8a14d6ac3e15d3f41a30574781/pymupdf-1.27.2.3-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:857842b4888827bd6155a1131341b2822a7ebe9a8c15a975fd7d490d7a64a30c", size = 24963198, upload-time = "2026-04-24T14:10:07.408Z" },
+    { url = "https://files.pythonhosted.org/packages/69/49/4f742451f980840829fc00ba158bebb25d389c846d8f4f8c65936ee55de8/pymupdf-1.27.2.3-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:580983849c64a08d08344ca3d1580e87c01f046a8392421797bc850efd72a5b6", size = 25184609, upload-time = "2026-04-24T14:10:22.911Z" },
+    { url = "https://files.pythonhosted.org/packages/f6/3f/3853d6608f394faf6eec2bd4e8ea9f6a00beea329b071abdb29f4164cc3d/pymupdf-1.27.2.3-cp310-abi3-win32.whl", hash = "sha256:a5c1088a87189891a4946ab314a14b7934ac4c5b6077f7e74ebee956f8906d0e", size = 18019286, upload-time = "2026-04-24T14:10:34.239Z" },
+    { url = "https://files.pythonhosted.org/packages/44/47/5fb10fe73f96b31253a41647c362ea9e0380920bddf16028414a051247fc/pymupdf-1.27.2.3-cp310-abi3-win_amd64.whl", hash = "sha256:d20f68ef15195e073071dbc4ae7455257c7889af7584e39df490c0a92728526e", size = 19249102, upload-time = "2026-04-24T14:10:46.72Z" },
 ]
 
 [[package]]
 name = "pymupdf-layout"
-version = "1.28.2"
+version = "1.27.2.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "networkx" },
@@ -2747,26 +2745,25 @@ dependencies = [
     { name = "pyyaml" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e4/84/cf9030e29adbfa9fb555d925af1e0f212d54810e50711bd059e6e71c7cb1/pymupdf_layout-1.28.2-cp310-abi3-macosx_10_9_x86_64.whl", hash = "sha256:2a7368b5b0d75acb0835fae40a4d6e6c30ba457b388fedc75f06619a581ba17f", size = 42928696, upload-time = "2026-08-06T21:40:10.372Z" },
-    { url = "https://files.pythonhosted.org/packages/16/1f/f03250cb18d4942d16f335d90a7eef2411b29097ba52531e0062edf16186/pymupdf_layout-1.28.2-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:d55e9b9150e1e9f182063b93092f0ba2c2475b51ea6da656e9d6edad0dd4054d", size = 42927631, upload-time = "2026-08-06T21:40:38.474Z" },
-    { url = "https://files.pythonhosted.org/packages/75/82/6cbf0331e148db48bf609c165dbe900cf3c1158546c5d09d4ad7fd4d6b17/pymupdf_layout-1.28.2-cp310-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:fc7716682bfde26c002a7309cda0c520f3d2466dce368054d4fc2b653a74e8bc", size = 42937884, upload-time = "2026-08-06T21:41:03.992Z" },
-    { url = "https://files.pythonhosted.org/packages/03/65/6b92d25678c64839fb2066ee98d6d1f164d820ba045d83c77e79021cda98/pymupdf_layout-1.28.2-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:4b44a1d8ebf897b0e862ee2d73e7df73099f1c047fc024d2dd24ef0632d2cb5f", size = 42939266, upload-time = "2026-08-06T21:41:31.835Z" },
-    { url = "https://files.pythonhosted.org/packages/db/a0/f429e4c398db6f88071e305434d67f8c6455498f4c7ebb372b730553f073/pymupdf_layout-1.28.2-cp310-abi3-win_amd64.whl", hash = "sha256:a765d3ba0b1622e8d5794772ad4303d824386f04b382a5d31c999a828ed4a089", size = 42938028, upload-time = "2026-08-06T21:41:59.15Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/ee/067726c3ee5574ad5c605d00d7419e264ef509d626a726f99388111f8216/pymupdf_layout-1.27.2.3-cp310-abi3-macosx_10_9_x86_64.whl", hash = "sha256:75c2ab3c0e8830ac2bc50cfd32d375a30768a2610dac72a02f08265336e0834f", size = 15799844, upload-time = "2026-04-24T14:11:13.177Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/ba/46a7a36474722f9280d885f6eec878561a257d9378e52590b43d32ffb96c/pymupdf_layout-1.27.2.3-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:5656b09669dcd7c51f539afb6fdaf853602bab4cbc20479ee5ee1a85a4e32b60", size = 15795220, upload-time = "2026-04-24T14:11:23.17Z" },
+    { url = "https://files.pythonhosted.org/packages/84/87/bfdcca67346052943a4549814f2009b38f4d15ec025798cdf7dfa5f57c84/pymupdf_layout-1.27.2.3-cp310-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:fcf03aa815cbceebdb3263dd6a190de4547c46b1d168928836ec38738afe127d", size = 15805240, upload-time = "2026-04-24T14:11:33.465Z" },
+    { url = "https://files.pythonhosted.org/packages/32/e9/7ce6eaf97cebd46c3808593282e9eb99a60cddd6183e25a636980d5c7986/pymupdf_layout-1.27.2.3-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:303b9414216dfaf711ec7d807b6f1e4c3e0a92bbb4569340fcedd9d5593d16ca", size = 15806269, upload-time = "2026-04-24T14:11:43.481Z" },
+    { url = "https://files.pythonhosted.org/packages/bf/61/3b2417d8f2cdfaa0f4749cd9dafa3379cb5cdaddf4233165f1ff81953c30/pymupdf_layout-1.27.2.3-cp310-abi3-win_amd64.whl", hash = "sha256:503b64d9b6b31ea3af79ef85cf7d36950c5048af468cb297684d2953553c62ad", size = 15809163, upload-time = "2026-04-24T14:11:53.956Z" },
 ]
 
 [[package]]
 name = "pymupdf4llm"
-version = "1.28.2"
+version = "1.27.2.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "psutil" },
     { name = "pymupdf" },
     { name = "pymupdf-layout" },
     { name = "tabulate" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/31/be/6f78a076947529c13bd0660cbe9e61f0155c903aa0c17fd9751733dccc36/pymupdf4llm-1.28.2.tar.gz", hash = "sha256:02681698ef67bda9a2acd5d9e1115d4e88be0eb9c5d68926e5e3cd98cd351874", size = 2091728, upload-time = "2026-08-06T21:43:27.654Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/c0/e3830452d82032c3d82a9879616c05bf0c51e0dea03c1d80d57b3a6ec0d1/pymupdf4llm-1.27.2.3.tar.gz", hash = "sha256:42ec1a47ddc62be3f4f40c116d27618611c6f9fa366719016d9ddc3f3a3dc22b", size = 1406297, upload-time = "2026-04-24T14:13:18.843Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7d/93/0ec4c33150f127d19b306d876b969755f02ed721f3a9337fd1f4fe4a1c85/pymupdf4llm-1.28.2-py3-none-any.whl", hash = "sha256:55c06c07d128f94c4d9271bd427d16ee219779e7d796a7b9da4e110be3004d96", size = 176403, upload-time = "2026-08-06T21:39:44.118Z" },
+    { url = "https://files.pythonhosted.org/packages/e6/38/84bf29f4dd72e6c450546df6ca8f53021f764fd945ba67dcc235d39bc20e/pymupdf4llm-1.27.2.3-py3-none-any.whl", hash = "sha256:bd724b79fa3f06a5b28d7a65f7acfa8de56e04bdb603ac2d6dff315e0d151aaa", size = 77348, upload-time = "2026-04-24T14:11:04.305Z" },
 ]
 
 [[package]]
@@ -3626,13 +3623,13 @@ name = "timm"
 version = "1.0.30"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "huggingface-hub" },
-    { name = "pyyaml" },
-    { name = "safetensors" },
+    { name = "huggingface-hub", marker = "sys_platform != 'win32'" },
+    { name = "pyyaml", marker = "sys_platform != 'win32'" },
+    { name = "safetensors", marker = "sys_platform != 'win32'" },
     { name = "torch", version = "2.13.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
-    { name = "torch", version = "2.13.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+    { name = "torch", version = "2.13.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and sys_platform != 'win32'" },
     { name = "torchvision", version = "0.28.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
-    { name = "torchvision", version = "0.28.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+    { name = "torchvision", version = "0.28.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0e/ab/49041213990e48edcb6013463b18ef86d8d3c5d6ac5b408802c480443025/timm-1.0.30.tar.gz", hash = "sha256:1444a3af7e17fdba5440ac2bcf6e4b728da96dd62289ed9e1bcba31a545f5935", size = 2534738, upload-time = "2026-09-22T20:46:13.9Z" }
 wheels = [
@@ -3686,13 +3683,13 @@ resolution-markers = [
     "sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "filelock" },
-    { name = "fsspec" },
-    { name = "jinja2" },
-    { name = "networkx" },
-    { name = "setuptools" },
-    { name = "sympy" },
-    { name = "typing-extensions" },
+    { name = "filelock", marker = "sys_platform == 'darwin'" },
+    { name = "fsspec", marker = "sys_platform == 'darwin'" },
+    { name = "jinja2", marker = "sys_platform == 'darwin'" },
+    { name = "networkx", marker = "sys_platform == 'darwin'" },
+    { name = "setuptools", marker = "sys_platform == 'darwin'" },
+    { name = "sympy", marker = "sys_platform == 'darwin'" },
+    { name = "typing-extensions", marker = "sys_platform == 'darwin'" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.13.0-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:e76f9bcecc52b8ff711239a2f7547d5353df95878ab232f0773c1d95928b92f8", upload-time = "2026-07-08T12:26:13Z" },
@@ -3707,13 +3704,13 @@ resolution-markers = [
     "sys_platform == 'win32'",
 ]
 dependencies = [
-    { name = "filelock" },
-    { name = "fsspec" },
-    { name = "jinja2" },
-    { name = "networkx" },
-    { name = "setuptools" },
-    { name = "sympy" },
-    { name = "typing-extensions" },
+    { name = "filelock", marker = "sys_platform != 'darwin'" },
+    { name = "fsspec", marker = "sys_platform != 'darwin'" },
+    { name = "jinja2", marker = "sys_platform != 'darwin'" },
+    { name = "networkx", marker = "sys_platform != 'darwin'" },
+    { name = "setuptools", marker = "sys_platform != 'darwin'" },
+    { name = "sympy", marker = "sys_platform != 'darwin'" },
+    { name = "typing-extensions", marker = "sys_platform != 'darwin'" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.13.0%2Bcpu-cp311-cp311-linux_s390x.whl", hash = "sha256:6e9817dbdf5ea76789babd46e457eac5bf14ff566cf85f8addbfdff2d56601ce", upload-time = "2026-07-08T19:27:52Z" },
@@ -3731,9 +3728,9 @@ resolution-markers = [
     "sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "numpy" },
-    { name = "pillow" },
-    { name = "torch", version = "2.13.0", source = { registry = "https://download.pytorch.org/whl/cpu" } },
+    { name = "numpy", marker = "sys_platform == 'darwin'" },
+    { name = "pillow", marker = "sys_platform == 'darwin'" },
+    { name = "torch", version = "2.13.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.28.0-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:83fe6c020866a85acd7d97deccc45ff11d66daf42916d04396a4309c66c0ccb8", upload-time = "2026-07-08T12:26:40Z" },
@@ -3748,9 +3745,9 @@ resolution-markers = [
     "sys_platform == 'win32'",
 ]
 dependencies = [
-    { name = "numpy" },
-    { name = "pillow" },
-    { name = "torch", version = "2.13.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" } },
+    { name = "numpy", marker = "sys_platform != 'darwin'" },
+    { name = "pillow", marker = "sys_platform != 'darwin'" },
+    { name = "torch", version = "2.13.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.28.0%2Bcpu-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:22958193d72444ed7cbcc665ba4821a31e5279f9c4d1ad08520918b30896b78a", upload-time = "2026-07-08T12:26:39Z" },
@@ -4046,22 +4043,22 @@ name = "unstructured-inference"
 version = "1.6.16"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "accelerate" },
-    { name = "huggingface-hub" },
-    { name = "matplotlib" },
-    { name = "numpy" },
-    { name = "onnx" },
-    { name = "onnxruntime" },
-    { name = "opencv-python" },
-    { name = "pandas" },
-    { name = "pdfminer-six" },
-    { name = "pypdfium2" },
-    { name = "rapidfuzz" },
-    { name = "scipy" },
-    { name = "timm" },
+    { name = "accelerate", marker = "sys_platform != 'win32'" },
+    { name = "huggingface-hub", marker = "sys_platform != 'win32'" },
+    { name = "matplotlib", marker = "sys_platform != 'win32'" },
+    { name = "numpy", marker = "sys_platform != 'win32'" },
+    { name = "onnx", marker = "sys_platform != 'win32'" },
+    { name = "onnxruntime", marker = "sys_platform != 'win32'" },
+    { name = "opencv-python", marker = "sys_platform != 'win32'" },
+    { name = "pandas", marker = "sys_platform != 'win32'" },
+    { name = "pdfminer-six", marker = "sys_platform != 'win32'" },
+    { name = "pypdfium2", marker = "sys_platform != 'win32'" },
+    { name = "rapidfuzz", marker = "sys_platform != 'win32'" },
+    { name = "scipy", marker = "sys_platform != 'win32'" },
+    { name = "timm", marker = "sys_platform != 'win32'" },
     { name = "torch", version = "2.13.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
-    { name = "torch", version = "2.13.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
-    { name = "transformers" },
+    { name = "torch", version = "2.13.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and sys_platform != 'win32'" },
+    { name = "transformers", marker = "sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d6/f3/495240f33664fb844afe1e92f2286f6bde8898f716b24c6f2a8cf552ab8e/unstructured_inference-1.6.16.tar.gz", hash = "sha256:921ded233e285de3b950f50bf105ee72ff3e97c1e3bc878a6c30fe66ca123db5", size = 51208, upload-time = "2026-10-27T18:08:54.664Z" }
 wheels = [
