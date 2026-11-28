@@ -166,31 +166,30 @@ istio_test_data = {
 }
 
 
+VECTOR_DB_SERVICES = [
+    ("vdb-redis-cluster-headless", 6379, ConnectionType.REDIS),
+    ("vdb-redis-headless", 6379, ConnectionType.REDIS),
+    # Milvus serves gRPC; curl only has to open the TCP connection for ztunnel to log the decision.
+    ("milvus", 19530, ConnectionType.HTTP),
+]
+
+
 def get_vector_db_endpoints():
     if not cfg.get("vector_databases_enabled"):
-        return []
+        return {}
 
-    # Check for redis-cluster implementation first
-    try:
-        services = list(kr8s.get("services", "vdb-redis-cluster-headless", namespace="vdb"))
-        if len(services) == 1:
-            service = services[0]
-            logger.info("Found redis-cluster vector DB service: %s", service.name)
-            return [f"{service.name}.vdb.svc.cluster.local:6379"]
-    except (RuntimeError, ValueError, AttributeError):
-        pass
+    for name, port, connection_type in VECTOR_DB_SERVICES:
+        try:
+            services = list(kr8s.get("services", name, namespace="vdb"))
+            if len(services) == 1:
+                service = services[0]
+                logger.info("Found vector DB service: %s", service.name)
+                return {connection_type: [f"{service.name}.vdb.svc.cluster.local:{port}"]}
+        except (RuntimeError, ValueError, AttributeError):
+            continue
 
-    # Check for redis implementation
-    try:
-        services = list(kr8s.get("services", "vdb-redis-headless", namespace="vdb"))
-        if len(services) == 1:
-            service = services[0]
-            logger.info("Found redis vector DB service: %s", service.name)
-            return [f"{service.name}.vdb.svc.cluster.local:6379"]
-    except (RuntimeError, ValueError, AttributeError):
-        pass
-
-    raise RuntimeError("No vector database services found with expected names (vdb-redis-cluster or vdb-redis)")
+    names = ", ".join(name for name, _, _ in VECTOR_DB_SERVICES)
+    raise RuntimeError(f"No vector database services found with expected names ({names})")
 
 
 def get_edp_redis_endpoints():
@@ -203,9 +202,9 @@ def get_edp_redis_endpoints():
 def prepare_tests(istio_helper):
     logger.info("============= Prepare Istio Authorization tests =====================")
 
-    # Dynamically populate redis endpoints
     redis_endpoints.extend(get_edp_redis_endpoints())
-    redis_endpoints.extend(get_vector_db_endpoints())
+    for connection_type, endpoints in get_vector_db_endpoints().items():
+        istio_test_data[connection_type].extend(endpoints)
 
     istio_helper.create_namespace(inmesh=True)
     endpoints = {endpoint: connection_type for connection_type, endpoint_list in istio_test_data.items() for endpoint in endpoint_list}
