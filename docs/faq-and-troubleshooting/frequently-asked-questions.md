@@ -30,7 +30,7 @@ On top of the platform: 60 logical cores, 128 GB RAM, and 200 GB disk for a mult
 
 ### Do I need a GPU or an accelerator?
 
-No. Model serving is tuned for Intel® Xeon® CPUs, including NUMA-aware CPU pinning.
+No. It runs on CPUs and is tuned for Intel® platforms (for example, Intel® Xeon® processors), including NUMA-aware CPU pinning.
 
 ### Do I need internet access?
 

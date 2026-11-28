@@ -20,12 +20,12 @@ A working RAG system is not one model call. It is roughly twenty moving parts: a
 
 Teams that assemble this themselves spend their first months on plumbing rather than on their use case, and typically stop short of the parts that production actually requires: mutual TLS between services, per-user access control, an upgrade path, and dashboards that show why a query was slow.
 
-This project is that plumbing, already assembled and tuned for Intel® Xeon® processors, with the parts you are likely to change exposed as configuration rather than code.
+This project is that plumbing, already assembled and tuned for Intel® platforms such as Intel® Xeon® processors, with the parts you are likely to change exposed as configuration rather than code.
 
 ## Why you would use it
 
 - **You keep your data.** Documents, embeddings, and the models all stay on infrastructure you control. Nothing is sent to a hosted API.
-- **It runs on CPUs you already own.** Serving is tuned for Xeon, with NUMA-aware CPU pinning and autoscaling. No accelerator is required.
+- **It runs on CPUs you already own.** Serving is tuned for Intel® CPUs such as Xeon, with NUMA-aware CPU pinning and autoscaling. No accelerator is required.
 - **It is production-shaped from the start.** Keycloak SSO, role-based access, mutual TLS between services, and a Grafana and Prometheus stack are part of the default install, not a later project.
 - **It is modular where it matters.** Swap the LLM, the embedding model, or the vector database through configuration. Add or remove a pipeline step by selecting a different variant.
 - **More than chat.** The same deployment covers conversational retrieval, document summarization, translation, and voice, and can expose retrieval to AI agents over Model Context Protocol.

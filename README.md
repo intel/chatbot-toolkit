@@ -3,11 +3,11 @@
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Installed and operated by: Toolkit Manager](https://img.shields.io/badge/Installed%20and%20operated%20by-Toolkit%20Manager-0068B5)](https://github.com/intel/toolkit-manager)
-[![Platform: Intel® Xeon®](https://img.shields.io/badge/Platform-Intel%C2%AE%20Xeon%C2%AE-0068B5)](https://www.intel.com/xeon)
+[![Platform: Intel®](https://img.shields.io/badge/Platform-Intel%C2%AE-0068B5)](https://www.intel.com)
 [![Pipelines: ChatQnA · DocSum · AudioQnA](https://img.shields.io/badge/Pipelines-ChatQnA%20%C2%B7%20DocSum%20%C2%B7%20AudioQnA-purple)](docs/deployment/pipelines.md)
 [![Identity: Keycloak](https://img.shields.io/badge/Identity-Keycloak%20OIDC-orange)](https://www.keycloak.org)
 
-**Turn your documents into a governed, production-ready AI assistant on Intel® Xeon® CPUs. Toolkit Manager installs and operates this toolkit.**
+**Turn your documents into a governed, production-ready AI assistant on Intel® platforms. Toolkit Manager installs and operates this toolkit.**
 
 > Ships the Ansible roles, Helm charts, and composable pipeline definitions that deploy a full RAG application - document ingestion, vector search, reranking, guardrails, chat history, and a web UI - wired into the platform's identity, gateway, storage, and observability.
 
@@ -37,7 +37,7 @@ Pipelines are composed, not hardcoded. A flavour declares an ordered flow of ste
 - **Integrated, not bolted on** - identity, TLS, object storage, PostgreSQL and Grafana come from the shared platform, so the chatbot is one more governed workload instead of a second stack to operate.
 - **Secure by default** - Pod Security Standards enforcement, Istio ambient mTLS between services, and generated credentials with no secrets in the repo.
 - **Four workloads, one stack** - conversational retrieval (ChatQnA), document summarization (DocSum), voice question answering (AudioQnA), and translation.
-- **Tuned for Intel® Xeon®** - horizontal pod autoscaling and NUMA-aware CPU pinning through the platform's balloons policy.
+- **Tuned for Intel® platforms** - horizontal pod autoscaling and NUMA-aware CPU pinning through the platform's balloons policy.
 
 ## Architecture
 
@@ -58,7 +58,7 @@ See the [Architecture reference](docs/reference/architecture.md) for the compone
 **Deploys the RAG stack on a single node with defaults.** In three steps you will have an assistant answering questions about documents you ingest.
 
 > [!NOTE]
-> **Prerequisites:** a Xeon host with 60 logical cores, 128 GB RAM, and 200 GB free disk;
+> **Prerequisites:** a host with 60 logical cores (for example, Intel® Xeon®), 128 GB RAM, and 200 GB free disk;
 > Ubuntu 22.04/24.04; passwordless sudo; internet access; and Hugging Face access to the
 > default models. Full list, including the 32-core limited deployment → [Prerequisites](docs/getting-started/prerequisites.md).
 
@@ -139,9 +139,9 @@ Curious first? The demo below shows ChatQnA in action.
 
 ---
 
-## Advanced
+## Documentation
 
-The Quick Start deploys the ChatQnA flavour with defaults. From here you can change the pipeline and its variants, swap models, enable multilingual retrieval, connect SharePoint or an external S3 store, wire up agents, and tune every microservice.
+Everything beyond the Quick Start, grouped by task. The [Documentation Index](docs/README.md) lists every guide. The Quick Start deploys the ChatQnA flavour with defaults. From here you can change the pipeline and its variants, swap models, enable multilingual retrieval, connect SharePoint or an external S3 store, wire up agents, and tune every microservice.
 
 | Goal | Guide |
 |---|---|
@@ -161,58 +161,14 @@ The Quick Start deploys the ChatQnA flavour with defaults. From here you can cha
 | What it is and why it exists | [Meet Intel® Chatbot Toolkit](docs/overview/meet.md) |
 | Common questions | [FAQ](docs/faq-and-troubleshooting/frequently-asked-questions.md) |
 | Terminology | [Glossary](docs/reference/glossary.md) |
+| Report a problem or send a change | [Contributing](CONTRIBUTING.md) |
 
 ---
-
-## Publications
-
-* [Lenovo Validated Design: AI POD Mini for Enterprise RAG Implementation](https://lenovopress.lenovo.com/lp2417-lenovo-validated-design-ai-pod-mini-for-enterprise-rag-implementation)
-* [Accelerate AI Value Creation with Nutanix and Intel® AI for Enterprise RAG](https://www.youtube.com/watch?v=7ghQiKXrzew)
-* [Converging Paradigms: Architecting a Hybrid and Open Platform for Unified HPC and AI Workloads](https://www.intel.com/content/www/us/en/content-details/913576/converging-paradigms-architecting-a-hybrid-and-open-platform-for-unified-hpc-and-ai-workloads.html)
-* [Starting With the End in Mind: Intel and Nutanix's Blueprint for an Enterprise-Grade RAG Chatbot](https://www.intel.com/content/www/us/en/content-details/898778/starting-with-the-end-in-mind-intel-and-nutanix-s-blueprint-for-an-enterprise-grade-rag-chatbot.html)
-* [Securing Enterprise RAG Deployments](https://www.intel.com/content/www/us/en/content-details/870124/securing-enterprise-rag-deployments.html)
-* [NetApp AIPod Mini - Deployment Automation](https://community.netapp.com/t5/Tech-ONTAP-Blogs/NetApp-AIPod-Mini-Deployment-Automation/ba-p/463257)
-
----
-
-## Support
-
-Submit questions, feature requests, and bug reports on the GitHub Issues page.
 
 ## License
 
-Intel® Chatbot Toolkit is licensed under the [Apache License Version 2.0](LICENSE). Refer to the "[LICENSE](LICENSE)" file for the full license text and copyright notice.
-
-This distribution includes third-party software governed by separate license terms. This third-party software, even if included with the distribution of the Intel software, may be governed by separate license terms, including without limitation, third-party license terms, other Intel software license terms, and open-source software license terms. These separate license terms govern your use of the third-party programs as set forth in the "[THIRD-PARTY-PROGRAMS](THIRD-PARTY-PROGRAMS)" file.
-
-Please note: component(s) depend on software subject to non-open source licenses. If you use or redistribute this software, it is your sole responsibility to ensure compliance with such licenses.
-
-## Security
-
-The [Security Policy](SECURITY.md) outlines our guidelines and procedures for ensuring the highest level of security and trust for our users who consume Intel® Chatbot Toolkit.
-
-## Intel's Human Rights Principles
-
-Intel is committed to respecting human rights and avoiding complicity in human rights abuses. See Intel's [Global Human Rights Principles](https://www.intel.com/content/www/us/en/policy/policy-human-rights.html). Intel's products and software are intended only to be used in applications that do not cause or contribute to a violation of an internationally recognized human right.
-
-## Model Card Guidance
-
-You, not Intel, are responsible for determining model suitability for your use case. For information regarding model limitations, safety considerations, biases, or other information consult the model cards (if any) for models you use, typically found in the repository where the model is available for download. Contact the model provider with questions. Intel does not provide model cards for third party models.
-
-## Contributing
-
-If you want to contribute to the project, please refer to the guide in [CONTRIBUTING.md](CONTRIBUTING.md) file.
-
-## Links
-
-- [Documentation Index](docs/README.md)
-- [GitHub Repository](https://github.com/intel/chatbot-toolkit)
-- [Toolkit Manager](https://github.com/intel/toolkit-manager) — installs and operates this toolkit
-- [Intel® Inference Toolkit](https://github.com/intel/inference-toolkit)
-- [Architecture](docs/reference/architecture.md)
+Licensed under the [Apache License, Version 2.0](LICENSE). Third-party and model notices: [Notices](docs/reference/notices.md).
 
 ---
 
-*Intel, the Intel logo, OpenVINO, the OpenVINO logo, Pentium, and Xeon are trademarks of Intel Corporation or its subsidiaries. Other names and brands may be claimed as the property of others.*
-
-*&copy; Intel Corporation*
+*Intel, the Intel logo, OpenVINO, and Xeon are trademarks of Intel Corporation or its subsidiaries.*

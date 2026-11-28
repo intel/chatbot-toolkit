@@ -21,9 +21,9 @@ Toolkit Manager installs and operates Intel® Chatbot Toolkit on the platform. T
 
 These are **additional** requirements on top of the platform. Sizing below assumes the platform and Intel® Inference Toolkit are already running.
 
-### Xeon-only deployment
+### CPU-only deployment
 
-To deploy Intel® Chatbot Toolkit using Xeon only:
+To deploy Intel® Chatbot Toolkit on CPUs only (for example, Intel® Xeon® processors):
 
 | Configuration | CPU cores | RAM | Disk | Notes |
 |---|---|---|---|---|
